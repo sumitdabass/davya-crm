@@ -48,4 +48,14 @@ class RolePermissionTest extends TestCase
         $this->assertTrue($kapil->hasRole('freelancer'));
         $this->assertSame(0, User::where('team_head_id', $kapil->id)->count(), 'freelancer must have no sub-team');
     }
+
+    public function test_only_active_users_can_access_filament(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $panel = \Filament\Facades\Filament::getPanel('admin');
+        $this->assertTrue($sumit->canAccessPanel($panel));
+        $sumit->update(['is_active' => false]);
+        $this->assertFalse($sumit->fresh()->canAccessPanel($panel));
+    }
 }

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -10,8 +12,23 @@ use Spatie\Activitylog\LogOptions;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return (bool) $this->is_active;
+    }
+
+    public function teamHead()
+    {
+        return $this->belongsTo(User::class, 'team_head_id');
+    }
+
+    public function teamMembers()
+    {
+        return $this->hasMany(User::class, 'team_head_id');
+    }
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, LogsActivity;
 
