@@ -10,7 +10,9 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -27,9 +29,19 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login(\App\Filament\Auth\LockoutLogin::class)
+            ->brandName('Davya CRM')
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Emerald,
+                'gray'    => Color::Slate,
             ])
+            ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
+                <style>
+                    /* Narrow the login/challenge card so the giant "Sign in" block feels right-sized. */
+                    .fi-simple-main { max-width: 24rem; }
+                    /* Slightly tighter main content — matches Bigin's airy-but-dense look. */
+                    .fi-main-ctn { padding-top: 1rem; }
+                </style>
+            BLADE))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
