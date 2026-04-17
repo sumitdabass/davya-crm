@@ -155,14 +155,29 @@ class StudentResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('phone')->searchable(),
-                TextColumn::make('name')->searchable(),
-                TextColumn::make('owner.name')->label('Owner'),
-                TextColumn::make('stage')->badge(),
-                TextColumn::make('deal_amount')->money('INR'),
-                TextColumn::make('total_received')->money('INR')->label('Received'),
-                TextColumn::make('pending_amount')->money('INR')->label('Pending'),
-                TextColumn::make('updated_at')->dateTime('d M Y H:i')->sortable(),
+                TextColumn::make('name')->searchable()->weight('medium')->sortable()
+                    ->description(fn ($record) => $record->phone),
+                TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
+                TextColumn::make('stage')->badge()->color(fn ($state) => match ($state) {
+                    'Lead Captured'           => 'gray',
+                    'Meeting Scheduled'       => 'info',
+                    'Meeting Done'            => 'info',
+                    'Onboarded'               => 'warning',
+                    'University Registration' => 'warning',
+                    'Counselling In Progress' => 'primary',
+                    'Seat Allotted'           => 'primary',
+                    'Full Payment Received'   => 'success',
+                    'Admission Confirmed'     => 'success',
+                    'Closed'                  => 'danger',
+                    default                   => 'gray',
+                }),
+                TextColumn::make('deal_amount')->money('INR')->sortable(),
+                TextColumn::make('total_received')->money('INR')->label('Received')
+                    ->color('success'),
+                TextColumn::make('pending_amount')->money('INR')->label('Pending')
+                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
+                TextColumn::make('updated_at')->since()->label('Last update')->sortable()
+                    ->toggleable(),
             ])
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
