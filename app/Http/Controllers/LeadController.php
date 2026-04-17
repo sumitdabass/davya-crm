@@ -16,8 +16,9 @@ class LeadController extends Controller
     public function store(StoreLeadRequest $request): JsonResponse
     {
         $data = $request->validated();
+        $referrerName = $data['referrer_name'] ?? null;
 
-        [$referrerId, $ownerId] = $this->deriveOwnership($data['referrer_name']);
+        [$referrerId, $ownerId] = $this->deriveOwnership($referrerName);
 
         $existing = Student::where('phone', $data['phone'])->first();
         if ($existing !== null) {
@@ -39,13 +40,13 @@ class LeadController extends Controller
             'description'   => $data['description']   ?? null,
             'owner_id'      => $ownerId,
             'referrer_id'   => $referrerId,
-            'lead_source'   => $data['referrer_name'],
+            'lead_source'   => $referrerName ?? self::WALK_IN_LABEL,
             'stage'         => 'Lead Captured',
         ]));
 
         Log::info('lead.captured', [
             'student_id'    => $student->id,
-            'referrer_name' => $data['referrer_name'],
+            'referrer_name' => $referrerName,
             'owner_id'      => $ownerId,
         ]);
 
@@ -57,9 +58,9 @@ class LeadController extends Controller
         ], 201);
     }
 
-    private function deriveOwnership(string $referrerName): array
+    private function deriveOwnership(?string $referrerName): array
     {
-        if ($referrerName === self::WALK_IN_LABEL) {
+        if ($referrerName === null || $referrerName === '' || $referrerName === self::WALK_IN_LABEL) {
             return [null, $this->adminId()];
         }
 

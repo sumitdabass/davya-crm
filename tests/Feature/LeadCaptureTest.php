@@ -109,6 +109,19 @@ class LeadCaptureTest extends TestCase
         $this->assertSame($sumit->id, $student->owner_id);
     }
 
+    public function test_null_referrer_name_is_treated_as_walk_in(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+
+        $resp = $this->postLead(['phone' => '9777777777', 'referrer_name' => null]);
+
+        $resp->assertCreated();
+        $student = Student::find($resp->json('id'));
+        $this->assertNull($student->referrer_id);
+        $this->assertSame($sumit->id, $student->owner_id);
+        $this->assertSame('Walk-in / Self', $student->lead_source);
+    }
+
     public function test_referrer_name_match_is_case_insensitive(): void
     {
         $nisha = User::where('email', 'nisha@davya.local')->first();

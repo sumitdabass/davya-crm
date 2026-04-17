@@ -32,7 +32,7 @@ class StoreLeadRequest extends FormRequest
             'twelfth_marks'  => ['nullable', 'string', 'max:20'],
             'category'       => ['nullable', 'string', 'in:Delhi,Outside'],
             'course'         => ['nullable', 'string', 'max:80'],
-            'referrer_name'  => ['required', 'string', 'max:60'],
+            'referrer_name'  => ['nullable', 'string', 'max:60'],
             'description'    => ['nullable', 'string', 'max:2000'],
         ];
     }
