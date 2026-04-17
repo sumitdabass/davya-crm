@@ -33,6 +33,33 @@ class StudentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function getGloballySearchableAttributes(): array
+    {
+        return ['name', 'phone', 'phone_2', 'father_name', 'ipu_user_id', 'final_college'];
+    }
+
+    public static function getGlobalSearchResultTitle($record): string
+    {
+        return $record->name.' — '.$record->phone;
+    }
+
+    public static function getGlobalSearchResultDetails($record): array
+    {
+        return [
+            'Stage' => $record->stage,
+            'Owner' => $record->owner?->name ?? '—',
+            'Deal'  => $record->deal_amount ? '₹'.number_format($record->deal_amount, 0, '.', ',') : '—',
+        ];
+    }
+
+    public static function getGlobalSearchEloquentQuery(): Builder
+    {
+        // Respect the same visibility rules as the list view.
+        return self::getEloquentQuery();
+    }
+
     protected const STAGES = [
         'Lead Captured' => 'Lead Captured',
         'Meeting Scheduled' => 'Meeting Scheduled',
