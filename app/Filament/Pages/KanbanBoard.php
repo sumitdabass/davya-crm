@@ -15,13 +15,13 @@ class KanbanBoard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-view-columns';
 
-    protected static ?string $navigationLabel = 'Kanban';
+    protected static ?string $navigationLabel = 'Report';
 
     protected static ?int $navigationSort = -1;
 
     protected static string $view = 'filament.pages.kanban-board';
 
-    protected static ?string $title = 'Pipeline Kanban';
+    protected static ?string $title = 'Pipeline Report';
 
     protected static ?string $slug = 'kanban';
 
