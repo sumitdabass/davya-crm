@@ -49,105 +49,141 @@ class StudentResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Section::make('Identity')->schema([
-                TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
-                TextInput::make('name')->required(),
-                TextInput::make('father_name'),
-                TextInput::make('phone_2')->tel(),
-            ])->columns(2),
+            Section::make('Identity')
+                ->description('Primary contact details used to reach the student.')
+                ->icon('heroicon-o-identification')
+                ->schema([
+                    TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
+                    TextInput::make('name')->required(),
+                    TextInput::make('father_name'),
+                    TextInput::make('phone_2')->tel()->label('Alternate phone'),
+                ])->columns(2),
 
-            Section::make('Source & Owner')->schema([
-                Select::make('owner_id')->relationship('owner', 'name')->required()->searchable(),
-                Select::make('referrer_id')->relationship('referrer', 'name')->required()->searchable(),
-                Select::make('lead_source')
-                    ->options(fn () => User::pluck('name', 'name')->toArray() + ['Other' => 'Other'])
-                    ->required(),
-            ])->columns(3),
+            Section::make('Source & Owner')
+                ->description('Who brought the lead and who handles it now.')
+                ->icon('heroicon-o-user-group')
+                ->schema([
+                    Select::make('owner_id')->relationship('owner', 'name')->required()->searchable(),
+                    Select::make('referrer_id')->relationship('referrer', 'name')->required()->searchable(),
+                    Select::make('lead_source')
+                        ->options(fn () => User::pluck('name', 'name')->toArray() + ['Other' => 'Other'])
+                        ->required(),
+                ])->columns(3),
 
-            Section::make('Stage & Response')->schema([
-                Select::make('stage')->options(self::STAGES)->required()->default('Lead Captured')
-                    ->live()
-                    ->afterStateUpdated(function ($state, $record) {
-                        if (! $record) {
-                            return;
-                        }
-                        foreach ((new StageTransitionValidator)->forStageChange($record, $state) as $err) {
-                            Notification::make()->warning()->title($err)->send();
-                        }
-                    }),
-                Select::make('student_response')->options([
-                    'Ready' => 'Ready',
-                    'Not Interested' => 'Not Interested',
-                    'Needs Time' => 'Needs Time',
-                ]),
-            ])->columns(2),
+            Section::make('Stage & Response')
+                ->description('Where this student is in the pipeline.')
+                ->icon('heroicon-o-flag')
+                ->schema([
+                    Select::make('stage')->options(self::STAGES)->required()->default('Lead Captured')
+                        ->live()
+                        ->afterStateUpdated(function ($state, $record) {
+                            if (! $record) {
+                                return;
+                            }
+                            foreach ((new StageTransitionValidator)->forStageChange($record, $state) as $err) {
+                                Notification::make()->warning()->title($err)->send();
+                            }
+                        }),
+                    Select::make('student_response')->options([
+                        'Ready' => 'Ready',
+                        'Not Interested' => 'Not Interested',
+                        'Needs Time' => 'Needs Time',
+                    ]),
+                ])->columns(2),
 
-            Section::make('Academic')->schema([
-                TextInput::make('exam_appeared'),
-                TextInput::make('twelfth_marks'),
-                Select::make('category')->options(['Delhi' => 'Delhi', 'Outside' => 'Outside']),
-            ])->columns(3),
+            Section::make('Academic & Preferences')
+                ->description('Board marks, exam, and preferred colleges.')
+                ->icon('heroicon-o-academic-cap')
+                ->collapsible()
+                ->schema([
+                    TextInput::make('exam_appeared'),
+                    TextInput::make('twelfth_marks'),
+                    Select::make('category')->options(['Delhi' => 'Delhi', 'Outside' => 'Outside']),
+                    TextInput::make('course')->columnSpan(3),
+                    TextInput::make('preference_r1')->label('Choice 1'),
+                    TextInput::make('preference_r2')->label('Choice 2'),
+                    TextInput::make('preference_r3')->label('Choice 3'),
+                ])->columns(3),
 
-            Section::make('Preferences')->schema([
-                TextInput::make('course'),
-                TextInput::make('preference_r1')->label('R1'),
-                TextInput::make('preference_r2')->label('R2'),
-                TextInput::make('preference_r3')->label('R3'),
-            ])->columns(4),
+            Section::make('Deal')
+                ->description('Package chosen and total deal amount.')
+                ->icon('heroicon-o-banknotes')
+                ->schema([
+                    TextInput::make('deal_amount')->numeric()->prefix('₹'),
+                    Select::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
+                ])->columns(2),
 
-            Section::make('Deal')->schema([
-                TextInput::make('deal_amount')->numeric()->prefix('₹'),
-                Select::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
-            ])->columns(2),
+            Section::make('Counselling')
+                ->description('IPU portal credentials and current round.')
+                ->icon('heroicon-o-key')
+                ->collapsible()
+                ->schema([
+                    Toggle::make('is_ipu_registered'),
+                    TextInput::make('ipu_user_id'),
+                    TextInput::make('ipu_password')
+                        ->password()
+                        ->suffixAction(
+                            Action::make('reveal')
+                                ->icon('heroicon-o-eye')
+                                ->visible(fn ($record) => $record !== null)
+                                ->action(function ($record, $set) {
+                                    $revealed = (new RevealIpuPassword)($record);
+                                    $set('ipu_password', $revealed);
+                                }),
+                        )
+                        ->helperText('Stored encrypted. Revealing is logged to activity_log.'),
+                    TextInput::make('current_round'),
+                    Toggle::make('seat_fee_due')->disabled(),
+                ])->columns(2),
 
-            Section::make('Counselling')->schema([
-                Toggle::make('is_ipu_registered'),
-                TextInput::make('ipu_user_id'),
-                TextInput::make('ipu_password')
-                    ->password()
-                    ->suffixAction(
-                        Action::make('reveal')
-                            ->icon('heroicon-o-eye')
-                            ->visible(fn ($record) => $record !== null)
-                            ->action(function ($record, $set) {
-                                $revealed = (new RevealIpuPassword)($record);
-                                $set('ipu_password', $revealed);
-                            }),
-                    )
-                    ->helperText('Stored encrypted. Revealing is logged to activity_log.'),
-                TextInput::make('current_round'),
-                Toggle::make('seat_fee_due')->disabled(),
-            ])->columns(2),
+            Section::make('Final allotment')
+                ->description('Locked-in college and admission date.')
+                ->icon('heroicon-o-check-badge')
+                ->collapsible()
+                ->schema([
+                    TextInput::make('final_college'),
+                    TextInput::make('final_course'),
+                    DatePicker::make('admission_date'),
+                ])->columns(3),
 
-            Section::make('Final')->schema([
-                TextInput::make('final_college'),
-                TextInput::make('final_course'),
-                DatePicker::make('admission_date'),
-            ])->columns(3),
+            Section::make('Logistics')
+                ->description('Office visit and meeting tracking.')
+                ->icon('heroicon-o-map-pin')
+                ->collapsible()
+                ->collapsed()
+                ->schema([
+                    DateTimePicker::make('meeting_date'),
+                    TextInput::make('meeting_location'),
+                    Toggle::make('address_sent'),
+                    Toggle::make('office_visit'),
+                ])->columns(2),
 
-            Section::make('Logistics')->schema([
-                DateTimePicker::make('meeting_date'),
-                TextInput::make('meeting_location'),
-                Toggle::make('address_sent'),
-                Toggle::make('office_visit'),
-            ])->columns(2),
+            Section::make('Closure')
+                ->description('Only fill when closing or re-opening a student.')
+                ->icon('heroicon-o-x-circle')
+                ->collapsible()
+                ->collapsed(fn ($record) => ! in_array($record?->stage, ['Closed'], true))
+                ->schema([
+                    Select::make('close_reason')->options([
+                        'Not Interested' => 'Not Interested',
+                        'Backed Out — Forfeit' => 'Backed Out — Forfeit',
+                        'Backed Out — Partial Refund' => 'Backed Out — Partial Refund',
+                        'Completed' => 'Completed',
+                        'Other' => 'Other',
+                    ]),
+                    TextInput::make('refund_amount')->numeric()->prefix('₹'),
+                    Textarea::make('re_entry_reason')->rows(2),
+                ])->columns(2),
 
-            Section::make('Closure')->schema([
-                Select::make('close_reason')->options([
-                    'Not Interested' => 'Not Interested',
-                    'Backed Out — Forfeit' => 'Backed Out — Forfeit',
-                    'Backed Out — Partial Refund' => 'Backed Out — Partial Refund',
-                    'Completed' => 'Completed',
-                    'Other' => 'Other',
-                ]),
-                TextInput::make('refund_amount')->numeric()->prefix('₹'),
-                Textarea::make('re_entry_reason')->rows(2),
-            ])->columns(2),
-
-            Section::make('Notes')->schema([
-                Textarea::make('description')->rows(3),
-                Textarea::make('extra_notes')->rows(3),
-            ])->columns(1),
+            Section::make('Freeform notes')
+                ->description('For long-form context. The Notes panel below is better for ongoing updates.')
+                ->icon('heroicon-o-document-text')
+                ->collapsible()
+                ->collapsed()
+                ->schema([
+                    Textarea::make('description')->rows(3)->label('Description'),
+                    Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
+                ])->columns(1),
         ]);
     }
 
