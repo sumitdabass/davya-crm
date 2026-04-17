@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
+use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
 use App\Models\Student;
 use App\Models\User;
 use Filament\Forms\Components\Actions\Action;
@@ -184,6 +185,7 @@ class StudentResource extends Resource
     {
         return [
             PaymentsRelationManager::class,
+            RoundHistoryRelationManager::class,
         ];
     }
 
