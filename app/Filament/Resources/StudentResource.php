@@ -263,6 +263,48 @@ class StudentResource extends Resource
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\BulkAction::make('reassign_owner')
+                        ->label('Reassign owner')
+                        ->icon('heroicon-m-user')
+                        ->color('primary')
+                        ->visible(fn () => auth()->user()?->hasRole(['admin', 'head']))
+                        ->form([
+                            Select::make('owner_id')
+                                ->label('New owner')
+                                ->options(fn () => User::query()->where('is_active', true)->orderBy('name')->pluck('name', 'id'))
+                                ->required()
+                                ->searchable(),
+                        ])
+                        ->requiresConfirmation()
+                        ->action(function (\Illuminate\Support\Collection $records, array $data): void {
+                            $newOwnerId = (int) $data['owner_id'];
+                            $caller = auth()->user();
+                            $touched = 0;
+
+                            foreach ($records as $student) {
+                                // Members cannot transfer (matches StudentPolicy::transfer).
+                                if (! $caller->hasRole(['admin', 'head'])) {
+                                    continue;
+                                }
+                                // Head can only reassign students they can see.
+                                if ($caller->hasRole('head') && ! $caller->hasRole('admin')) {
+                                    $teamIds = User::where('team_head_id', $caller->id)->pluck('id')->all();
+                                    $teamIds[] = $caller->id;
+                                    if (! in_array($student->owner_id, $teamIds, true)) {
+                                        continue;
+                                    }
+                                }
+                                $student->owner_id = $newOwnerId;
+                                $student->save();
+                                $touched++;
+                            }
+
+                            \Filament\Notifications\Notification::make()
+                                ->title("Reassigned {$touched} student".($touched === 1 ? '' : 's'))
+                                ->success()
+                                ->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
