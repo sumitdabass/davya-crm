@@ -10,10 +10,13 @@ class ExampleTest extends TestCase
     /**
      * A basic test example.
      */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_root_redirects_to_admin(): void
     {
-        $response = $this->get('/');
+        $this->get('/')->assertRedirect('/admin');
+    }
 
-        $response->assertStatus(200);
+    public function test_all_responses_carry_noindex_header(): void
+    {
+        $this->get('/')->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive, nosnippet');
     }
 }

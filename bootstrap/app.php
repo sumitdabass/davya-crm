@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->append(\App\Http\Middleware\NoIndex::class);
         $middleware->web(append: [
             \App\Http\Middleware\AbsoluteSessionTimeout::class,
         ]);
