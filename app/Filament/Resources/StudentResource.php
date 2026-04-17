@@ -91,8 +91,8 @@ class StudentResource extends Resource
                     ]),
                 ])->columns(2),
 
-            Section::make('Academic & Preferences')
-                ->description('Board marks, exam, and preferred colleges.')
+            Section::make('Academic')
+                ->description('Board marks, exam, and category.')
                 ->icon('heroicon-o-academic-cap')
                 ->collapsible()
                 ->schema([
@@ -100,9 +100,22 @@ class StudentResource extends Resource
                     TextInput::make('twelfth_marks'),
                     Select::make('category')->options(['Delhi' => 'Delhi', 'Outside' => 'Outside']),
                     TextInput::make('course')->columnSpan(3),
-                    TextInput::make('preference_r1')->label('Choice 1'),
-                    TextInput::make('preference_r2')->label('Choice 2'),
-                    TextInput::make('preference_r3')->label('Choice 3'),
+                ])->columns(3),
+
+            Section::make('College Preference')
+                ->description('Three college choices we offer the student. First choice is mandatory; second and third are optional.')
+                ->icon('heroicon-o-building-library')
+                ->schema([
+                    TextInput::make('preference_r1')
+                        ->label('1st choice')
+                        ->required()
+                        ->maxLength(120),
+                    TextInput::make('preference_r2')
+                        ->label('2nd choice (optional)')
+                        ->maxLength(120),
+                    TextInput::make('preference_r3')
+                        ->label('3rd choice (optional)')
+                        ->maxLength(120),
                 ])->columns(3),
 
             Section::make('Deal')
