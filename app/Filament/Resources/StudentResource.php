@@ -6,6 +6,8 @@ use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
+use App\Services\StageTransitionValidator;
+use Filament\Notifications\Notification;
 use App\Models\Student;
 use App\Models\User;
 use Filament\Forms\Components\Actions\Action;
@@ -62,7 +64,16 @@ class StudentResource extends Resource
             ])->columns(3),
 
             Section::make('Stage & Response')->schema([
-                Select::make('stage')->options(self::STAGES)->required()->default('Lead Captured'),
+                Select::make('stage')->options(self::STAGES)->required()->default('Lead Captured')
+                    ->live()
+                    ->afterStateUpdated(function ($state, $record) {
+                        if (! $record) {
+                            return;
+                        }
+                        foreach ((new StageTransitionValidator)->forStageChange($record, $state) as $err) {
+                            Notification::make()->warning()->title($err)->send();
+                        }
+                    }),
                 Select::make('student_response')->options([
                     'Ready' => 'Ready',
                     'Not Interested' => 'Not Interested',
