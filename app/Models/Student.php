@@ -39,6 +39,7 @@ class Student extends Model
     public function referrer(): BelongsTo { return $this->belongsTo(User::class, 'referrer_id'); }
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
     public function roundHistory(): HasMany { return $this->hasMany(RoundHistory::class); }
+    public function notes(): HasMany { return $this->hasMany(StudentNote::class)->latest(); }
 
     public function getTotalReceivedAttribute(): float
     {

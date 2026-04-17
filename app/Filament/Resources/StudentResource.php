@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\StudentResource\Pages;
+use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
 use App\Services\StageTransitionValidator;
@@ -195,6 +196,7 @@ class StudentResource extends Resource
     public static function getRelations(): array
     {
         return [
+            NotesRelationManager::class,
             PaymentsRelationManager::class,
             RoundHistoryRelationManager::class,
         ];
