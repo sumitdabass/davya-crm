@@ -2,7 +2,12 @@
 
 namespace App\Providers;
 
+use App\Listeners\HandleAuthEvents;
+use Illuminate\Auth\Events\Failed;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Auth\Events\Logout;
 use Illuminate\Filesystem\FilesystemAdapter;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use League\Flysystem\Filesystem;
@@ -17,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Event::listen(Login::class,  [HandleAuthEvents::class, 'handleLogin']);
+        Event::listen(Logout::class, [HandleAuthEvents::class, 'handleLogout']);
+        Event::listen(Failed::class, [HandleAuthEvents::class, 'handleFailed']);
+
         Storage::extend('google', function ($app, $config) {
             $options = [];
             if (! empty($config['teamDriveId'] ?? null)) {
