@@ -25,7 +25,8 @@ class UsersSeeder extends Seeder
         $nikhil = User::updateOrCreate(
             ['email' => 'nikhil@davya.local'],
             ['name' => 'Nikhil', 'password' => $randomPw(),
-             'is_freelancer' => false, 'is_active' => true, 'must_change_password' => true]
+             'is_freelancer' => false, 'is_active' => true, 'must_change_password' => true,
+             'split_pct' => 60]
         );
 
         User::updateOrCreate(
