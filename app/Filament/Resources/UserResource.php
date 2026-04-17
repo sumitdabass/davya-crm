@@ -6,10 +6,13 @@ use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
@@ -82,7 +85,56 @@ class UserResource extends Resource
                 Tables\Filters\TernaryFilter::make('is_active'),
                 Tables\Filters\TernaryFilter::make('is_freelancer'),
             ])
-            ->actions([Tables\Actions\EditAction::make()])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Action::make('reset_2fa')
+                    ->label('Reset 2FA')
+                    ->icon('heroicon-m-shield-exclamation')
+                    ->color('warning')
+                    ->visible(fn (User $record) => auth()->user()?->hasRole('admin') && $record->hasTwoFactorEnabled())
+                    ->requiresConfirmation()
+                    ->modalHeading('Reset 2FA for this user?')
+                    ->modalDescription(fn (User $record) => "This will wipe {$record->name}'s authenticator secret and recovery codes. They will log in with just a password, then can re-enrol from Settings → Two-Factor Auth.")
+                    ->action(function (User $record) {
+                        $record->totp_secret = null;
+                        $record->totp_confirmed_at = null;
+                        $record->totp_recovery_codes = null;
+                        $record->save();
+
+                        Log::info('admin.reset_2fa', [
+                            'admin_id' => auth()->id(),
+                            'target_user_id' => $record->id,
+                        ]);
+
+                        Notification::make()->title("2FA reset for {$record->name}")->success()->send();
+                    }),
+                Action::make('set_temp_password')
+                    ->label('Set temp password')
+                    ->icon('heroicon-m-key')
+                    ->color('gray')
+                    ->visible(fn () => auth()->user()?->hasRole('admin'))
+                    ->requiresConfirmation()
+                    ->modalHeading('Set a temporary password?')
+                    ->modalDescription(fn (User $record) => "Generates a new random password for {$record->name} and forces them to change it on next login. Copy the password and share it through a secure channel.")
+                    ->action(function (User $record) {
+                        $temp = 'Temp-'.bin2hex(random_bytes(4)).'!';
+                        $record->password = Hash::make($temp);
+                        $record->must_change_password = true;
+                        $record->save();
+
+                        Log::info('admin.set_temp_password', [
+                            'admin_id' => auth()->id(),
+                            'target_user_id' => $record->id,
+                        ]);
+
+                        Notification::make()
+                            ->title("Temp password for {$record->name}")
+                            ->body("Password: $temp — copy now; it won't be shown again. Shown only to you.")
+                            ->success()
+                            ->persistent()
+                            ->send();
+                    }),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
