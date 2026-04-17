@@ -95,6 +95,50 @@ class KanbanBoardTest extends TestCase
         $this->assertNotContains($poonamStudent->id, $ids);
     }
 
+    // --- drag-drop (server side of it) ---
+
+    public function test_moveStudentToStage_updates_stage_when_allowed(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $s = $this->student(['stage' => 'Lead Captured']);
+
+        $this->actingAs($sumit);
+        $res = (new KanbanBoard)->moveStudentToStage($s->id, 'Meeting Scheduled');
+
+        $this->assertTrue($res['ok']);
+        $this->assertSame('Meeting Scheduled', $s->fresh()->stage);
+    }
+
+    public function test_moveStudentToStage_blocks_closed_without_close_reason(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $s = $this->student(['stage' => 'Onboarded']);
+
+        $this->actingAs($sumit);
+        $res = (new KanbanBoard)->moveStudentToStage($s->id, 'Closed');
+
+        $this->assertFalse($res['ok']);
+        $this->assertStringContainsString('close_reason', $res['message']);
+        $this->assertSame('Onboarded', $s->fresh()->stage);
+    }
+
+    public function test_moveStudentToStage_rejects_students_outside_visibility(): void
+    {
+        $nisha  = User::where('email', 'nisha@davya.local')->first();
+        $poonam = User::where('email', 'poonam@davya.local')->first();
+
+        $poonamStudent = $this->student([
+            'owner_id' => $poonam->id, 'referrer_id' => $poonam->id, 'lead_source' => 'Poonam',
+            'stage' => 'Lead Captured',
+        ]);
+
+        $this->actingAs($nisha);
+        $res = (new KanbanBoard)->moveStudentToStage($poonamStudent->id, 'Meeting Scheduled');
+
+        $this->assertFalse($res['ok']);
+        $this->assertSame('Lead Captured', $poonamStudent->fresh()->stage);
+    }
+
     public function test_head_sees_team_and_self_students(): void
     {
         $nikhil = User::where('email', 'nikhil@davya.local')->first();

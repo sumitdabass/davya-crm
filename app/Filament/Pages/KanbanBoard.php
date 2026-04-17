@@ -6,6 +6,8 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\PipelineSummary;
+use App\Services\StageTransitionValidator;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -71,6 +73,51 @@ class KanbanBoard extends Page
         }
 
         return $columns;
+    }
+
+    public function moveStudentToStage(int $studentId, string $newStage): array
+    {
+        $user = auth()->user();
+        $student = $this->visibleStudentQuery($user)->whereKey($studentId)->first();
+
+        if (! $student) {
+            return $this->kanbanResponse(false, 'Not allowed.');
+        }
+        if (! in_array($newStage, PipelineSummary::STAGES, true)) {
+            return $this->kanbanResponse(false, 'Unknown stage.');
+        }
+        if ($student->stage === $newStage) {
+            return $this->kanbanResponse(true, 'No change.');
+        }
+
+        $original = $student->stage;
+        $student->stage = $newStage;
+
+        $errors = (new StageTransitionValidator)->forStageChange($student, $newStage);
+        if ($errors !== []) {
+            $student->stage = $original;
+            Notification::make()
+                ->title('Stage move blocked')
+                ->body(implode(' ', $errors))
+                ->danger()
+                ->send();
+            return $this->kanbanResponse(false, implode(' ', $errors));
+        }
+
+        $student->save();
+
+        Notification::make()
+            ->title("Moved to {$newStage}")
+            ->success()
+            ->send();
+
+        return $this->kanbanResponse(true, 'ok');
+    }
+
+    /** @return array{ok:bool,message:string} */
+    private function kanbanResponse(bool $ok, string $message): array
+    {
+        return ['ok' => $ok, 'message' => $message];
     }
 
     private function visibleStudentQuery(User $user): Builder
