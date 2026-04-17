@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,6 +15,13 @@ class Student extends Model
     use HasFactory, LogsActivity;
 
     protected $guarded = [];
+
+    public function scopeStuck(Builder $query): Builder
+    {
+        return $query
+            ->where('updated_at', '<', now()->subDays(14))
+            ->whereNotIn('stage', ['Admission Confirmed', 'Closed']);
+    }
 
     protected $casts = [
         'ipu_password' => 'encrypted',

@@ -38,7 +38,10 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                \App\Filament\Widgets\PipelineSummaryWidget::class,
+                \App\Filament\Widgets\SeatFeePendingWidget::class,
+                \App\Filament\Widgets\ReEntryCandidatesWidget::class,
+                \App\Filament\Widgets\StuckLeadsWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,
