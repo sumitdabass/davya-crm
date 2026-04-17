@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\StudentResource\Pages;
+use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Models\Student;
 use App\Models\User;
 use Filament\Forms\Components\Actions\Action;
@@ -181,7 +182,9 @@ class StudentResource extends Resource
 
     public static function getRelations(): array
     {
-        return [];
+        return [
+            PaymentsRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
