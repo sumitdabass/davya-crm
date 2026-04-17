@@ -58,6 +58,7 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
                 \App\Http\Middleware\AbsoluteSessionTimeout::class,
                 \App\Http\Middleware\RequirePasswordChange::class,
+                \App\Http\Middleware\RequireTwoFactor::class,
             ]);
     }
 }

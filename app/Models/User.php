@@ -60,7 +60,14 @@ class User extends Authenticatable implements FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+        'totp_secret',
+        'totp_recovery_codes',
     ];
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return ! is_null($this->totp_confirmed_at);
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -75,6 +82,9 @@ class User extends Authenticatable implements FilamentUser
             'is_freelancer' => 'boolean',
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
+            'totp_secret' => 'encrypted',
+            'totp_confirmed_at' => 'datetime',
+            'totp_recovery_codes' => 'encrypted',
         ];
     }
 }
