@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\StudentResource\Pages;
+use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
@@ -332,6 +333,7 @@ class StudentResource extends Resource
             NotesRelationManager::class,
             PaymentsRelationManager::class,
             RoundHistoryRelationManager::class,
+            ActivityRelationManager::class,
         ];
     }
 
