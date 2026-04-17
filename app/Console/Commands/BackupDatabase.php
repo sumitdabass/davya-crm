@@ -27,7 +27,7 @@ class BackupDatabase extends Command
         $pass = (string) config('database.connections.mysql.password');
 
         $cmd = sprintf(
-            'mysqldump --single-transaction --quick --no-tablespaces -h%s -u%s -p%s %s | gzip > %s',
+            'mysqldump --single-transaction --quick --no-tablespaces --add-drop-table -h%s -u%s -p%s %s | gzip > %s',
             escapeshellarg($host),
             escapeshellarg($user),
             escapeshellarg($pass),
