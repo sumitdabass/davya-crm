@@ -8,6 +8,7 @@ use App\Models\LedgerEntry;
 use App\Services\Finance\LedgerRoutingService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class FinanceExpenseController extends Controller
 {
@@ -36,6 +37,14 @@ class FinanceExpenseController extends Controller
             foreach ($rows as $r) LedgerEntry::create($r);
             return ['expense' => $expense, 'ledger_count' => count($rows)];
         });
+
+        Log::info('finance.expense.captured', [
+            'expense_id'  => $result['expense']->id,
+            'amount'      => $data['amount'],
+            'category'    => $data['category'] ?? null,
+            'slack_id'    => $data['slack_message_id'],
+            'ledger_rows' => $result['ledger_count'],
+        ]);
 
         return response()->json([
             'id' => $result['expense']->id,

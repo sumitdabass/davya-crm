@@ -42,6 +42,7 @@ class ExpenseCaptureTest extends TestCase
         $this->postPayload()->assertCreated()->assertJson(['ledger_entries' => 1]);
         $e = Expense::first();
         $this->assertNotNull($e);
+        $this->assertSame('2026-04-17 04:30:00', $e->paid_at->utc()->format('Y-m-d H:i:s'));
         $l = LedgerEntry::first();
         $this->assertSame('davya', $l->account);
         $this->assertSame('-5000.00', (string) $l->delta_amount);
