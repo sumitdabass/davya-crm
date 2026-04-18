@@ -179,4 +179,13 @@ class PaymentCaptureTest extends TestCase
         $this->assertSame(1, Payment::where('slack_message_id', $slackId)->count());
     }
 
+    public function test_unknown_referrer_422_does_not_echo_user_input(): void
+    {
+        $hostile = "<script>alert('x')</script>";
+        $resp = $this->postPayload(['student_phone' => '9100000077', 'referrer_name' => $hostile]);
+        $resp->assertStatus(422);
+        $body = $resp->getContent();
+        $this->assertStringNotContainsString('<script>', $body);
+        $this->assertStringNotContainsString($hostile, $body);
+    }
 }

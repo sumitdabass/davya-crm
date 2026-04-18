@@ -39,7 +39,7 @@ class FinancePaymentController extends Controller
             if ($referrerId === null && strtolower($data['referrer_name']) !== 'walk-in / self') {
                 return response()->json([
                     'message' => 'The given data was invalid.',
-                    'errors'  => ['referrer_name' => ["Unknown referrer '{$data['referrer_name']}'."]],
+                    'errors'  => ['referrer_name' => ['Unknown referrer.']],
                 ], 422);
             }
             $student = Student::create([
