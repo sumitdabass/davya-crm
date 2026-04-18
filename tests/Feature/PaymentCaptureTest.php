@@ -127,4 +127,13 @@ class PaymentCaptureTest extends TestCase
              ->assertJsonValidationErrors('referrer_name');
         $this->assertSame(0, Payment::count());
     }
+
+    public function test_new_student_without_name_gets_placeholder(): void
+    {
+        $this->postPayload(['student_phone' => '9100000006', 'student_name' => null, 'referrer_name' => 'Nisha'])
+             ->assertCreated();
+        $student = Student::where('phone', '9100000006')->first();
+        $this->assertNotNull($student);
+        $this->assertSame('Pending — 9100000006', $student->name);
+    }
 }

@@ -43,7 +43,7 @@ class FinancePaymentController extends Controller
             }
             $student = Student::create([
                 'phone'       => $data['student_phone'],
-                'name'        => $data['student_name'] ?? null,
+                'name'        => $data['student_name'] ?? 'Pending — '.$data['student_phone'],
                 'owner_id'    => $ownerId,
                 'referrer_id' => $referrerId,
                 'lead_source' => $data['referrer_name'],
