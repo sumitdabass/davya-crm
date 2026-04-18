@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Investment;
 use App\Models\LedgerEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class InvestmentCaptureTest extends TestCase
@@ -19,8 +18,6 @@ class InvestmentCaptureTest extends TestCase
         parent::setUp();
         $this->seed();
         config(['finance.capture_token' => self::TOKEN]);
-        Route::post('/api/finance/investments', [\App\Http\Controllers\FinanceInvestmentController::class, 'store'])
-            ->middleware(\App\Http\Middleware\VerifyFinanceToken::class);
     }
 
     private function postPayload(array $overrides = [], ?string $token = self::TOKEN)

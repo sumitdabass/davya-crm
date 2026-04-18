@@ -7,7 +7,6 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class PaymentCaptureTest extends TestCase
@@ -21,8 +20,6 @@ class PaymentCaptureTest extends TestCase
         parent::setUp();
         $this->seed();
         config(['finance.capture_token' => self::TOKEN]);
-        Route::post('/api/finance/payments', [\App\Http\Controllers\FinancePaymentController::class, 'store'])
-            ->middleware(\App\Http\Middleware\VerifyFinanceToken::class);
     }
 
     private function postPayload(array $overrides = [], ?string $token = self::TOKEN)

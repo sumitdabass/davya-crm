@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\FailedExtraction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class FinanceFailedTest extends TestCase
@@ -17,8 +16,6 @@ class FinanceFailedTest extends TestCase
     {
         parent::setUp();
         config(['finance.capture_token' => self::TOKEN]);
-        Route::post('/api/finance/failed', [\App\Http\Controllers\FinanceFailedController::class, 'store'])
-            ->middleware(\App\Http\Middleware\VerifyFinanceToken::class);
     }
 
     public function test_allows_repeated_slack_message_ids(): void
