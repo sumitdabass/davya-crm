@@ -1,0 +1,314 @@
+{
+  "name": "Davya Finance — Slack → CRM",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "trigger": "message",
+        "channelIds": [
+          "C0ATAQ8KFF1",
+          "C0ATVRN4DDJ"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        0
+      ],
+      "id": "a1111111-1111-4111-8111-111111111111",
+      "name": "Slack Trigger — new message",
+      "webhookId": "PASTE_SLACK_WEBHOOK_ID_HERE",
+      "credentials": {
+        "slackApi": {
+          "id": "PASTE_SLACK_CREDENTIAL_ID_HERE",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=PASTE_GEMINI_KEY_HERE",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ \"systemInstruction\": { \"parts\": [{ \"text\": \"You are a strict JSON extractor for Davya consultancy's finance system. You only output JSON matching the provided schema. If a field is unknown, omit it — never invent data. If the message is ambiguous, set \\\"notes\\\" to explain. Never reply conversationally.\\n\\nExamples:\\n- \\\"got 50k from priya 9999911111, ref nisha\\\" → {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":50000,\\\"student_phone\\\":\\\"9999911111\\\",\\\"student_name\\\":\\\"priya\\\",\\\"referrer_name\\\":\\\"nisha\\\"}\\n- \\\"priya paid 20k more, pending 30k\\\" → {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":20000,\\\"student_name\\\":\\\"priya\\\",\\\"is_partial\\\":true}\\n- \\\"paid 5k for fb ads\\\" → {\\\"category\\\":\\\"Expense\\\",\\\"amount\\\":5000,\\\"expense_category\\\":\\\"Marketing\\\",\\\"notes\\\":\\\"fb ads\\\"}\\n- \\\"bought 100k tata motors\\\" → {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":100000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"out\\\"}\\n- \\\"tata motors paid 120k\\\" → {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":120000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"in\\\"}\" }] }, \"contents\": [{ \"role\": \"user\", \"parts\": [{ \"text\": ($json.text || $json.event?.text || '') }] }], \"generationConfig\": { \"temperature\": 0.1, \"responseMimeType\": \"application/json\", \"responseSchema\": { \"type\": \"object\", \"properties\": { \"category\": { \"type\": \"string\", \"enum\": [\"Payment\", \"Expense\", \"Investment\"] }, \"amount\": { \"type\": \"number\" }, \"student_phone\": { \"type\": \"string\" }, \"student_name\": { \"type\": \"string\" }, \"referrer_name\": { \"type\": \"string\" }, \"asset_name\": { \"type\": \"string\" }, \"investment_direction\": { \"type\": \"string\", \"enum\": [\"in\", \"out\"] }, \"expense_category\": { \"type\": \"string\" }, \"is_partial\": { \"type\": \"boolean\" }, \"notes\": { \"type\": \"string\" } }, \"required\": [\"category\", \"amount\"] } } }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -160,
+        0
+      ],
+      "id": "b2222222-2222-4222-8222-222222222222",
+      "name": "Call Gemini"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const STUDENT_ENTRIES_CHANNEL = 'C0ATAQ8KFF1';\nconst FINANCE_LOG_CHANNEL = 'C0ATVRN4DDJ';\n\n// Pull Slack trigger data\nconst triggerData = $('Slack Trigger — new message').item.json;\nconst slackChannel = triggerData.channel || triggerData.event?.channel || '';\nconst slackTs = triggerData.ts || triggerData.event?.ts || '';\nconst rawInput = (triggerData.text || triggerData.event?.text || '').slice(0, 4000);\n\n// Parse Gemini response\nlet gemini = null;\nlet parseError = null;\ntry {\n  const geminiRaw = $input.item.json.body?.candidates?.[0]?.content?.parts?.[0]?.text;\n  if (geminiRaw) {\n    gemini = JSON.parse(geminiRaw);\n  } else {\n    parseError = 'no candidates in Gemini response';\n  }\n} catch (e) {\n  parseError = 'JSON parse error: ' + e.message;\n}\n\n// Check parse succeeded and has required fields\nif (!gemini || !gemini.category || typeof gemini.amount !== 'number') {\n  return {\n    json: {\n      target: 'failed',\n      payload: {\n        slack_message_id: slackTs,\n        slack_channel: slackChannel,\n        raw_input: rawInput,\n        error_reason: parseError || 'gemini parse failed'\n      },\n      slack_ts: slackTs,\n      slack_channel: slackChannel,\n      gemini: gemini\n    }\n  };\n}\n\n// Channel-category routing validation\nconst category = gemini.category; // 'Payment' | 'Expense' | 'Investment'\nlet channelMismatch = false;\nif ((category === 'Payment' || category === 'Expense') && slackChannel !== STUDENT_ENTRIES_CHANNEL) {\n  channelMismatch = true;\n}\nif (category === 'Investment' && slackChannel !== FINANCE_LOG_CHANNEL) {\n  channelMismatch = true;\n}\n\nif (channelMismatch) {\n  return {\n    json: {\n      target: 'failed',\n      payload: {\n        slack_message_id: slackTs,\n        slack_channel: slackChannel,\n        raw_input: rawInput,\n        error_reason: 'channel-category mismatch'\n      },\n      slack_ts: slackTs,\n      slack_channel: slackChannel,\n      gemini: gemini\n    }\n  };\n}\n\n// Build target-specific payload\nlet target;\nlet payload;\n\nif (category === 'Payment') {\n  target = 'payments';\n  payload = { slack_message_id: slackTs, raw_input: rawInput };\n  if (gemini.amount !== undefined)          payload.amount = gemini.amount;\n  if (gemini.student_phone !== undefined)   payload.student_phone = gemini.student_phone;\n  if (gemini.student_name !== undefined)    payload.student_name = gemini.student_name;\n  if (gemini.referrer_name !== undefined)   payload.referrer_name = gemini.referrer_name;\n  if (gemini.is_partial !== undefined)      payload.is_partial = gemini.is_partial;\n} else if (category === 'Expense') {\n  target = 'expenses';\n  payload = {\n    amount: gemini.amount,\n    category: gemini.expense_category || null,\n    description: gemini.notes || null,\n    slack_message_id: slackTs,\n    raw_input: rawInput\n  };\n} else if (category === 'Investment') {\n  target = 'investments';\n  payload = {\n    asset_name: gemini.asset_name || null,\n    amount: gemini.amount,\n    direction: gemini.investment_direction || null,\n    slack_message_id: slackTs,\n    raw_input: rawInput\n  };\n}\n\nreturn {\n  json: {\n    target,\n    payload,\n    slack_ts: slackTs,\n    slack_channel: slackChannel,\n    gemini\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        80,
+        0
+      ],
+      "id": "c3333333-3333-4333-8333-333333333333",
+      "name": "Dispatch by category"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://davyas.ipu.co.in/api/finance/\" + $json.target }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Finance-Token",
+              "value": "PASTE_FINANCE_CAPTURE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        0
+      ],
+      "id": "d4444444-4444-4444-8444-444444444444",
+      "name": "POST to CRM"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "status-ok",
+              "leftValue": "={{ $json.statusCode }}",
+              "rightValue": 201,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "e5555555-5555-4555-8555-555555555555",
+      "name": "201?"
+    },
+    {
+      "parameters": {
+        "resource": "reaction",
+        "operation": "add",
+        "channel": "={{ $('Dispatch by category').item.json.slack_channel }}",
+        "messageTs": "={{ $('Dispatch by category').item.json.slack_ts }}",
+        "name": "white_check_mark"
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -80
+      ],
+      "id": "f6666666-6666-4666-8666-666666666666",
+      "name": "React ✅ on source message",
+      "credentials": {
+        "slackApi": {
+          "id": "PASTE_SLACK_CREDENTIAL_ID_HERE",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://davyas.ipu.co.in/api/finance/failed",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Finance-Token",
+              "value": "PASTE_FINANCE_CAPTURE_TOKEN_HERE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ slack_message_id: $('Dispatch by category').item.json.slack_ts, slack_channel: $('Dispatch by category').item.json.slack_channel, raw_input: ($('Slack Trigger — new message').item.json.text || $('Slack Trigger — new message').item.json.event?.text || '').slice(0, 4000), error_reason: ('CRM ' + ($json.statusCode || 'error') + ': ' + JSON.stringify($json.body || {})).slice(0, 255) }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        80
+      ],
+      "id": "g7777777-7777-4777-8777-777777777777",
+      "name": "POST /api/finance/failed"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "channel": "={{ $('Dispatch by category').item.json.slack_channel }}",
+        "text": "={{ ':warning: Finance capture failed: ' + ($('POST to CRM').item.json.statusCode || 'error') + '. See #finance-log or failed_extractions.' }}",
+        "otherOptions": {
+          "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        80
+      ],
+      "id": "h8888888-8888-4888-8888-888888888888",
+      "name": "Reply in thread — failure",
+      "credentials": {
+        "slackApi": {
+          "id": "PASTE_SLACK_CREDENTIAL_ID_HERE",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Slack Trigger — new message": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Gemini": {
+      "main": [
+        [
+          {
+            "node": "Dispatch by category",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch by category": {
+      "main": [
+        [
+          {
+            "node": "POST to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to CRM": {
+      "main": [
+        [
+          {
+            "node": "201?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "201?": {
+      "main": [
+        [
+          {
+            "node": "React ✅ on source message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST /api/finance/failed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST /api/finance/failed": {
+      "main": [
+        [
+          {
+            "node": "Reply in thread — failure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
