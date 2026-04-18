@@ -42,7 +42,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"systemInstruction\": { \"parts\": [{ \"text\": \"You are a strict JSON extractor for Davya consultancy's finance system. You only output JSON matching the provided schema. If a field is unknown, omit it \u2014 never invent data. If the message is ambiguous, set \\\"notes\\\" to explain. Never reply conversationally. The \\\"investment_direction\\\" field MUST be lowercase \u2014 emit exactly \\\"in\\\" or \\\"out\\\" and never capitalize; the downstream Laravel validator is case-sensitive.\\n\\nExamples:\\n- \\\"got 50k from priya 9999911111, ref nisha\\\" \u2192 {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":50000,\\\"student_phone\\\":\\\"9999911111\\\",\\\"student_name\\\":\\\"priya\\\",\\\"referrer_name\\\":\\\"nisha\\\"}\\n- \\\"priya paid 20k more, pending 30k\\\" \u2192 {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":20000,\\\"student_name\\\":\\\"priya\\\",\\\"is_partial\\\":true}\\n- \\\"paid 5k for fb ads\\\" \u2192 {\\\"category\\\":\\\"Expense\\\",\\\"amount\\\":5000,\\\"expense_category\\\":\\\"Marketing\\\",\\\"notes\\\":\\\"fb ads\\\"}\\n- \\\"bought 100k tata motors\\\" \u2192 {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":100000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"out\\\"}\\n- \\\"tata motors paid 120k\\\" \u2192 {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":120000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"in\\\"}\" }] }, \"contents\": [{ \"role\": \"user\", \"parts\": [{ \"text\": ($json.text || $json.event?.text || '') }] }], \"generationConfig\": { \"temperature\": 0.1, \"responseMimeType\": \"application/json\", \"responseSchema\": { \"type\": \"object\", \"properties\": { \"category\": { \"type\": \"string\", \"enum\": [\"Payment\", \"Expense\", \"Investment\"] }, \"amount\": { \"type\": \"number\" }, \"student_phone\": { \"type\": \"string\" }, \"student_name\": { \"type\": \"string\" }, \"referrer_name\": { \"type\": \"string\" }, \"asset_name\": { \"type\": \"string\" }, \"investment_direction\": { \"type\": \"string\", \"enum\": [\"in\", \"out\"] }, \"expense_category\": { \"type\": \"string\" }, \"is_partial\": { \"type\": \"boolean\" }, \"notes\": { \"type\": \"string\" } }, \"required\": [\"category\", \"amount\"] } } }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"systemInstruction\": { \"parts\": [{ \"text\": \"You are a strict JSON extractor for Davya consultancy's finance system. You only output JSON matching the provided schema. If a field is unknown, omit it \u2014 never invent data. If the message is ambiguous, set \\\"notes\\\" to explain. Never reply conversationally.\\n\\nExamples:\\n- \\\"got 50k from priya 9999911111, ref nisha\\\" \u2192 {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":50000,\\\"student_phone\\\":\\\"9999911111\\\",\\\"student_name\\\":\\\"priya\\\",\\\"referrer_name\\\":\\\"nisha\\\"}\\n- \\\"priya paid 20k more, pending 30k\\\" \u2192 {\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":20000,\\\"student_name\\\":\\\"priya\\\",\\\"is_partial\\\":true}\\n- \\\"paid 5k for fb ads\\\" \u2192 {\\\"category\\\":\\\"Expense\\\",\\\"amount\\\":5000,\\\"expense_category\\\":\\\"Marketing\\\",\\\"notes\\\":\\\"fb ads\\\"}\\n- \\\"bought 100k tata motors\\\" \u2192 {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":100000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"out\\\"}\\n- \\\"tata motors paid 120k\\\" \u2192 {\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":120000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"in\\\"}\" }] }, \"contents\": [{ \"role\": \"user\", \"parts\": [{ \"text\": (($json.text || $json.event?.text || '').replace(/<(?:[^|>]+\\|)?([^>]+)>/g, '$1')) }] }], \"generationConfig\": { \"temperature\": 0.1, \"responseMimeType\": \"application/json\", \"responseSchema\": { \"type\": \"object\", \"properties\": { \"category\": { \"type\": \"string\", \"enum\": [\"Payment\", \"Expense\", \"Investment\"] }, \"amount\": { \"type\": \"number\" }, \"student_phone\": { \"type\": \"string\" }, \"student_name\": { \"type\": \"string\" }, \"referrer_name\": { \"type\": \"string\" }, \"asset_name\": { \"type\": \"string\" }, \"investment_direction\": { \"type\": \"string\", \"enum\": [\"in\", \"out\"] }, \"expense_category\": { \"type\": \"string\" }, \"is_partial\": { \"type\": \"boolean\" }, \"notes\": { \"type\": \"string\" } }, \"required\": [\"category\", \"amount\"] } } }) }}",
         "options": {
           "response": {
             "response": {
@@ -130,6 +130,15 @@
                 "type": "number",
                 "operation": "equals"
               }
+            },
+            {
+              "id": "not-failed-target",
+              "leftValue": "={{ $('Dispatch by category').item.json.target }}",
+              "rightValue": "failed",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
             }
           ],
           "combinator": "and"
@@ -151,7 +160,8 @@
         "operation": "add",
         "channel": "={{ $('Dispatch by category').item.json.slack_channel }}",
         "messageTs": "={{ $('Dispatch by category').item.json.slack_ts }}",
-        "name": "white_check_mark"
+        "name": "white_check_mark",
+        "timestamp": "={{ $('Slack Trigger \u2014 new message').item.json.ts }}"
       },
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.2,
