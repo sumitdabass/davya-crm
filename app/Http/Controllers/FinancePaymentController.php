@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\Finance\LedgerRoutingService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -53,24 +54,39 @@ class FinancePaymentController extends Controller
 
         $type = ($data['is_partial'] ?? false) ? 'partial' : 'full';
 
-        $result = DB::transaction(function () use ($data, $student, $type, $routing) {
-            $payment = Payment::create([
-                'student_id'         => $student->id,
-                'type'               => $type,
-                'amount'             => $data['amount'],
-                'received_at'        => $data['received_at'] ?? now(),
-                'recorded_by_user_id'=> null,
-                'slack_message_id'   => $data['slack_message_id'],
-                'raw_input'          => $data['raw_input'] ?? null,
-            ]);
+        try {
+            $result = DB::transaction(function () use ($data, $student, $type, $routing) {
+                $payment = Payment::create([
+                    'student_id'         => $student->id,
+                    'type'               => $type,
+                    'amount'             => $data['amount'],
+                    'received_at'        => $data['received_at'] ?? now(),
+                    'recorded_by_user_id'=> null,
+                    'slack_message_id'   => $data['slack_message_id'],
+                    'raw_input'          => $data['raw_input'] ?? null,
+                ]);
 
-            $ledger = $routing->routePayment($payment);
-            foreach ($ledger as $row) {
-                LedgerEntry::create($row);
+                $ledger = $routing->routePayment($payment);
+                foreach ($ledger as $row) {
+                    LedgerEntry::create($row);
+                }
+
+                return ['payment' => $payment, 'ledger_count' => count($ledger)];
+            });
+        } catch (QueryException $e) {
+            // A concurrent writer beat us to the unique slack_message_id between the
+            // pre-check and INSERT. Re-fetch and return the contracted 409.
+            if (($e->errorInfo[0] ?? null) === '23000') {
+                $existing = Payment::where('slack_message_id', $data['slack_message_id'])->first();
+                if ($existing !== null) {
+                    return response()->json([
+                        'error'       => 'duplicate_slack_message',
+                        'existing_id' => $existing->id,
+                    ], 409);
+                }
             }
-
-            return ['payment' => $payment, 'ledger_count' => count($ledger)];
-        });
+            throw $e;
+        }
 
         Log::info('finance.payment.captured', [
             'payment_id'  => $result['payment']->id,

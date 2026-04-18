@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Investment;
 use App\Models\LedgerEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class InvestmentCaptureTest extends TestCase
@@ -73,5 +74,33 @@ class InvestmentCaptureTest extends TestCase
         $first = $this->postPayload(['slack_message_id' => 'I.DUPE']);
         $first->assertCreated();
         $this->postPayload(['slack_message_id' => 'I.DUPE'])->assertStatus(409);
+    }
+
+    public function test_slack_message_id_race_returns_409_not_500(): void
+    {
+        // See PaymentCaptureTest::test_slack_message_id_race_returns_409_not_500
+        // for the DB::listen-outside-savepoint rationale.
+        $slackId = 'I.RACE';
+        $raced = false;
+        DB::listen(function ($q) use (&$raced, $slackId) {
+            if ($raced) return;
+            if (!str_contains($q->sql, 'investments')) return;
+            if (!str_starts_with(strtolower(ltrim($q->sql)), 'select')) return;
+            if (!in_array($slackId, $q->bindings, true)) return;
+            $raced = true;
+            DB::table('investments')->insert([
+                'asset_name'       => 'Race Asset',
+                'amount'           => 1,
+                'direction'        => 'in',
+                'transacted_at'    => now(),
+                'slack_message_id' => $slackId,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        });
+        $resp = $this->postPayload(['slack_message_id' => $slackId]);
+        $resp->assertStatus(409)->assertJson(['error' => 'duplicate_slack_message']);
+        $this->assertNotNull($resp->json('existing_id'));
+        $this->assertSame(1, Investment::where('slack_message_id', $slackId)->count());
     }
 }

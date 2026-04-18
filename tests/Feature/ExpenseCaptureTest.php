@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Expense;
 use App\Models\LedgerEntry;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ExpenseCaptureTest extends TestCase
@@ -69,5 +70,31 @@ class ExpenseCaptureTest extends TestCase
         $this->postPayload(['slack_message_id' => 'E.DUPE'])
             ->assertStatus(409)
             ->assertJson(['error' => 'duplicate_slack_message', 'existing_id' => $first->json('id')]);
+    }
+
+    public function test_slack_message_id_race_returns_409_not_500(): void
+    {
+        // See PaymentCaptureTest::test_slack_message_id_race_returns_409_not_500
+        // for the DB::listen-outside-savepoint rationale.
+        $slackId = 'E.RACE';
+        $raced = false;
+        DB::listen(function ($q) use (&$raced, $slackId) {
+            if ($raced) return;
+            if (!str_contains($q->sql, 'expenses')) return;
+            if (!str_starts_with(strtolower(ltrim($q->sql)), 'select')) return;
+            if (!in_array($slackId, $q->bindings, true)) return;
+            $raced = true;
+            DB::table('expenses')->insert([
+                'amount'           => 1,
+                'paid_at'          => now(),
+                'slack_message_id' => $slackId,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        });
+        $resp = $this->postPayload(['slack_message_id' => $slackId]);
+        $resp->assertStatus(409)->assertJson(['error' => 'duplicate_slack_message']);
+        $this->assertNotNull($resp->json('existing_id'));
+        $this->assertSame(1, Expense::where('slack_message_id', $slackId)->count());
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class PaymentCaptureTest extends TestCase
@@ -136,4 +137,46 @@ class PaymentCaptureTest extends TestCase
         $this->assertNotNull($student);
         $this->assertSame('Pending — 9100000006', $student->name);
     }
+
+    public function test_slack_message_id_race_returns_409_not_500(): void
+    {
+        // Pre-create the student so the controller skips Student::create and
+        // the pre-check SELECT on payments fires first.
+        $nisha = User::where('email', 'nisha@davya.local')->first();
+        $student = Student::create([
+            'phone' => '9100000011', 'name' => 'Existing Race',
+            'owner_id' => $nisha->team_head_id ?? $nisha->id,
+            'referrer_id' => $nisha->id,
+            'lead_source' => 'Nisha', 'stage' => 'Lead Captured',
+        ]);
+
+        // DB::listen fires AFTER each statement at the outer transaction scope
+        // (before the controller's DB::transaction savepoint). A raw insert
+        // here survives the savepoint rollback triggered by the unique-constraint
+        // failure on Payment::create, simulating a concurrent writer.
+        $slackId = 'RACE.PAY';
+        $raced = false;
+        DB::listen(function ($q) use (&$raced, $slackId, $student) {
+            if ($raced) return;
+            if (!str_contains($q->sql, 'payments')) return;
+            if (!str_starts_with(strtolower(ltrim($q->sql)), 'select')) return;
+            if (!in_array($slackId, $q->bindings, true)) return;
+            $raced = true;
+            DB::table('payments')->insert([
+                'student_id'       => $student->id,
+                'type'             => 'full',
+                'amount'           => 1,
+                'received_at'      => now(),
+                'slack_message_id' => $slackId,
+                'created_at'       => now(),
+                'updated_at'       => now(),
+            ]);
+        });
+
+        $resp = $this->postPayload(['student_phone' => '9100000011', 'slack_message_id' => $slackId]);
+        $resp->assertStatus(409)->assertJson(['error' => 'duplicate_slack_message']);
+        $this->assertNotNull($resp->json('existing_id'));
+        $this->assertSame(1, Payment::where('slack_message_id', $slackId)->count());
+    }
+
 }
