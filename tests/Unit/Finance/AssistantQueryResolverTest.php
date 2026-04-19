@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Finance;
 
 use App\Models\Expense;
+use App\Models\Investment;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
 use App\Models\Student;
@@ -69,5 +70,18 @@ class AssistantQueryResolverTest extends TestCase
 
         $this->assertSame(13000.0, $result['summary']['balance']);
         $this->assertSame(3, $result['summary']['entry_count']);
+    }
+
+    public function test_recent_captures_unions_payments_expenses_investments_with_most_recent_first(): void
+    {
+        Payment::factory()->create(['received_at'      => '2026-04-18 10:00:00']);
+        Expense::factory()->create(['paid_at'          => '2026-04-19 09:00:00']);
+        Investment::factory()->create(['transacted_at' => '2026-04-17 14:00:00']);
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('recent_captures', ['from' => '2026-04-15', 'to' => '2026-04-19'], null);
+
+        $this->assertSame(3, $result['summary']['count']);
+        $this->assertSame('expense', $result['rows'][0]['kind']); // 04-19 is most recent
     }
 }

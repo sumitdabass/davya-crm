@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Models\Expense;
+use App\Models\Investment;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
 
@@ -109,7 +110,62 @@ class AssistantQueryResolver
 
     private function recentCaptures(?array $timeRange): array
     {
-        return ['summary' => [], 'rows' => []];
+        $from = $timeRange['from'] ?? now()->subDays(7)->toDateString();
+        $to   = $timeRange['to']   ?? now()->toDateString();
+
+        $payments = Payment::query()
+            ->whereBetween('received_at', [$from, $to.' 23:59:59'])
+            ->orderByDesc('received_at')
+            ->limit($this->rowCap)
+            ->get()
+            ->map(fn ($p) => [
+                'kind'   => 'payment',
+                'at'     => $p->received_at,
+                'amount' => (float) $p->amount,
+                'id'     => $p->id,
+            ]);
+
+        $expenses = Expense::query()
+            ->whereBetween('paid_at', [$from, $to.' 23:59:59'])
+            ->orderByDesc('paid_at')
+            ->limit($this->rowCap)
+            ->get()
+            ->map(fn ($e) => [
+                'kind'     => 'expense',
+                'at'       => $e->paid_at,
+                'amount'   => (float) $e->amount,
+                'id'       => $e->id,
+                'category' => $e->category,
+            ]);
+
+        $investments = Investment::query()
+            ->whereBetween('transacted_at', [$from, $to.' 23:59:59'])
+            ->orderByDesc('transacted_at')
+            ->limit($this->rowCap)
+            ->get()
+            ->map(fn ($i) => [
+                'kind'       => 'investment',
+                'at'         => $i->transacted_at,
+                'amount'     => (float) $i->amount,
+                'id'         => $i->id,
+                'asset_name' => $i->asset_name,
+                'direction'  => $i->direction,
+            ]);
+
+        $combined = $payments->concat($expenses)->concat($investments)
+            ->sortByDesc('at')
+            ->values()
+            ->take($this->rowCap)
+            ->all();
+
+        return [
+            'summary' => [
+                'count' => count($combined),
+                'from'  => $from,
+                'to'    => $to,
+            ],
+            'rows' => $combined,
+        ];
     }
 
     private function totalsByRange(?array $timeRange, array $filter): array
