@@ -84,4 +84,19 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertSame(3, $result['summary']['count']);
         $this->assertSame('expense', $result['rows'][0]['kind']); // 04-19 is most recent
     }
+
+    public function test_totals_by_range_aggregates_by_type_within_range(): void
+    {
+        Payment::factory()->create(['amount' => 5000, 'received_at'    => '2026-04-10 09:00:00', 'type' => 'partial']);
+        Payment::factory()->create(['amount' => 3000, 'received_at'    => '2026-04-15 09:00:00', 'type' => 'partial']);
+        Expense::factory()->create(['amount' => 2000, 'paid_at'        => '2026-04-12 09:00:00']);
+        Investment::factory()->create(['amount' => 10000, 'transacted_at' => '2026-04-14 09:00:00']);
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('totals_by_range', ['from' => '2026-04-01', 'to' => '2026-04-19'], null);
+
+        $this->assertSame(8000.0, $result['summary']['payment_total']);
+        $this->assertSame(2000.0, $result['summary']['expense_total']);
+        $this->assertSame(10000.0, $result['summary']['investment_total']);
+    }
 }

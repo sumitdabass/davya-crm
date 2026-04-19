@@ -170,7 +170,25 @@ class AssistantQueryResolver
 
     private function totalsByRange(?array $timeRange, array $filter): array
     {
-        return ['summary' => [], 'rows' => []];
+        $from = $timeRange['from'] ?? now()->subDays(30)->toDateString();
+        $to   = $timeRange['to']   ?? now()->toDateString();
+
+        return [
+            'summary' => [
+                'from'             => $from,
+                'to'               => $to,
+                'payment_total'    => (float) Payment::query()
+                    ->whereBetween('received_at', [$from, $to.' 23:59:59'])
+                    ->sum('amount'),
+                'expense_total'    => (float) Expense::query()
+                    ->whereBetween('paid_at', [$from, $to.' 23:59:59'])
+                    ->sum('amount'),
+                'investment_total' => (float) Investment::query()
+                    ->whereBetween('transacted_at', [$from, $to.' 23:59:59'])
+                    ->sum('amount'),
+            ],
+            'rows' => [],
+        ];
     }
 
     private function studentStatus(array $filter): array
