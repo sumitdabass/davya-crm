@@ -5,6 +5,7 @@ use App\Http\Controllers\FinancePaymentController;
 use App\Http\Controllers\FinanceExpenseController;
 use App\Http\Controllers\FinanceInvestmentController;
 use App\Http\Controllers\FinanceFailedController;
+use App\Http\Controllers\Finance\FinanceAssistantController;
 use App\Http\Middleware\VerifyLeadToken;
 use App\Http\Middleware\VerifyFinanceToken;
 use Illuminate\Support\Facades\Route;
@@ -21,4 +22,5 @@ Route::prefix('finance')
         Route::post('/expenses',    [FinanceExpenseController::class,    'store']);
         Route::post('/investments', [FinanceInvestmentController::class, 'store']);
         Route::post('/failed',      [FinanceFailedController::class,     'store']);
+        Route::post('/assistant',   [FinanceAssistantController::class,  'handle']);
     });
