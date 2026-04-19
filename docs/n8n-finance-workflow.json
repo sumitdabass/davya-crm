@@ -332,7 +332,7 @@
           "parameters": [
             {
               "name": "X-Finance-Token",
-              "value": "={{ $credentials.davyasFinanceToken }}"
+              "value": "7b7c7c39811b7003a0c23e235e91bbef"
             },
             {
               "name": "Content-Type",
@@ -344,8 +344,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify($json.payload) }}",
         "options": {}
-      },
-      "credentials": {}
+      }
     },
     {
       "id": "dea29b30-034c-445c-8b5a-8913d818946a",
