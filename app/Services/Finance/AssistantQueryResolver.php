@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Finance;
 
+use App\Models\Expense;
+
 class AssistantQueryResolver
 {
     public function __construct(
@@ -31,7 +33,29 @@ class AssistantQueryResolver
 
     private function spendByCategory(array $filter, ?array $timeRange): array
     {
-        return ['summary' => [], 'rows' => []];
+        $from = $timeRange['from'] ?? now()->subDays(30)->toDateString();
+        $to   = $timeRange['to']   ?? now()->toDateString();
+
+        $query = Expense::query()
+            ->whereBetween('paid_at', [$from, $to.' 23:59:59']);
+
+        if (isset($filter['category'])) {
+            $query->where('category', $filter['category']);
+        }
+
+        $rows = $query->orderByDesc('paid_at')->limit($this->rowCap)->get([
+            'id', 'amount', 'category', 'description', 'paid_at',
+        ])->toArray();
+
+        return [
+            'summary' => [
+                'count'        => count($rows),
+                'total_amount' => (float) array_sum(array_column($rows, 'amount')),
+                'from'         => $from,
+                'to'           => $to,
+            ],
+            'rows' => $rows,
+        ];
     }
 
     private function ledgerBalance(array $filter): array
