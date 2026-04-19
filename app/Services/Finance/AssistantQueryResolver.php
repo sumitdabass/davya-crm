@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Models\Expense;
+use App\Models\Payment;
 
 class AssistantQueryResolver
 {
@@ -28,7 +29,26 @@ class AssistantQueryResolver
 
     private function paymentsByStudent(array $filter): array
     {
-        return ['summary' => [], 'rows' => []];
+        $query = Payment::query()->with('student:id,name,phone');
+
+        if (isset($filter['student_phone'])) {
+            $query->whereHas('student', fn ($q) => $q->where('phone', $filter['student_phone']));
+        }
+        if (isset($filter['student_name'])) {
+            $query->whereHas('student', fn ($q) => $q->where('name', 'like', '%'.$filter['student_name'].'%'));
+        }
+
+        $rows = $query->orderByDesc('received_at')->limit($this->rowCap)->get([
+            'id', 'student_id', 'amount', 'type', 'mode', 'reference_number', 'received_at', 'notes',
+        ])->toArray();
+
+        return [
+            'summary' => [
+                'count'        => count($rows),
+                'total_amount' => (float) array_sum(array_column($rows, 'amount')),
+            ],
+            'rows' => $rows,
+        ];
     }
 
     private function spendByCategory(array $filter, ?array $timeRange): array

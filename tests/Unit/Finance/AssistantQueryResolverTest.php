@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Finance;
 
 use App\Models\Expense;
+use App\Models\Payment;
+use App\Models\Student;
 use App\Services\Finance\AssistantQueryResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,5 +40,19 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertSame(2, $result['summary']['count']);
         $this->assertSame(8200.0, $result['summary']['total_amount']);
         $this->assertCount(2, $result['rows']);
+    }
+
+    public function test_payments_by_student_returns_rows_for_matching_phone(): void
+    {
+        $student = Student::factory()->create(['phone' => '9991110001']);
+        Payment::factory()->count(3)->create(['student_id' => $student->id, 'amount' => 1000, 'type' => 'partial']);
+        Payment::factory()->create(['amount' => 9999, 'type' => 'partial']); // noise: different student
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('payments_by_student', null, ['student_phone' => '9991110001']);
+
+        $this->assertSame(3, $result['summary']['count']);
+        $this->assertSame(3000.0, $result['summary']['total_amount']);
+        $this->assertCount(3, $result['rows']);
     }
 }
