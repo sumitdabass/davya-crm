@@ -21,9 +21,19 @@ class FinanceAssistantController extends Controller
             'intent'           => $data['intent'],
         ]);
 
-        // STUB — replaced in M3/M4 with resolver + answerer
-        $replyText = "🔧 Assistant online — stub reply for intent `{$data['intent']}`. Implementation arrives in M3.";
+        $resolver = new \App\Services\Finance\AssistantQueryResolver(
+            rowCap: (int) config('finance.assistant.row_cap', 200),
+        );
+        $answerer = app(\App\Services\Finance\AssistantAnswerer::class);
 
-        return response()->json(['reply_text' => $replyText]);
+        $rows  = $resolver->resolve($data['intent'], $data['time_range'] ?? null, $data['filter'] ?? null);
+        $reply = $answerer->answer($data['question_text'], $data['intent'], $rows);
+
+        Log::info('finance.assistant.answered', [
+            'intent'    => $data['intent'],
+            'reply_len' => strlen($reply),
+        ]);
+
+        return response()->json(['reply_text' => $reply]);
     }
 }

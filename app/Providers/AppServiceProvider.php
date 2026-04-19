@@ -17,7 +17,15 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\Finance\GeminiClient::class, function () {
+            return new \App\Services\Finance\GeminiClient(
+                apiKey: (string) config('finance.assistant.gemini_api_key', ''),
+                model:  (string) config('finance.assistant.model', 'gemini-2.5-flash'),
+                timeoutSeconds: (int) config('finance.assistant.gemini_timeout_seconds', 30),
+            );
+        });
+
+        $this->app->singleton(\App\Services\Finance\AssistantAnswerer::class);
     }
 
     public function boot(): void

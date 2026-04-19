@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Finance;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class FinanceAssistantTest extends TestCase
 {
+    use RefreshDatabase;
+
     private const TOKEN = 'test-token';
 
     protected function setUp(): void
@@ -64,15 +67,35 @@ class FinanceAssistantTest extends TestCase
         ])->assertJsonValidationErrors(['time_range.to']);
     }
 
-    public function test_returns_stub_reply_text_on_200(): void
+    public function test_returns_answerer_reply_via_the_full_pipeline(): void
     {
-        $response = $this->postAssistant([
+        // Seed: 2 Marketing expenses in April 2026
+        \App\Models\Expense::factory()->create([
+            'category' => 'Marketing',
+            'amount'   => 5000,
+            'paid_at'  => '2026-04-15',
+        ]);
+        \App\Models\Expense::factory()->create([
+            'category' => 'Marketing',
+            'amount'   => 3200,
+            'paid_at'  => '2026-04-10',
+        ]);
+
+        $this->mock(\App\Services\Finance\GeminiClient::class, function ($mock) {
+            $mock->shouldReceive('generate')->once()->andReturn('Total: ₹8,200 across 2 expenses.');
+        });
+
+        $this->postJson('/api/finance/assistant', [
             'slack_message_id' => '1776570058.279209',
             'slack_channel'    => 'C0ATAQ8KFF1',
             'slack_user_id'    => 'U123',
-            'question_text'    => 'show recent captures',
-            'intent'           => 'recent_captures',
-        ]);
-        $response->assertStatus(200)->assertJsonStructure(['reply_text']);
+            'question_text'    => 'what did i spend on fb ads this month',
+            'intent'           => 'spend_by_category',
+            'time_range'       => ['from' => '2026-04-01', 'to' => '2026-04-30'],
+            'filter'           => ['category' => 'Marketing'],
+        ], [
+            'X-Finance-Token' => 'test-token',
+        ])->assertStatus(200)
+          ->assertJson(['reply_text' => 'Total: ₹8,200 across 2 expenses.']);
     }
 }
