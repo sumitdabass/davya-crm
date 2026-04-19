@@ -225,6 +225,13 @@ class AssistantQueryResolver
 
     private function freeform(?array $timeRange): array
     {
-        return ['summary' => [], 'rows' => []];
+        // Freeform falls back to recent captures but with a broader 30-day default
+        // (vs. recent_captures' 7-day default) when no explicit time range is given.
+        $timeRange ??= [
+            'from' => now()->subDays(30)->toDateString(),
+            'to'   => now()->toDateString(),
+        ];
+
+        return $this->recentCaptures($timeRange);
     }
 }

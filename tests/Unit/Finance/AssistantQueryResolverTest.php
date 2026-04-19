@@ -120,4 +120,25 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertCount(1, $result['rows']['rounds']);
         $this->assertCount(1, $result['rows']['payments']);
     }
+
+    public function test_freeform_returns_recent_union_with_30_day_default(): void
+    {
+        Payment::factory()->create(['amount' => 100, 'received_at' => now()->subDays(5), 'type' => 'partial']);
+        Expense::factory()->create(['amount' => 200, 'paid_at'     => now()->subDays(3)]);
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('freeform', null, null);
+
+        $this->assertSame(2, $result['summary']['count']);
+    }
+
+    public function test_row_cap_is_honored_at_200(): void
+    {
+        Expense::factory()->count(210)->create(['category' => 'Marketing', 'paid_at' => now()]);
+
+        $resolver = new AssistantQueryResolver(rowCap: 200);
+        $result = $resolver->resolve('spend_by_category', null, ['category' => 'Marketing']);
+
+        $this->assertCount(200, $result['rows']);
+    }
 }
