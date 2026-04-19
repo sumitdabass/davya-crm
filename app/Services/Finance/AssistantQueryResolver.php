@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\Investment;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
+use App\Models\Student;
 
 class AssistantQueryResolver
 {
@@ -193,7 +194,33 @@ class AssistantQueryResolver
 
     private function studentStatus(array $filter): array
     {
-        return ['summary' => [], 'rows' => []];
+        $student = Student::query()
+            ->with([
+                'payments' => fn ($q) => $q->select('id', 'student_id', 'amount', 'received_at', 'type')->limit($this->rowCap),
+                'roundHistory' => fn ($q) => $q->select('id', 'student_id', 'round_name', 'outcome', 'allotted_college', 'created_at')->limit($this->rowCap),
+            ])
+            ->when(isset($filter['student_phone']), fn ($q) => $q->where('phone', $filter['student_phone']))
+            ->when(isset($filter['student_name']),  fn ($q) => $q->where('name', 'like', '%'.$filter['student_name'].'%'))
+            ->first();
+
+        if (!$student) {
+            return ['summary' => ['found' => false], 'rows' => []];
+        }
+
+        return [
+            'summary' => [
+                'found'         => true,
+                'id'            => $student->id,
+                'name'          => $student->name,
+                'phone'         => $student->phone,
+                'stage'         => $student->stage,
+                'payment_total' => (float) $student->payments->sum('amount'),
+            ],
+            'rows' => [
+                'payments' => $student->payments->take($this->rowCap)->toArray(),
+                'rounds'   => $student->roundHistory->take($this->rowCap)->toArray(),
+            ],
+        ];
     }
 
     private function freeform(?array $timeRange): array

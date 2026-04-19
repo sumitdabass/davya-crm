@@ -8,6 +8,7 @@ use App\Models\Expense;
 use App\Models\Investment;
 use App\Models\LedgerEntry;
 use App\Models\Payment;
+use App\Models\RoundHistory;
 use App\Models\Student;
 use App\Services\Finance\AssistantQueryResolver;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -98,5 +99,25 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertSame(8000.0, $result['summary']['payment_total']);
         $this->assertSame(2000.0, $result['summary']['expense_total']);
         $this->assertSame(10000.0, $result['summary']['investment_total']);
+    }
+
+    public function test_student_status_returns_student_rounds_and_payments(): void
+    {
+        $student = Student::factory()->create(['phone' => '9991110099', 'name' => 'Priya']);
+        Payment::factory()->create(['student_id' => $student->id, 'amount' => 50000, 'type' => 'partial']);
+        RoundHistory::factory()->create([
+            'student_id' => $student->id,
+            'round_name' => 'Online_R1',
+            'outcome'    => 'Allotted — Fee Paid',
+        ]);
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('student_status', null, ['student_phone' => '9991110099']);
+
+        $this->assertTrue($result['summary']['found']);
+        $this->assertSame('Priya', $result['summary']['name']);
+        $this->assertSame(50000.0, $result['summary']['payment_total']);
+        $this->assertCount(1, $result['rows']['rounds']);
+        $this->assertCount(1, $result['rows']['payments']);
     }
 }
