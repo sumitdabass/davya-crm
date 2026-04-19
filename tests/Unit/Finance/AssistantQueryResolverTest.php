@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Finance;
 
 use App\Models\Expense;
+use App\Models\LedgerEntry;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Services\Finance\AssistantQueryResolver;
@@ -54,5 +55,19 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertSame(3, $result['summary']['count']);
         $this->assertSame(3000.0, $result['summary']['total_amount']);
         $this->assertCount(3, $result['rows']);
+    }
+
+    public function test_ledger_balance_sums_delta_amount_by_account(): void
+    {
+        LedgerEntry::factory()->create(['account' => 'nikhil', 'delta_amount' =>  10000.00]);
+        LedgerEntry::factory()->create(['account' => 'nikhil', 'delta_amount' =>   5000.00]);
+        LedgerEntry::factory()->create(['account' => 'nikhil', 'delta_amount' =>  -2000.00]);
+        LedgerEntry::factory()->create(['account' => 'davya',  'delta_amount' =>   7777.00]); // noise
+
+        $resolver = new AssistantQueryResolver();
+        $result = $resolver->resolve('ledger_balance', null, ['account' => 'nikhil']);
+
+        $this->assertSame(13000.0, $result['summary']['balance']);
+        $this->assertSame(3, $result['summary']['entry_count']);
     }
 }

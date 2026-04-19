@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services\Finance;
 
 use App\Models\Expense;
+use App\Models\LedgerEntry;
 use App\Models\Payment;
 
 class AssistantQueryResolver
@@ -80,7 +81,30 @@ class AssistantQueryResolver
 
     private function ledgerBalance(array $filter): array
     {
-        return ['summary' => [], 'rows' => []];
+        $query = LedgerEntry::query();
+
+        if (isset($filter['account'])) {
+            $query->where('account', $filter['account']);
+        }
+
+        $entries = $query->orderByDesc('created_at')->limit($this->rowCap)->get();
+
+        return [
+            'summary' => [
+                'balance'     => (float) $entries->sum('delta_amount'),
+                'entry_count' => $entries->count(),
+                'account'     => $filter['account'] ?? null,
+            ],
+            'rows' => $entries->map(fn ($e) => [
+                'id'           => $e->id,
+                'account'      => $e->account,
+                'delta_amount' => $e->delta_amount,
+                'source_type'  => $e->source_type,
+                'source_id'    => $e->source_id,
+                'note'         => $e->note,
+                'created_at'   => $e->created_at?->toDateTimeString(),
+            ])->toArray(),
+        ];
     }
 
     private function recentCaptures(?array $timeRange): array
