@@ -383,6 +383,20 @@
           "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
         }
       }
+    },
+    {
+      "id": "513c91c2-f4cf-41c5-b433-cd1c79dc2eda",
+      "name": "Drop bot messages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -280,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Pre-Gemini bot-loop guard — skip bot-sourced messages BEFORE calling Gemini\n// (Dispatch still has the same check for belt+suspenders; this one saves the API call.)\nconst t = $input.item.json;\nif (t.bot_id || t.subtype === 'bot_message' || t.app_id) {\n  return null;\n}\nreturn { json: t };\n"
+      }
     }
   ],
   "connections": {
@@ -452,7 +466,7 @@
       "main": [
         [
           {
-            "node": "Call Gemini",
+            "node": "Drop bot messages",
             "type": "main",
             "index": 0
           }
@@ -493,6 +507,17 @@
         [
           {
             "node": "Assistant reply (threaded)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Drop bot messages": {
+      "main": [
+        [
+          {
+            "node": "Call Gemini",
             "type": "main",
             "index": 0
           }
