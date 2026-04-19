@@ -253,6 +253,37 @@
           "name": "Slack account"
         }
       }
+    },
+    {
+      "id": "928fbbc8-5c6c-41e6-b999-2d706009ea80",
+      "name": "Confirm capture (threaded)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        100
+      ],
+      "webhookId": "b5c88018-87ef-4382-963a-837d5a3d293a",
+      "credentials": {
+        "slackApi": {
+          "id": "XCfBOF1k4wJubFWo",
+          "name": "Slack account"
+        }
+      },
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Dispatch by category').item.json.slack_channel }}",
+          "mode": "id"
+        },
+        "text": "={{\n  (() => {\n    const g = $('Dispatch by category').item.json.gemini;\n    const id = $('POST to CRM').item.json.body?.id ?? '?';\n    const amount = (g.amount ?? 0).toLocaleString('en-IN');\n    if (g.category === 'Payment') {\n      const proofNote = $('Dispatch by category').item.json.payload?.proof_drive_url ? ' · 📎 proof attached' : '';\n      return `📥 Payment captured — ₹${amount} from *${g.student_name || '—'}* (${g.student_phone || '—'}), ref *${g.referrer_name || '—'}* → id=${id}${proofNote}`;\n    }\n    if (g.category === 'Expense') {\n      const cat = g.expense_category || '—';\n      const notes = g.notes ? ` · ${g.notes}` : '';\n      return `📤 Expense captured — ₹${amount} for *${cat}*${notes} → id=${id}`;\n    }\n    if (g.category === 'Investment') {\n      return `📊 Investment captured — ₹${amount} in *${g.asset_name || '—'}* (${g.investment_direction || '—'}) → id=${id}`;\n    }\n    return `📥 Captured → id=${id}`;\n  })()\n}}",
+        "otherOptions": {
+          "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
+        }
+      }
     }
   ],
   "connections": {
@@ -323,6 +354,17 @@
         [
           {
             "node": "Call Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "React ✅ on source message": {
+      "main": [
+        [
+          {
+            "node": "Confirm capture (threaded)",
             "type": "main",
             "index": 0
           }
