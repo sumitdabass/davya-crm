@@ -10,7 +10,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=AIzaSyCd15LEe1R4ldf7njmLH1uZwWE0Imrha9U",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -30,7 +30,9 @@
               "neverError": true
             }
           }
-        }
+        },
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth"
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -39,7 +41,13 @@
         0
       ],
       "id": "b2222222-2222-4222-8222-222222222222",
-      "name": "Call Gemini"
+      "name": "Call Gemini",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "pIac2e9ocdbt8drK",
+          "name": "Gemini API Key"
+        }
+      }
     },
     {
       "parameters": {
