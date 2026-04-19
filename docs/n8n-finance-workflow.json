@@ -284,6 +284,99 @@
           "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
         }
       }
+    },
+    {
+      "id": "0ac8dd72-8f36-4f97-b7a9-ffd67dd587d0",
+      "name": "Route by target",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        500,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "a6216b07-694f-4a03-a6dc-df91a7c2cdbd",
+              "leftValue": "={{ $json.target }}",
+              "rightValue": "assistant",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      }
+    },
+    {
+      "id": "46d51636-ddbe-47a5-814e-951f2626b083",
+      "name": "POST to assistant",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        750,
+        50
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://davyas.ipu.co.in/api/finance/assistant",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Finance-Token",
+              "value": "={{ $credentials.davyasFinanceToken }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.payload) }}",
+        "options": {}
+      },
+      "credentials": {}
+    },
+    {
+      "id": "dea29b30-034c-445c-8b5a-8913d818946a",
+      "name": "Assistant reply (threaded)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        1000,
+        50
+      ],
+      "webhookId": "b5b2a16b-3609-44b0-b8e8-784a1102674a",
+      "credentials": {
+        "slackApi": {
+          "id": "XCfBOF1k4wJubFWo",
+          "name": "Slack account"
+        }
+      },
+      "parameters": {
+        "resource": "message",
+        "operation": "post",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Dispatch by category').item.json.slack_channel }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.body?.reply_text || $json.reply_text || ':warning: Empty reply.' }}",
+        "otherOptions": {
+          "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
+        }
+      }
     }
   ],
   "connections": {
@@ -302,7 +395,7 @@
       "main": [
         [
           {
-            "node": "POST to CRM",
+            "node": "Route by target",
             "type": "main",
             "index": 0
           }
@@ -365,6 +458,35 @@
         [
           {
             "node": "Confirm capture (threaded)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by target": {
+      "main": [
+        [
+          {
+            "node": "POST to assistant",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "POST to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "POST to assistant": {
+      "main": [
+        [
+          {
+            "node": "Assistant reply (threaded)",
             "type": "main",
             "index": 0
           }
