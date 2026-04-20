@@ -85,8 +85,11 @@ class AssistantQueryResolver
     {
         $query = LedgerEntry::query();
 
-        if (isset($filter['account'])) {
-            $query->where('account', $filter['account']);
+        // Gemini emits title-case `owner_name`; DB stores `account` lowercase.
+        $rawAccount = $filter['account'] ?? $filter['owner_name'] ?? null;
+        $account = $rawAccount !== null ? strtolower(trim((string) $rawAccount)) : null;
+        if ($account !== null && $account !== '') {
+            $query->where('account', $account);
         }
 
         $entries = $query->orderByDesc('created_at')->limit($this->rowCap)->get();
@@ -95,7 +98,7 @@ class AssistantQueryResolver
             'summary' => [
                 'balance'     => (float) $entries->sum('delta_amount'),
                 'entry_count' => $entries->count(),
-                'account'     => $filter['account'] ?? null,
+                'account'     => $account,
             ],
             'rows' => $entries->map(fn ($e) => [
                 'id'           => $e->id,

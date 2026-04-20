@@ -73,6 +73,21 @@ class AssistantQueryResolverTest extends TestCase
         $this->assertSame(3, $result['summary']['entry_count']);
     }
 
+    public function test_ledger_balance_accepts_owner_name_filter_case_insensitive(): void
+    {
+        LedgerEntry::factory()->create(['account' => 'nikhil', 'delta_amount' => 30000.00]);
+        LedgerEntry::factory()->create(['account' => 'nikhil', 'delta_amount' => 20000.00]);
+        LedgerEntry::factory()->create(['account' => 'davya',  'delta_amount' =>  9999.00]); // noise
+
+        $resolver = new AssistantQueryResolver();
+        // Gemini emits title-case owner_name; resolver must map + lowercase.
+        $result = $resolver->resolve('ledger_balance', null, ['owner_name' => 'Nikhil']);
+
+        $this->assertSame(50000.0, $result['summary']['balance']);
+        $this->assertSame(2, $result['summary']['entry_count']);
+        $this->assertSame('nikhil', $result['summary']['account']);
+    }
+
     public function test_recent_captures_unions_payments_expenses_investments_with_most_recent_first(): void
     {
         Payment::factory()->create(['received_at'      => '2026-04-18 10:00:00']);
