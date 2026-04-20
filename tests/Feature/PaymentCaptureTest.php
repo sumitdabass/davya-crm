@@ -114,6 +114,42 @@ class PaymentCaptureTest extends TestCase
         $this->postPayload(['student_phone' => ''])->assertStatus(422)->assertJsonValidationErrors('student_phone');
     }
 
+    public function test_proof_url_is_persisted_when_provided(): void
+    {
+        $permalink = 'https://davyas.slack.com/files/U0123/F0456/screenshot.png';
+        $resp = $this->postPayload([
+            'amount'        => 25000,
+            'referrer_name' => 'Nisha',
+            'proof_url'     => $permalink,
+        ]);
+        $resp->assertCreated();
+
+        $payment = Payment::find($resp->json('id'));
+        $this->assertSame($permalink, $payment->proof_url);
+    }
+
+    public function test_proof_url_is_optional(): void
+    {
+        $resp = $this->postPayload([
+            'amount'        => 25000,
+            'referrer_name' => 'Nisha',
+        ]);
+        $resp->assertCreated();
+
+        $payment = Payment::find($resp->json('id'));
+        $this->assertNull($payment->proof_url);
+    }
+
+    public function test_proof_url_rejects_non_url_strings(): void
+    {
+        $resp = $this->postPayload([
+            'amount'        => 25000,
+            'referrer_name' => 'Nisha',
+            'proof_url'     => 'not a url',
+        ]);
+        $resp->assertStatus(422)->assertJsonValidationErrors('proof_url');
+    }
+
     public function test_new_student_without_referrer_name_returns_422(): void
     {
         $this->postPayload(['student_phone' => '9100000004','referrer_name' => null])
