@@ -28,6 +28,7 @@ class StoreFinancePaymentRequest extends FormRequest
             'received_at'      => ['nullable', 'date'],
             'slack_message_id' => ['required', 'string', 'max:50'],
             'raw_input'        => ['nullable', 'string', 'max:4000'],
+            'proof_url'        => ['nullable', 'url', 'max:2048'],
         ];
     }
 

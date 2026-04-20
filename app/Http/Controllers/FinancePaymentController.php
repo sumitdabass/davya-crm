@@ -64,6 +64,7 @@ class FinancePaymentController extends Controller
                     'recorded_by_user_id'=> null,
                     'slack_message_id'   => $data['slack_message_id'],
                     'raw_input'          => $data['raw_input'] ?? null,
+                    'proof_url'          => $data['proof_url'] ?? null,
                 ]);
 
                 $ledger = $routing->routePayment($payment);

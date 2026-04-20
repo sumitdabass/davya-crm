@@ -22,7 +22,7 @@ class PaymentFactory extends Factory
             'mode'             => $this->faker->randomElement(['cash', 'upi', 'bank_transfer']),
             'reference_number' => null,
             'received_at'      => now(),
-            'proof_drive_url'  => null,
+            'proof_url'        => null,
             'notes'            => null,
             'slack_message_id' => 'CTEST.'.$this->faker->unique()->numerify('##########.######'),
             'raw_input'        => $this->faker->sentence(),
