@@ -21,3 +21,8 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# n8n artifacts (workflows live in n8n SaaS; backups/patches kept locally)
+/docs/n8n-backups/
+/docs/m6_1_patch.py
+/docs/n8n-lead-capture-workflow.json

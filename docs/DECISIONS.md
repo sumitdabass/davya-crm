@@ -1,6 +1,24 @@
 # Architecture Decisions
 
-## 2026-04-16 — Kanban plugin choice
+## 2026-04-20 — Kanban plugin evaluation outcome (supersedes 2026-04-16)
+
+**Status:** M6 task 6.1 closed — **no plugin swap**. Keep the existing custom kanban (`app/Filament/Pages/KanbanBoard.php`).
+
+**Why:** Re-ran the 2026-04-16 procedure. None of the shortlisted plugins are viable for our Filament 3 + Laravel 11 stack as of 2026-04-20:
+
+| Original candidate | Reality |
+|---|---|
+| `flowforge/filament-kanban` | Repo renamed to `relaticle/flowforge`. Requires Filament 4+; never supported v3 |
+| `Relaticle/filament-kanban-board` | Repo removed (consolidated into flowforge) |
+| `heloufir/filament-kanban-board` | Repo deleted |
+
+Broader market scan (Filament 3 compatible): `invaders-xx/filament-kanban-board` supports Filament ^3 but last pushed 2024-07-08 — fails the >3-month staleness rule. Other results are all Filament 4/5 only.
+
+**Revisit trigger:** if/when we upgrade to Filament 5 + Laravel 12, re-evaluate `relaticle/flowforge` (397 stars, active, rich card schemas, cursor pagination).
+
+---
+
+## 2026-04-16 — Kanban plugin choice [SUPERSEDED by 2026-04-20]
 
 **Status:** Shortlist locked; install + verification deferred to M6 task 6.1.
 
