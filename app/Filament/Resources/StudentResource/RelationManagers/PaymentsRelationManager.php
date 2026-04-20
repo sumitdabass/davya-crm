@@ -41,9 +41,11 @@ class PaymentsRelationManager extends RelationManager
             Forms\Components\DateTimePicker::make('received_at')
                 ->required()
                 ->default(now()),
-            Forms\Components\FileUpload::make('proof_drive_url')
-                ->disk('drive')
-                ->directory('Payment Proofs'),
+            Forms\Components\TextInput::make('proof_url')
+                ->label('Proof URL')
+                ->placeholder('https://...')
+                ->url()
+                ->maxLength(2048),
             Forms\Components\Textarea::make('notes')
                 ->rows(2),
             Forms\Components\Hidden::make('recorded_by_user_id')
@@ -69,9 +71,9 @@ class PaymentsRelationManager extends RelationManager
                 Tables\Actions\Action::make('open_proof')
                     ->label('Open proof')
                     ->icon('heroicon-o-document-arrow-down')
-                    ->url(fn ($record) => $record->proof_drive_url)
+                    ->url(fn ($record) => $record->proof_url)
                     ->openUrlInNewTab()
-                    ->visible(fn ($record) => filled($record->proof_drive_url)),
+                    ->visible(fn ($record) => filled($record->proof_url)),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
