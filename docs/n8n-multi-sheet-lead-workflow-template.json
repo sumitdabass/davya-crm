@@ -23,7 +23,7 @@
             { "name": "father_name",   "value": "={{ $json['Father Name'] || '' }}" },
             { "name": "twelfth_marks", "value": "={{ $json['12th marks'] || '' }}" },
             { "name": "rank",          "value": "={{ $json['Rank'] || '' }}" },
-            { "name": "category",      "value": "={{ $json['Category'] || $json['D/OD'] || '' }}" },
+            { "name": "category",      "value": "={{ (() => { const v = String($json['Category'] || $json['D/OD'] || '').trim().toLowerCase(); if (!v) return ''; if (['d','delhi'].includes(v)) return 'Delhi'; if (['od','outside','outsider'].includes(v)) return 'Outside'; return ''; })() }}" },
             { "name": "state",         "value": "={{ $json['State'] || '' }}" },
             { "name": "college",       "value": "={{ $json['College'] || '' }}" },
             { "name": "email",         "value": "={{ $json['Email'] || '' }}" },
@@ -70,12 +70,10 @@
     {
       "parameters": {
         "url": "https://davyas.ipu.co.in/api/leads",
-        "authentication": "predefinedCredentialType",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
         "method": "POST",
         "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [{ "name": "X-Lead-Token", "value": "={{ $credentials.leadToken }}" }]
-        },
         "sendBody": true,
         "contentType": "json",
         "bodyParametersJson": "={{ JSON.stringify($json) }}",
