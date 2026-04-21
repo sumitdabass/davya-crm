@@ -1,5 +1,18 @@
 # Architecture Decisions
 
+## 2026-04-21 — Multi-sheet lead ingestion
+
+**Status:** Shipped in `feature/multi-sheet-leads`. Three n8n workflows (Sonam / Nikhil / Sumit-website) clone a shared template in `docs/n8n-multi-sheet-lead-workflow-template.json` and feed `POST /api/leads`.
+
+- API contract widened: `course` is required; `name` is optional; added `owner_name`, `rank`, `state`, `email`, `college`, `remarks`, `source`.
+- Business logic moved out of `LeadController` into `App\Services\LeadIntakeService`. Controller is now a thin wrapper.
+- Owner resolution priority: `owner_name` (direct user match) → referrer → team_head → admin fallback.
+- Phone remains the dedup key: `students.phone` UNIQUE + service-level check returning 409 with `existing_id`.
+- Sumit's ~600-row website sheet is backfilled via `php artisan leads:backfill-sumit-sheet <csv>` (idempotent, `--dry-run`, first-occurrence wins on bounce duplicates). Nikhil's and Sonam's sheets are **not** backfilled — historical rows stay read-only in the old sheet tabs.
+- Rejected rows surface in each sheet's `Rejected` tab (driven by n8n) — no Slack alerts added for this pipeline.
+
+---
+
 ## 2026-04-20 — Kanban plugin evaluation outcome (supersedes 2026-04-16)
 
 **Status:** M6 task 6.1 closed — **no plugin swap**. Keep the existing custom kanban (`app/Filament/Pages/KanbanBoard.php`).
