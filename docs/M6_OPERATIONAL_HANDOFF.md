@@ -29,20 +29,30 @@ already bound; only the Rejected-tab node needs the OAuth credential.
 
 ## 3. Create `lead-sonam` workflow
 
-Blocked on Sonam's 2026 sheet ID. Once you have it:
-1. Duplicate `lead-nikhil-sheet` in n8n UI.
-2. Rename to `lead-sonam-sheet`.
-3. Swap the sheet id on the Trigger node.
-4. Attach the same OAuth credential to "Append to Rejected tab".
-5. Save + activate.
+- Sheet id: `11h8Sqpzc-5lPu8ec2ljfGvG_E16-3IaBmRS1G5mfDI4`
+- Sheet URL: https://docs.google.com/spreadsheets/d/11h8Sqpzc-5lPu8ec2ljfGvG_E16-3IaBmRS1G5mfDI4/edit
+- Pre-built workflow JSON: `docs/n8n-lead-sonam-workflow.json`
 
-## 4. Standardize Nikhil's and Sonam's column layouts
+Her sheet columns are `Date | Ph no | Course | Rank | D/OD | enquiry | connected to.` (narrower than Nikhil's). The workflow maps them as-is — no sheet edits needed. `connected to.` → `referrer_name`, so Poonam/Neetu get referrer credit while Sonam stays owner.
 
-Owner-driven manual task. Both sheets must match the layout the webhook maps
-(see `docs/LEAD_CAPTURE_API.md` for canonical column → field map). Columns
-expected: `phone`, optional `name`, `father_name`, `phone_2`, `email`, `rank`,
-`state`, `category`, `course`, `college` (→ preference_r1), `remarks`,
-`owner_name`, `referrer_name`, `source`.
+Steps:
+1. In n8n UI: **Workflows → Import from file** → upload `docs/n8n-lead-sonam-workflow.json`.
+2. Open the imported workflow.
+3. Bind the **Google Sheets Trigger** node to credential `A8Grx7J6ZfarJVR1` (the same one used by Nikhil's and Sumit's workflows).
+4. Bind the **"Append to Rejected tab"** node to a `googleSheetsOAuth2Api` credential.
+5. Bind **POST /api/leads** to the `httpHeaderAuth` credential carrying `X-Lead-Token`.
+6. Add a "Rejected" tab to Sonam's sheet with columns `Original Row Number | Row Data JSON | Error | Timestamp` (matches the Append node schema).
+7. Save + activate.
+8. Smoke test: add a row with just `Ph no` + `Course` and confirm a student appears in `/admin/students` with owner=Sonam. Then add a row with no phone and confirm a line lands on the Rejected tab.
+
+## 4. (Optional) Nikhil's column layout
+
+Nikhil's sheet is already close enough to the canonical layout that the
+template maps all its columns. If you want richer data capture later, add
+`Email` and `Reference` columns; see `docs/LEAD_CAPTURE_API.md` for the
+canonical column → field map. **No immediate action required** — this is a
+future-polish task, not a blocker. Sonam's sheet is handled entirely by the
+workflow in section 3 (no sheet edits needed).
 
 ## 5. Prod smoke — inline first-payment block
 
