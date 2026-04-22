@@ -69,7 +69,7 @@ class StudentPolicy
 
     public function delete(User $user, Student $student): bool
     {
-        return $user->hasRole('admin') || ($user->hasRole('head') && $this->view($user, $student));
+        return $user->hasRole('admin');
     }
 
     public function transfer(User $user, Student $student): bool

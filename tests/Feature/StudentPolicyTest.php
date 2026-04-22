@@ -151,4 +151,45 @@ class StudentPolicyTest extends TestCase
 
         $this->assertTrue($sonam->can('update', $s), 'head edits any team lead');
     }
+
+    public function test_admin_can_delete_student(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9900000001',
+            'name' => 'S',
+            'owner_id' => $nikhil->id,
+            'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil',
+        ]);
+        $this->assertTrue($sumit->can('delete', $s), 'admin deletes any lead');
+    }
+
+    public function test_head_cannot_delete_team_lead(): void
+    {
+        $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9900000002',
+            'name' => 'S',
+            'owner_id' => $nikhil->id,
+            'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil',
+        ]);
+        $this->assertFalse($nikhil->can('delete', $s), 'head must NOT delete team lead');
+    }
+
+    public function test_member_cannot_delete_own_lead(): void
+    {
+        // Even on his own lead, a counsellor cannot delete.
+        $nisha = User::where('email', 'nisha@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9900000003',
+            'name' => 'S',
+            'owner_id' => $nisha->id,
+            'referrer_id' => $nisha->id,
+            'lead_source' => 'Nisha',
+        ]);
+        $this->assertFalse($nisha->can('delete', $s), 'counsellor must NOT delete (even own)');
+    }
 }
