@@ -16,10 +16,15 @@ class SeatFeePendingWidget extends TableWidget
 
     protected static ?int $sort = 2;
 
+    public static function canView(): bool
+    {
+        return self::baseQuery()->exists();
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => RoundHistory::query()->seatFeePending()->with('student'))
+            ->query(fn (): Builder => self::baseQuery()->with('student'))
             ->columns([
                 TextColumn::make('student.name')->label('Student')->searchable(),
                 TextColumn::make('student.phone')->label('Phone'),
@@ -30,5 +35,13 @@ class SeatFeePendingWidget extends TableWidget
             ])
             ->paginated([10, 25, 50])
             ->defaultSort('created_at', 'asc');
+    }
+
+    private static function baseQuery(): Builder
+    {
+        $user = auth()->user();
+        return RoundHistory::query()
+            ->seatFeePending()
+            ->whereHas('student', fn (Builder $q) => $q->visibleTo($user));
     }
 }

@@ -16,10 +16,15 @@ class ReEntryCandidatesWidget extends TableWidget
 
     protected static ?int $sort = 3;
 
+    public static function canView(): bool
+    {
+        return self::baseQuery()->exists();
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => RoundHistory::query()->reEntryCandidates()->with('student.owner'))
+            ->query(fn (): Builder => self::baseQuery()->with('student.owner'))
             ->columns([
                 TextColumn::make('student.name')->label('Student')->searchable(),
                 TextColumn::make('student.phone')->label('Phone'),
@@ -30,5 +35,13 @@ class ReEntryCandidatesWidget extends TableWidget
             ])
             ->paginated([10, 25, 50])
             ->defaultSort('created_at', 'desc');
+    }
+
+    private static function baseQuery(): Builder
+    {
+        $user = auth()->user();
+        return RoundHistory::query()
+            ->reEntryCandidates()
+            ->whereHas('student', fn (Builder $q) => $q->visibleTo($user));
     }
 }

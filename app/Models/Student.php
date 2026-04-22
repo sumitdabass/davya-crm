@@ -23,6 +23,22 @@ class Student extends Model
             ->whereNotIn('stage', ['Admission Confirmed', 'Closed']);
     }
 
+    public function scopeVisibleTo(Builder $query, ?User $user): Builder
+    {
+        if ($user === null) {
+            return $query->whereRaw('1 = 0');
+        }
+        if ($user->hasRole('admin')) {
+            return $query;
+        }
+        if ($user->hasRole('head')) {
+            $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
+            $teamIds[] = $user->id;
+            return $query->whereIn('owner_id', $teamIds);
+        }
+        return $query->where('owner_id', $user->id);
+    }
+
     protected $casts = [
         'ipu_password' => 'encrypted',
         'deal_amount' => 'decimal:2',

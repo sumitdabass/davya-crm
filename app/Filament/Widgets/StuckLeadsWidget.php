@@ -16,10 +16,21 @@ class StuckLeadsWidget extends TableWidget
 
     protected static ?int $sort = 4;
 
+    public static function canView(): bool
+    {
+        return Student::query()
+            ->stuck()
+            ->visibleTo(auth()->user())
+            ->exists();
+    }
+
     public function table(Table $table): Table
     {
         return $table
-            ->query(fn (): Builder => Student::query()->stuck()->with('owner'))
+            ->query(fn (): Builder => Student::query()
+                ->stuck()
+                ->visibleTo(auth()->user())
+                ->with('owner'))
             ->columns([
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('phone'),

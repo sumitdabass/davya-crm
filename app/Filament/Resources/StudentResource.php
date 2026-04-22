@@ -329,18 +329,7 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $user = auth()->user();
-        $query = parent::getEloquentQuery();
-
-        if ($user->hasRole('admin')) {
-            return $query;
-        }
-        if ($user->hasRole('head')) {
-            $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
-            $teamIds[] = $user->id;
-            return $query->whereIn('owner_id', $teamIds);
-        }
-        return $query->where('owner_id', $user->id);
+        return parent::getEloquentQuery()->visibleTo(auth()->user());
     }
 
     public static function getRelations(): array
