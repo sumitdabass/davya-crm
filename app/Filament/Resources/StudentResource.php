@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources;
 
-use App\Actions\RevealIpuPassword;
 use App\Enums\PipelineStage;
 use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
@@ -15,7 +14,6 @@ use App\Services\StageTransitionValidator;
 use Filament\Notifications\Notification;
 use App\Models\Student;
 use App\Models\User;
-use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
@@ -178,18 +176,10 @@ class StudentResource extends Resource
                 ->schema([
                     Toggle::make('is_ipu_registered'),
                     TextInput::make('ipu_user_id'),
-                    TextInput::make('ipu_password')
-                        ->password()
-                        ->suffixAction(
-                            Action::make('reveal')
-                                ->icon('heroicon-o-eye')
-                                ->visible(fn ($record) => $record !== null)
-                                ->action(function ($record, $set) {
-                                    $revealed = (new RevealIpuPassword)($record);
-                                    $set('ipu_password', $revealed);
-                                }),
-                        )
-                        ->helperText('Stored encrypted. Revealing is logged to activity_log.'),
+                    TextInput::make('ipu_login_code')
+                        ->label('IPU login code')
+                        ->maxLength(60)
+                        ->helperText('Shared with the student during counselling.'),
                     TextInput::make('current_round'),
                     Toggle::make('seat_fee_due')->disabled(),
                 ])->columns(2),

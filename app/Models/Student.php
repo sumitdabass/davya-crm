@@ -63,7 +63,6 @@ class Student extends Model
         // these casts. Matters for StudentPolicy::view and scopeVisibleTo.
         'owner_id' => 'integer',
         'referrer_id' => 'integer',
-        'ipu_password' => 'encrypted',
         'deal_amount' => 'decimal:2',
         'refund_amount' => 'decimal:2',
         'is_ipu_registered' => 'boolean',
