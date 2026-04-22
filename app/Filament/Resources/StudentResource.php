@@ -6,6 +6,7 @@ use App\Actions\RevealIpuPassword;
 use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
+use App\Filament\Resources\StudentResource\RelationManagers\MeetingsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
@@ -197,7 +198,9 @@ class StudentResource extends Resource
                 ->collapsible()
                 ->collapsed()
                 ->schema([
-                    DateTimePicker::make('meeting_date'),
+                    DateTimePicker::make('meeting_date')
+                        ->disabled()
+                        ->helperText('Scheduling is managed in the Meetings tab (read-only cache).'),
                     TextInput::make('meeting_location'),
                     Toggle::make('address_sent'),
                     Toggle::make('office_visit'),
@@ -339,6 +342,7 @@ class StudentResource extends Resource
             PaymentsRelationManager::class,
             RoundHistoryRelationManager::class,
             ActivityRelationManager::class,
+            MeetingsRelationManager::class,
         ];
     }
 
