@@ -11,9 +11,19 @@ class CreateStudent extends CreateRecord
 {
     protected static string $resource = StudentResource::class;
 
+    protected ?array $firstPaymentData = null;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        $this->firstPaymentData = is_array($data['first_payment'] ?? null) ? $data['first_payment'] : null;
+        unset($data['first_payment']);
+
+        return $data;
+    }
+
     protected function afterCreate(): void
     {
-        $fp = $this->data['first_payment'] ?? null;
+        $fp = $this->firstPaymentData;
 
         if (! is_array($fp) || empty($fp['amount'])) {
             return;
