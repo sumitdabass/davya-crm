@@ -25,7 +25,7 @@ class LeadsReportServiceTest extends TestCase
         $this->nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
     }
 
-    private function makeStudent(User $owner, ?User $referrer, string $stage, string $phone): Student
+    private function makeStudent(User $owner, ?User $referrer, string $stage, string $phone, ?string $closeReason = null): Student
     {
         return Student::create([
             'phone'         => $phone,
@@ -34,6 +34,7 @@ class LeadsReportServiceTest extends TestCase
             'referrer_id'   => ($referrer ?? $owner)->id,
             'lead_source'   => $owner->name,
             'stage'         => $stage,
+            'close_reason'  => $closeReason,
             'preference_r1' => 'Some College',
         ]);
     }
@@ -44,7 +45,7 @@ class LeadsReportServiceTest extends TestCase
         $this->makeStudent($this->sonam, null, 'Lead Captured', '9100000001');
         // Sonam owns 2 students past Lead Captured → counted
         $this->makeStudent($this->sonam, null, 'Meeting Scheduled', '9100000002');
-        $this->makeStudent($this->sonam, null, 'Admission Confirmed', '9100000003');
+        $this->makeStudent($this->sonam, null, 'Meeting Done', '9100000003');
 
         $result = PipelineSummary::byOwnerAfterCaptured();
 
@@ -55,20 +56,21 @@ class LeadsReportServiceTest extends TestCase
 
     public function test_by_owner_breaks_down_active_admitted_closed(): void
     {
-        // Note: after Pipeline Stage Overhaul Task 1, "Admission Confirmed" no longer exists.
-        // `admitted` now tracks Closed alongside `closed` — effectively dead code until
-        // report semantics are reworked. Fixture here uses the new stage list.
-        $this->makeStudent($this->sonam, null, 'Meeting Scheduled', '9100001001');   // active
-        $this->makeStudent($this->sonam, null, 'Round 1', '9100001002');             // active
-        $this->makeStudent($this->sonam, null, 'Seat Allotted', '9100001003');       // active (not admitted in new scheme)
-        $this->makeStudent($this->sonam, null, 'Closed', '9100001004');              // closed
-        $this->makeStudent($this->sonam, null, 'Lead Captured', '9100001005');       // excluded
+        // Semantics:
+        //   admitted = stage 'Seat Allotted' OR (stage 'Closed' AND close_reason 'Completed')
+        //   closed   = stage 'Closed' AND close_reason !== 'Completed'
+        //   active   = everything else post-capture
+        $this->makeStudent($this->sonam, null, 'Meeting Done', '9100001001');                             // active
+        $this->makeStudent($this->sonam, null, 'Seat Allotted', '9100001002');                            // admitted (seat)
+        $this->makeStudent($this->sonam, null, 'Closed', '9100001003', 'Completed');                      // admitted (closed-completed)
+        $this->makeStudent($this->sonam, null, 'Closed', '9100001004', 'Not Interested');                 // closed
+        $this->makeStudent($this->sonam, null, 'Lead Captured', '9100001005');                            // excluded
 
         $r = PipelineSummary::byOwnerAfterCaptured()[$this->sonam->id];
 
         $this->assertSame(4, $r['count']);
-        $this->assertSame(3, $r['active']);
-        $this->assertSame(0, $r['admitted']);
+        $this->assertSame(1, $r['active']);
+        $this->assertSame(2, $r['admitted']);
         $this->assertSame(1, $r['closed']);
     }
 
@@ -88,7 +90,7 @@ class LeadsReportServiceTest extends TestCase
     {
         // Owner=Sonam, referrer=Nikhil, past Lead Captured
         $this->makeStudent($this->sonam, $this->nikhil, 'Meeting Scheduled', '9100003001');
-        $this->makeStudent($this->sonam, $this->nikhil, 'Admission Confirmed', '9100003002');
+        $this->makeStudent($this->sonam, $this->nikhil, 'Seat Allotted', '9100003002');
         // Same owner/referrer, still Lead Captured → excluded
         $this->makeStudent($this->sonam, $this->nikhil, 'Lead Captured', '9100003003');
 
@@ -104,8 +106,8 @@ class LeadsReportServiceTest extends TestCase
     {
         $this->makeStudent($this->sonam,  null, 'Meeting Done', '9100004001');
         $this->makeStudent($this->nikhil, null, 'Meeting Done', '9100004002');
-        $this->makeStudent($this->nikhil, null, 'Admission Confirmed', '9100004003');
-        $this->makeStudent($this->nikhil, null, 'Closed', '9100004004');
+        $this->makeStudent($this->nikhil, null, 'Seat Allotted', '9100004003');
+        $this->makeStudent($this->nikhil, null, 'Closed', '9100004004', 'Not Interested');
 
         $result = PipelineSummary::byOwnerAfterCaptured();
         $ids = array_keys($result);

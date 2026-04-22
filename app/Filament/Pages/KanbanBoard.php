@@ -47,7 +47,7 @@ class KanbanBoard extends Page
         $byStage = $students->groupBy('stage');
 
         $columns = [];
-        foreach (PipelineSummary::STAGES as $stage) {
+        foreach (PipelineSummary::stages() as $stage) {
             $group = $byStage->get($stage, collect());
             $deal = (float) $group->sum(fn ($s) => (float) ($s->deal_amount ?? 0));
             $received = (float) $group->sum(fn ($s) => (float) ($paymentsByStudent[$s->id] ?? 0));
@@ -83,7 +83,7 @@ class KanbanBoard extends Page
         if (! $student) {
             return $this->kanbanResponse(false, 'Not allowed.');
         }
-        if (! in_array($newStage, PipelineSummary::STAGES, true)) {
+        if (! in_array($newStage, PipelineSummary::stages(), true)) {
             return $this->kanbanResponse(false, 'Unknown stage.');
         }
         if ($student->stage === $newStage) {

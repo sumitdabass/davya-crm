@@ -95,7 +95,7 @@ class StudentResource extends Resource
                 ->description('Where this student is in the pipeline.')
                 ->icon('heroicon-o-flag')
                 ->schema([
-                    Select::make('stage')->options(PipelineStage::options())->required()->default('Lead Captured')
+                    Select::make('stage')->options(PipelineStage::options())->required()->default(PipelineStage::LeadCaptured->value)
                         ->live()
                         ->afterStateUpdated(function ($state, $record) {
                             if (! $record) {
