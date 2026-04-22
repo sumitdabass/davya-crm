@@ -97,16 +97,19 @@ class StudentResource extends Resource
                 ->schema([
                     Select::make('stage')->options(PipelineStage::options())->required()->default(PipelineStage::LeadCaptured->value)
                         ->live()
-                        ->afterStateUpdated(function ($state, $record) {
+                        ->afterStateUpdated(function ($state, $record, $set) {
                             if (! $record) {
                                 return;
                             }
                             $out = (new StageTransitionValidator)->forStageChange($record, $state);
+
                             foreach ($out['hard'] as $err) {
-                                Notification::make()->warning()->title($err)->send();
+                                Notification::make()->danger()->title('Stage change blocked')->body($err)->send();
+                                $set('stage', $record->getOriginal('stage'));
+                                return;
                             }
-                            foreach ($out['soft'] as $err) {
-                                Notification::make()->warning()->title($err)->send();
+                            foreach ($out['soft'] as $warn) {
+                                Notification::make()->warning()->title('Stage changed — incomplete')->body($warn)->send();
                             }
                         }),
                     Select::make('student_response')->options([

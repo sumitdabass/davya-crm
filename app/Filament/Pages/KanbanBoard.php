@@ -83,7 +83,7 @@ class KanbanBoard extends Page
         if (! $student) {
             return $this->kanbanResponse(false, 'Not allowed.');
         }
-        if (! in_array($newStage, PipelineSummary::stages(), true)) {
+        if (! in_array($newStage, \App\Enums\PipelineStage::values(), true)) {
             return $this->kanbanResponse(false, 'Unknown stage.');
         }
         if ($student->stage === $newStage) {
@@ -94,11 +94,12 @@ class KanbanBoard extends Page
         $student->stage = $newStage;
 
         $out = (new StageTransitionValidator)->forStageChange($student, $newStage);
+
         if (! empty($out['hard'])) {
             $student->stage = $original;
             Notification::make()
                 ->title('Stage move blocked')
-                ->body(implode(' ', $out['hard']))
+                ->body(implode("\n", $out['hard']))
                 ->danger()
                 ->send();
             return $this->kanbanResponse(false, implode(' ', $out['hard']));
@@ -106,10 +107,18 @@ class KanbanBoard extends Page
 
         $student->save();
 
-        Notification::make()
-            ->title("Moved to {$newStage}")
-            ->success()
-            ->send();
+        if (! empty($out['soft'])) {
+            Notification::make()
+                ->title("Moved to {$newStage} — some fields still missing")
+                ->body(implode("\n", $out['soft']))
+                ->warning()
+                ->send();
+        } else {
+            Notification::make()
+                ->title("Moved to {$newStage}")
+                ->success()
+                ->send();
+        }
 
         return $this->kanbanResponse(true, 'ok');
     }
