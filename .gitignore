@@ -29,3 +29,6 @@ yarn-error.log
 
 # Claude Code worktrees
 /.worktrees/
+
+# Superpowers brainstorm artifacts (per-session HTML mockups)
+/.superpowers/
