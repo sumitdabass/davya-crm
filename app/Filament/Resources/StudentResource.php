@@ -39,7 +39,7 @@ class StudentResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'phone', 'phone_2', 'father_name', 'ipu_user_id', 'final_college'];
+        return ['name', 'phone', 'phone_2', 'email', 'father_name', 'ipu_user_id', 'final_college'];
     }
 
     public static function getGlobalSearchResultTitle($record): string
@@ -83,9 +83,10 @@ class StudentResource extends Resource
                 ->icon('heroicon-o-identification')
                 ->schema([
                     TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
-                    TextInput::make('name')->required(),
+                    TextInput::make('name'),
                     TextInput::make('father_name'),
                     TextInput::make('phone_2')->tel()->label('Alternate phone'),
+                    TextInput::make('email')->email()->maxLength(120),
                 ])->columns(2),
 
             Section::make('Source & Owner')
@@ -121,13 +122,15 @@ class StudentResource extends Resource
                 ])->columns(2),
 
             Section::make('Academic')
-                ->description('Board marks, exam, and category.')
+                ->description('Board marks, exam, category, entrance rank, and state.')
                 ->icon('heroicon-o-academic-cap')
                 ->collapsible()
                 ->schema([
                     TextInput::make('exam_appeared'),
                     TextInput::make('twelfth_marks'),
+                    TextInput::make('rank')->maxLength(40),
                     Select::make('category')->options(['Delhi' => 'Delhi', 'Outside' => 'Outside']),
+                    TextInput::make('state')->maxLength(40),
                     TextInput::make('course')->columnSpan(3),
                 ])->columns(3),
 
@@ -263,6 +266,9 @@ class StudentResource extends Resource
                     ->color('success'),
                 TextColumn::make('pending_amount')->money('INR')->label('Pending')
                     ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
+                TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
+                TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
                 TextColumn::make('updated_at')->since()->label('Last update')->sortable()
                     ->toggleable(),
             ])
