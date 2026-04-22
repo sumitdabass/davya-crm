@@ -5,6 +5,22 @@ admin UI for rank/state/email) is merged to `main` / landed on the
 `feature/student-admin-ui-multi-sheet-fields` branch. What remains is all in
 external systems (n8n UI, Google Sheets, the browser, shell).
 
+## 0. One-time: create the central Rejections spreadsheet
+
+**Rule:** we never modify owner-driven sheets (Sonam / Nikhil). Rejected rows go
+to a **central spreadsheet you own** instead, so bad rows are still auditable
+without touching Sonam's or Nikhil's files.
+
+Steps:
+1. In Google Drive, create a new spreadsheet named `davya-crm Lead Rejections`.
+2. First tab: rename to `Rejections`.
+3. Row 1 headers (left→right, exact spelling — n8n matches on these):
+   `Timestamp | Owner | Source Sheet Id | Original Row Number | Row Data JSON | Error`
+4. Copy its sheet id from the URL (the long string between `/d/` and `/edit`).
+5. Paste that id in place of `<<CENTRAL_REJECTIONS_SHEET_ID>>` in
+   `docs/n8n-lead-sonam-workflow.json` **before importing**, and use the same
+   id when you edit Sumit's + Nikhil's workflows in n8n UI (see §1, §2).
+
 ## 1. Activate `lead-sumit-website-sheet` in n8n
 
 - Workflow id: `7cqS00mq6r2yGJDG`
@@ -13,19 +29,29 @@ external systems (n8n UI, Google Sheets, the browser, shell).
 
 Steps:
 1. Open the workflow.
-2. Edit the **"Append to Rejected tab"** Google Sheets node and attach a
-   `googleSheetsOAuth2Api` credential (it currently has no credential bound).
+2. Edit the **"Append to Rejected tab"** Google Sheets node:
+   - Change `documentId` from Sumit's sheet id to the **central Rejections
+     sheet id** from §0.
+   - Change `sheetName` from `Rejected` to `Rejections`.
+   - Update the columns list to:
+     `Timestamp | Owner | Source Sheet Id | Original Row Number | Row Data JSON | Error`.
+   - Attach a `googleSheetsOAuth2Api` credential (none bound today).
 3. Save and toggle **Active**.
 4. Trigger a row on the sheet; confirm a student appears in `/admin/students`
-   and that rejection payloads land on the Rejected tab.
+   and that rejection payloads land on the central Rejections sheet.
 
 ## 2. Activate `lead-nikhil-sheet` in n8n
 
 - Workflow id: `v3b8K2UC08QY4V3H`
 - Source sheet: `13woSPXMw0cP0EzhiGL6EnQzsZQTicRju0BR09kdt-HM`
 
-Same steps as #1. The Sheets Trigger credential (`A8Grx7J6ZfarJVR1`) is
-already bound; only the Rejected-tab node needs the OAuth credential.
+Same steps as §1: re-point the Rejected-tab node at the central Rejections
+sheet id (from §0), rename sheetName to `Rejections`, update columns to
+`Timestamp | Owner | Source Sheet Id | Original Row Number | Row Data JSON | Error`,
+attach the `googleSheetsOAuth2Api` credential, save, activate.
+
+The Sheets Trigger credential (`A8Grx7J6ZfarJVR1`) is already bound on this
+workflow — don't touch it.
 
 ## 3. Create `lead-sonam` workflow
 
@@ -36,14 +62,16 @@ already bound; only the Rejected-tab node needs the OAuth credential.
 Her sheet columns are `Date | Ph no | Course | Rank | D/OD | enquiry | connected to.` (narrower than Nikhil's). The workflow maps them as-is — no sheet edits needed. `connected to.` → `referrer_name`, so Poonam/Neetu get referrer credit while Sonam stays owner.
 
 Steps:
-1. In n8n UI: **Workflows → Import from file** → upload `docs/n8n-lead-sonam-workflow.json`.
-2. Open the imported workflow.
-3. Bind the **Google Sheets Trigger** node to credential `A8Grx7J6ZfarJVR1` (the same one used by Nikhil's and Sumit's workflows).
-4. Bind the **"Append to Rejected tab"** node to a `googleSheetsOAuth2Api` credential.
-5. Bind **POST /api/leads** to the `httpHeaderAuth` credential carrying `X-Lead-Token`.
-6. Add a "Rejected" tab to Sonam's sheet with columns `Original Row Number | Row Data JSON | Error | Timestamp` (matches the Append node schema).
-7. Save + activate.
-8. Smoke test: add a row with just `Ph no` + `Course` and confirm a student appears in `/admin/students` with owner=Sonam. Then add a row with no phone and confirm a line lands on the Rejected tab.
+1. Open `docs/n8n-lead-sonam-workflow.json` in a text editor and replace
+   `<<CENTRAL_REJECTIONS_SHEET_ID>>` with the central Rejections sheet id
+   from §0.
+2. In n8n UI: **Workflows → Import from file** → upload the edited JSON.
+3. Open the imported workflow.
+4. Bind the **Google Sheets Trigger** node to credential `A8Grx7J6ZfarJVR1` (the same one used by Nikhil's and Sumit's workflows).
+5. Bind the **"Append to central Rejections sheet"** node to a `googleSheetsOAuth2Api` credential.
+6. Bind **POST /api/leads** to the `httpHeaderAuth` credential carrying `X-Lead-Token`.
+7. Save + activate. **No edits to Sonam's sheet needed.**
+8. Smoke test: ask Sonam to add a row with just `Ph no` + `Course` and confirm a student appears in `/admin/students` with owner=Sonam. Then add a row with no phone and confirm a line lands on the central Rejections sheet.
 
 ## 4. (Optional) Nikhil's column layout
 

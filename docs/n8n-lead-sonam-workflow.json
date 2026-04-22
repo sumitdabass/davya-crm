@@ -57,12 +57,12 @@
     },
     {
       "parameters": {
-        "documentId": "11h8Sqpzc-5lPu8ec2ljfGvG_E16-3IaBmRS1G5mfDI4",
-        "sheetName": "Rejected",
+        "documentId": "<<CENTRAL_REJECTIONS_SHEET_ID>>",
+        "sheetName": "Rejections",
         "operation": "append",
-        "columns": ["Original Row Number", "Row Data JSON", "Error", "Timestamp"]
+        "columns": ["Timestamp", "Owner", "Source Sheet Id", "Original Row Number", "Row Data JSON", "Error"]
       },
-      "name": "Append to Rejected tab",
+      "name": "Append to central Rejections sheet",
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4,
       "position": [960, 180]
@@ -105,8 +105,8 @@
     "Google Sheets Trigger": { "main": [[{ "node": "Map columns", "type": "main", "index": 0 }]] },
     "Map columns":           { "main": [[{ "node": "Missing phone/course?", "type": "main", "index": 0 }]] },
     "Missing phone/course?": { "main": [
-      [{ "node": "Append to Rejected tab", "type": "main", "index": 0 }],
-      [{ "node": "POST /api/leads",        "type": "main", "index": 0 }]
+      [{ "node": "Append to central Rejections sheet", "type": "main", "index": 0 }],
+      [{ "node": "POST /api/leads",                    "type": "main", "index": 0 }]
     ]},
     "POST /api/leads":       { "main": [[{ "node": "Switch on status",       "type": "main", "index": 0 }]] }
   }
