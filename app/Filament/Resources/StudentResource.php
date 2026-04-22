@@ -84,11 +84,26 @@ class StudentResource extends Resource
                 ->description('Who brought the lead and who handles it now.')
                 ->icon('heroicon-o-user-group')
                 ->schema([
-                    Select::make('owner_id')->relationship('owner', 'name')->required()->searchable(),
-                    Select::make('referrer_id')->relationship('referrer', 'name')->required()->searchable(),
+                    Select::make('owner_id')
+                        ->label('Owner')
+                        ->relationship(
+                            name: 'owner',
+                            titleAttribute: 'name',
+                            modifyQueryUsing: fn ($query) =>
+                                $query->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin', 'head'])),
+                        )
+                        ->required()
+                        ->searchable(),
+
                     Select::make('lead_source')
-                        ->options(fn () => User::pluck('name', 'name')->toArray() + ['Other' => 'Other'])
-                        ->required(),
+                        ->label('Lead Source')
+                        ->options(fn () => User::where('is_active', true)->orderBy('name')->pluck('name', 'name'))
+                        ->required()
+                        ->searchable(),
+
+                    TextInput::make('referrer_name')
+                        ->label('Referrer name')
+                        ->maxLength(120),
                 ])->columns(3),
 
             Section::make('Stage & Response')
