@@ -4,17 +4,22 @@ namespace App\Observers;
 
 use App\Models\Meeting;
 use App\Models\Student;
+use App\Services\ActivityDescriber;
 use App\Services\StageTransitionValidator;
 use Illuminate\Support\Facades\Log;
 
 class MeetingObserver
 {
-    public function __construct(private readonly StageTransitionValidator $validator)
-    {
+    public function __construct(
+        private readonly StageTransitionValidator $validator,
+        private readonly ActivityDescriber $describer,
+    ) {
     }
 
     public function created(Meeting $meeting): void
     {
+        $this->describer->meetingScheduled($meeting);
+
         $student = $meeting->student()->first();
         if ($student === null) {
             return;
@@ -31,6 +36,17 @@ class MeetingObserver
     {
         if ($meeting->wasChanged('status') && $meeting->status === 'held' && $meeting->held_at === null) {
             Meeting::withoutEvents(fn () => $meeting->update(['held_at' => now()]));
+        }
+
+        if ($meeting->wasChanged('scheduled_at')) {
+            $from = $meeting->getOriginal('scheduled_at');
+            if ($from instanceof \DateTimeInterface) {
+                $this->describer->meetingRescheduled($meeting, $from);
+            }
+        }
+
+        if ($meeting->wasChanged('status') && $meeting->status === 'cancelled') {
+            $this->describer->meetingCancelled($meeting);
         }
 
         $student = $meeting->student()->first();
