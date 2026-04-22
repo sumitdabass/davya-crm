@@ -84,4 +84,71 @@ class StudentPolicyTest extends TestCase
 
         $this->assertTrue($nikhil->can('view', $s), 'policy view must allow head when lead_source names his team');
     }
+
+    public function test_member_cannot_update_teammate_lead(): void
+    {
+        // Poonam + Neetu both report to Sonam. Poonam sees Neetu's lead (team-wide view),
+        // but must NOT be able to edit it under the new rule.
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+        $neetu = User::where('email', 'neetu@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '9800000001',
+            'name' => 'S',
+            'owner_id' => $neetu->id,
+            'referrer_id' => $neetu->id,
+            'lead_source' => 'Neetu',
+        ]);
+
+        $this->assertTrue($poonam->can('view', $s), 'team-wide view stays intact');
+        $this->assertFalse($poonam->can('update', $s), 'counsellor must NOT edit teammate lead');
+    }
+
+    public function test_member_can_update_own_lead(): void
+    {
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '9800000002',
+            'name' => 'S',
+            'owner_id' => $poonam->id,
+            'referrer_id' => $poonam->id,
+            'lead_source' => 'Poonam',
+        ]);
+
+        $this->assertTrue($poonam->can('update', $s), 'counsellor edits own lead');
+    }
+
+    public function test_member_can_update_lead_where_they_are_referrer(): void
+    {
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+        $neetu = User::where('email', 'neetu@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '9800000003',
+            'name' => 'S',
+            'owner_id' => $neetu->id,
+            'referrer_id' => $poonam->id,
+            'lead_source' => 'Neetu',
+        ]);
+
+        $this->assertTrue($poonam->can('update', $s), 'counsellor edits lead where she is referrer');
+    }
+
+    public function test_head_can_update_teammate_lead(): void
+    {
+        // Regression lock: heads keep team-wide edit.
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '9800000004',
+            'name' => 'S',
+            'owner_id' => $poonam->id,
+            'referrer_id' => $poonam->id,
+            'lead_source' => 'Poonam',
+        ]);
+
+        $this->assertTrue($sonam->can('update', $s), 'head edits any team lead');
+    }
 }

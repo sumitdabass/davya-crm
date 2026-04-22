@@ -54,7 +54,17 @@ class StudentPolicy
 
     public function update(User $user, Student $student): bool
     {
-        return $this->view($user, $student);
+        if ($user->hasRole('admin')) {
+            return true;
+        }
+        if ($student->owner_id === $user->id || $student->referrer_id === $user->id) {
+            return true;
+        }
+        // Heads can edit anything visible to their team; counsellors can only edit own/referenced.
+        if ($user->hasRole('head')) {
+            return $this->view($user, $student);
+        }
+        return false;
     }
 
     public function delete(User $user, Student $student): bool
