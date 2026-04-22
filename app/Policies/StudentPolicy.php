@@ -34,6 +34,22 @@ class StudentPolicy
                     return true;
                 }
             }
+            // Admin-owned leads whose lead_source matches a team member label
+            // belong to that team's head.
+            $adminId = User::role('admin')->value('id');
+            if ($student->owner_id === $adminId
+                && $student->referrer_id === $adminId
+                && $student->lead_source !== null
+            ) {
+                $teamNames = User::whereIn('id', $teamIds)->pluck('name')->toArray();
+                $teamLeadSources = array_merge(
+                    $teamNames,
+                    array_map(fn ($n) => 'Sheet:'.$n, $teamNames),
+                );
+                if (in_array($student->lead_source, $teamLeadSources, true)) {
+                    return true;
+                }
+            }
             return false;
         }
         return false;

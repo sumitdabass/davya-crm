@@ -160,6 +160,71 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNotNull($visible, 'Sonam must see leads referred by Nikhil (another head)');
     }
 
+    public function test_nikhil_sees_admin_owned_lead_sourced_from_his_team(): void
+    {
+        // Sumit is both owner and referrer, but lead_source = "Sheet:Nikhil"
+        // (or plain "Nikhil"/"Nisha") indicates the lead came from Nikhil's team.
+        $nikhil = $this->nikhil();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        foreach (['Sheet:Nikhil', 'Nikhil', 'Nisha', 'Sheet:Nisha'] as $i => $src) {
+            $phone = '728000035'.$i;
+            Student::create([
+                'phone' => $phone,
+                'course' => 'BCA',
+                'owner_id' => $sumit->id,
+                'referrer_id' => $sumit->id,
+                'lead_source' => $src,
+            ]);
+            $visible = Student::visibleTo($nikhil)->where('phone', $phone)->first();
+            $this->assertNotNull($visible, "Nikhil must see admin-owned lead with lead_source={$src}");
+        }
+
+        $policy = new \App\Policies\StudentPolicy();
+        $s = Student::where('phone', '7280000350')->first();
+        $this->assertTrue($policy->update($nikhil, $s), 'Nikhil can edit admin-owned lead from his team source');
+    }
+
+    public function test_nikhil_does_not_see_admin_owned_lead_sourced_from_sonam_team(): void
+    {
+        // Sumit owns + referred, lead_source points to Sonam's team — stays with Sonam.
+        $nikhil = $this->nikhil();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        foreach (['Sheet:Sonam', 'Poonam', 'Neetu'] as $i => $src) {
+            $phone = '728000036'.$i;
+            Student::create([
+                'phone' => $phone,
+                'course' => 'BCA',
+                'owner_id' => $sumit->id,
+                'referrer_id' => $sumit->id,
+                'lead_source' => $src,
+            ]);
+            $visible = Student::visibleTo($nikhil)->where('phone', $phone)->first();
+            $this->assertNull($visible, "Nikhil must NOT see Sonam-team-sourced lead (lead_source={$src})");
+        }
+    }
+
+    public function test_sumit_owned_and_referred_with_walkin_source_stays_admin_only(): void
+    {
+        // Guard against over-matching: lead_source = "Walk-in / Self" is not a
+        // team label, so no head should see it.
+        $nikhil = $this->nikhil();
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        Student::create([
+            'phone' => '7280000370',
+            'course' => 'BCA',
+            'owner_id' => $sumit->id,
+            'referrer_id' => $sumit->id,
+            'lead_source' => 'Walk-in / Self',
+        ]);
+
+        $this->assertNull(Student::visibleTo($nikhil)->where('phone', '7280000370')->first());
+        $this->assertNull(Student::visibleTo($sonam)->where('phone', '7280000370')->first());
+    }
+
     public function test_member_still_does_not_see_cross_head_referrals(): void
     {
         // The cross-head rule applies ONLY to heads. Members and freelancers

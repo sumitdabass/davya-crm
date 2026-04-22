@@ -40,10 +40,23 @@ class Student extends Model
             $nonAdminHeadIds = User::role('head')
                 ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin'))
                 ->pluck('id')->toArray();
+            // Admin-owned leads whose lead_source matches a team member (plain name
+            // or "Sheet:<name>") belong to that team's head even though the DB
+            // ownership fell through to admin.
+            $teamNames = User::whereIn('id', $teamIds)->pluck('name')->toArray();
+            $teamLeadSources = array_merge(
+                $teamNames,
+                array_map(fn ($n) => 'Sheet:'.$n, $teamNames),
+            );
+            $adminId = User::role('admin')->value('id');
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
                 ->orWhereIn('referrer_id', $teamIds)
-                ->orWhereIn('referrer_id', $nonAdminHeadIds));
+                ->orWhereIn('referrer_id', $nonAdminHeadIds)
+                ->orWhere(fn ($qq) => $qq
+                    ->where('owner_id', $adminId)
+                    ->where('referrer_id', $adminId)
+                    ->whereIn('lead_source', $teamLeadSources)));
         }
         return $query->where(fn ($q) => $q
             ->where('owner_id', $user->id)
