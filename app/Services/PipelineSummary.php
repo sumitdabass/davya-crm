@@ -2,27 +2,22 @@
 
 namespace App\Services;
 
+use App\Enums\PipelineStage;
 use App\Models\Student;
 use App\Models\User;
 
 class PipelineSummary
 {
-    public const STAGES = [
-        'Lead Captured',
-        'Meeting Scheduled',
-        'Meeting Done',
-        'Onboarded',
-        'University Registration',
-        'Counselling In Progress',
-        'Seat Allotted',
-        'Full Payment Received',
-        'Admission Confirmed',
-        'Closed',
-    ];
+    public const STAGE_LEAD_CAPTURED = 'Lead Captured';  // Mirrors PipelineStage::LeadCaptured->value
+    public const STAGE_CLOSED = 'Closed';                // Mirrors PipelineStage::Closed->value
+    public const STAGE_SEAT_ALLOTTED = 'Seat Allotted';  // Mirrors PipelineStage::SeatAllotted->value
+    public const CLOSE_REASON_COMPLETED = 'Completed';
 
-    public const STAGE_LEAD_CAPTURED = 'Lead Captured';
-    public const STAGE_ADMISSION_CONFIRMED = 'Admission Confirmed';
-    public const STAGE_CLOSED = 'Closed';
+    /** @return string[] */
+    public static function stages(): array
+    {
+        return PipelineStage::values();
+    }
 
     /**
      * @return array<int, array{name:string,count:int,active:int,admitted:int,closed:int}>
@@ -47,11 +42,11 @@ class PipelineSummary
     {
         $rows = Student::query()
             ->selectRaw(
-                "$col as uid, stage, COUNT(*) as c"
+                "$col as uid, stage, close_reason, COUNT(*) as c"
             )
             ->whereNotNull($col)
             ->where('stage', '!=', self::STAGE_LEAD_CAPTURED)
-            ->groupBy($col, 'stage')
+            ->groupBy($col, 'stage', 'close_reason')
             ->get();
 
         $agg = [];
@@ -62,10 +57,14 @@ class PipelineSummary
             }
             $c = (int) $r->c;
             $agg[$uid]['count'] += $c;
-            if ($r->stage === self::STAGE_CLOSED) {
-                $agg[$uid]['closed'] += $c;
-            } elseif ($r->stage === self::STAGE_ADMISSION_CONFIRMED) {
+
+            $isClosed = $r->stage === self::STAGE_CLOSED;
+            $isCompleted = $r->close_reason === self::CLOSE_REASON_COMPLETED;
+
+            if ($r->stage === self::STAGE_SEAT_ALLOTTED || ($isClosed && $isCompleted)) {
                 $agg[$uid]['admitted'] += $c;
+            } elseif ($isClosed) {
+                $agg[$uid]['closed'] += $c;
             } else {
                 $agg[$uid]['active'] += $c;
             }
@@ -97,7 +96,7 @@ class PipelineSummary
             ->keyBy('stage');
 
         $out = [];
-        foreach (self::STAGES as $stage) {
+        foreach (self::stages() as $stage) {
             $row = $raw->get($stage);
             $out[$stage] = [
                 'count' => (int) ($row->count ?? 0),

@@ -63,14 +63,12 @@ class Student extends Model
         // these casts. Matters for StudentPolicy::view and scopeVisibleTo.
         'owner_id' => 'integer',
         'referrer_id' => 'integer',
-        'ipu_password' => 'encrypted',
         'deal_amount' => 'decimal:2',
         'refund_amount' => 'decimal:2',
         'is_ipu_registered' => 'boolean',
         'seat_fee_due' => 'boolean',
         'address_sent' => 'boolean',
         'office_visit' => 'boolean',
-        'admission_date' => 'date',
         'meeting_date' => 'datetime',
     ];
 
@@ -93,6 +91,7 @@ class Student extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll()->logOnlyDirty();
+        // Humanized logging is done explicitly via ActivityDescriber; suppress Spatie auto-log.
+        return LogOptions::defaults()->logOnly([])->dontSubmitEmptyLogs();
     }
 }

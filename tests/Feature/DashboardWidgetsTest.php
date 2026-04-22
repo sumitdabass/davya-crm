@@ -149,12 +149,12 @@ class DashboardWidgetsTest extends TestCase
         Student::create([
             'phone' => '9100000031', 'name' => 'B',
             'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id, 'lead_source' => 'Nikhil',
-            'stage' => 'Onboarded', 'deal_amount' => 50000,
+            'stage' => 'Advance Received', 'deal_amount' => 50000,
         ]);
         Student::create([
             'phone' => '9100000032', 'name' => 'C',
             'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id, 'lead_source' => 'Nikhil',
-            'stage' => 'Onboarded', 'deal_amount' => 75000,
+            'stage' => 'Advance Received', 'deal_amount' => 75000,
         ]);
 
         $summary = \App\Services\PipelineSummary::compute();
@@ -162,8 +162,8 @@ class DashboardWidgetsTest extends TestCase
         $this->assertSame(1, $summary['Lead Captured']['count']);
         $this->assertEqualsWithDelta(0.0, (float) $summary['Lead Captured']['total'], 0.01);
 
-        $this->assertSame(2, $summary['Onboarded']['count']);
-        $this->assertEqualsWithDelta(125000.0, (float) $summary['Onboarded']['total'], 0.01);
+        $this->assertSame(2, $summary['Advance Received']['count']);
+        $this->assertEqualsWithDelta(125000.0, (float) $summary['Advance Received']['total'], 0.01);
 
         $this->assertSame(0, $summary['Closed']['count']);
         $this->assertEqualsWithDelta(0.0, (float) $summary['Closed']['total'], 0.01);

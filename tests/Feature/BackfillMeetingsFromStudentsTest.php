@@ -19,7 +19,7 @@ class BackfillMeetingsFromStudentsTest extends TestCase
         $this->seed();
         $owner = User::where('email', 'nikhil@davya.local')->firstOrFail();
 
-        Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        $this->rollbackBackfillMigration();
 
         $future = now()->addDays(2)->startOfMinute();
 
@@ -54,7 +54,7 @@ class BackfillMeetingsFromStudentsTest extends TestCase
         $this->seed();
         $owner = User::where('email', 'sonam@davya.local')->firstOrFail();
 
-        Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        $this->rollbackBackfillMigration();
 
         $past = now()->subDays(3)->startOfMinute();
 
@@ -83,7 +83,7 @@ class BackfillMeetingsFromStudentsTest extends TestCase
         $this->seed();
         $owner = User::where('email', 'nikhil@davya.local')->firstOrFail();
 
-        Artisan::call('migrate:rollback', ['--step' => 1, '--force' => true]);
+        $this->rollbackBackfillMigration();
 
         $studentId = DB::table('students')->insertGetId([
             'name' => 'No Meeting Student',
@@ -100,5 +100,19 @@ class BackfillMeetingsFromStudentsTest extends TestCase
         Artisan::call('migrate', ['--force' => true]);
 
         $this->assertSame(0, Meeting::where('student_id', $studentId)->count());
+    }
+
+    /**
+     * Mark the backfill migration as un-run and clear any Meeting rows it produced,
+     * so the subsequent `migrate` re-applies it. This replaces the brittle
+     * `migrate:rollback --step=1` pattern which assumed the backfill was the tail
+     * of the migrations list.
+     */
+    private function rollbackBackfillMigration(): void
+    {
+        DB::table('migrations')
+            ->where('migration', '2026_04_23_000100_backfill_meetings_from_students')
+            ->delete();
+        DB::statement('DELETE FROM meetings');
     }
 }

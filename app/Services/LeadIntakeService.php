@@ -82,7 +82,14 @@ class LeadIntakeService
     public function ingestDecision(ImportAction $decision): array
     {
         return match ($decision->action) {
-            ImportAction::CREATE => ['student' => DB::transaction(fn () => Student::create($decision->mappedPayload))],
+            ImportAction::CREATE => ['student' => DB::transaction(function () use ($decision) {
+                $student = Student::create($decision->mappedPayload);
+                app(ActivityDescriber::class)->leadCaptured(
+                    $student,
+                    $decision->mappedPayload['lead_source'] ?? 'unknown',
+                );
+                return $student;
+            })],
             ImportAction::MERGE  => $this->executeMerge($decision),
             ImportAction::FLAG   => $this->executeFlag($decision),
             ImportAction::REJECT => ['duplicate' => true, 'existing_id' => $decision->existingStudentId],
