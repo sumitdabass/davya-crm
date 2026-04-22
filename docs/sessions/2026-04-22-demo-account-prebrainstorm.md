@@ -10,9 +10,18 @@ A demo login for showing the CRM to prospects. The demo user:
 - Exception: demo's own created data is **not visible to real users**
 - Can try **all features** — except n8n (no webhook firing from demo actions)
 
-## Codebase feasibility (from audit, 2026-04-22)
+## Two audits feed this note
 
-The audit graded each capability:
+Both dated 2026-04-22:
+
+- **Code-level audit (Claude, internal):** read app/, tests/, routes/, policies. Found architectural landmines.
+- **External UI audit (browser-based inspection):** clicked through production UI, read the HTML/JS, profiled network. Found surface-level gaps that code inspection missed.
+
+The two are complementary, not redundant — different blast radii. Sections below call out which audit surfaced each finding.
+
+## Codebase feasibility (from code audit)
+
+The code audit graded each capability:
 
 | Capability | Difficulty | Where |
 |------------|-----------|-------|
@@ -20,7 +29,7 @@ The audit graded each capability:
 | Demo WRITES sandboxed (invisible to real users) | **Medium** | New `is_demo_only` boolean on `students` + filter in `getEloquentQuery()`; requires compound unique on `(phone, is_demo_only)` to preserve dedup semantics |
 | Demo skips n8n / webhooks | **Easy for leads/finance controllers** | Gate `Log::info()` calls in `LeadController:28`, `FinancePaymentController:92`, etc. Can be middleware. |
 
-## The hidden landmines (the reason this needs a brainstorm, not a quick patch)
+## Code-level landmines — MUST resolve before shipping demo
 
 ### 1. ActivityLog leaks demo activity to admins
 Spatie `ActivityLog` has no `is_demo_only` column. Every student create, payment record, stage transition, and `ipu_password` reveal gets written to `activity_log` with the real user_id. The **Activity Audit** Filament page (`app/Filament/Pages/ActivityAudit.php`, line ~42) queries the table with no role filter. Without work, a demo user giving a live demo to a prospect would end up with their demo clicks showing up in Sonam/Nikhil's next audit review.
@@ -45,6 +54,39 @@ Adding `is_demo_only` to `students` means the existing unique-by-logic dedup (`L
 
 **Decision needed:** when a demo user creates a student with a phone that already exists in real data, does the demo create fail, silently succeed with a shadow record, or merge against the real record (read-only)?
 
+## UI-level findings (from external audit) — fold into demo design
+
+The external audit walked the UI and caught surface issues the code audit didn't. Some are independent hygiene fixes; some specifically affect demo design.
+
+### Affects demo design
+
+| # | Finding | Why it matters for demo |
+|---|---------|------------------------|
+| UI-A | Sequential integer student IDs (`/admin/students/18/edit`) | A demo user can enumerate real student records by incrementing the URL, bypassing any list-view filtering. Demo isolation must enforce at policy/query level, not just at UI filter level. Alternative: migrate to ULID — but that's a big migration with FK cascade. |
+| UI-B | Kanban `moveStudentToStage` writes via Livewire, un-guarded by any demo check | Demo drag-and-drop is a "try our pipeline" demo moment — but the Livewire action mutates real data unless demo-aware. |
+| UI-C | Google Drive upload for payment proofs has no "sandbox folder" concept | Demo payment proof uploads would pollute the production Drive folder. Demo should either upload-disable OR route to a `demo/` subfolder. |
+| UI-D | `owner_id` / `referrer_id` show `*` in UI label but are **not** HTML `required` — rely on server-side Livewire validation alone | JS fail mid-flight = silent create of unowned student. Applies to real and demo alike, but demo UX is more fragile (prospect clicks wrongly-labeled field, expects behavior to match the asterisk). |
+| UI-E | Bulk-import activity log rows have **blank Who** column | The backfill artisan command ran 503 students without a user causer. Demo seeding will do the same. Fix once for both: set a `system` user as causer on artisan imports. |
+
+### Independent hygiene (nice to fix during demo work but not blockers)
+
+| # | Finding | Effort |
+|---|---------|--------|
+| UI-F | Inline Kanban JS un-versioned (re-downloads every page) | Low — extract to asset pipeline |
+| UI-G | Pusher loaded but Echo not initialized — dead ~40KB JS | Low — delete or wire up |
+| UI-H | No custom 404 page — naked Laravel 404 on any mistyped route | Low |
+| UI-I | Nav label mismatches: "Report" → `/admin/kanban`; "Duplicate review" → `/admin/duplicate-flags` | Cosmetic |
+| UI-J | `ui-avatars.com` external avatar call leaks user initials to third party | Cosmetic / privacy |
+| UI-K | `deal_amount` NULL vs ₹0 inconsistency (student #24 shows blank cell vs ₹0.00 in sub-tab) | Low — audit: should the column be `NOT NULL DEFAULT 0` or should the view coalesce? |
+| UI-L | Dashboard empty widgets ("Seat Fee Pending") render pagination chrome even with 0 rows | Low — hide pagination when empty |
+
+## Reconciled estimate
+
+**External audit said:** 3–5 days for demo MVP (UI + `is_demo` scoping).
+**That's wrong** — it missed the two code-level landmines (Finance Assistant LLM leak, ActivityLog filtering). Those aren't quick patches; they're architectural work.
+
+**Corrected estimate:** 8–12 focused dev-days for demo MVP **including** the two landmines and the UI-level fixes that directly touch demo isolation (UI-A through UI-E). The hygiene items (UI-F through UI-L) can ship separately.
+
 ## Other questions for the brainstorm
 
 1. **One demo account or many?** If many (e.g. per-prospect), we need tenant-ish isolation between demo accounts too — demo-A shouldn't see demo-B's records.
@@ -68,8 +110,10 @@ Run this through `/brainstorming` with Sumit after M6 is verified green. Key cla
 2. One demo or many?
 3. How to handle demo-attempted writes on real records (dedup collision case)?
 
-With those three answered, the design collapses to a 1–2 week implementation.
+With those three answered, the design collapses to an 8–12 day implementation (see reconciled estimate above).
 
 ---
 
 **Do not start implementation.** The ActivityLog + Finance Assistant landmines are not "small fixes" — they're architectural decisions that affect other future features (audit, multi-user finance, etc.). They deserve a spec.
+
+Related hygiene items (UI-F to UI-L above) can be batched into a separate "post-M6 cleanup" pass and do not require a demo-brainstorm to resolve.
