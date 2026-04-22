@@ -30,6 +30,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Auth\LockoutLogin::class)
             ->brandName('Davya CRM')
+            ->brandLogo(asset('davyas-logo.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('davyas-logo.png'))
             ->colors([
                 'primary' => Color::Emerald,
                 'gray'    => Color::Slate,
