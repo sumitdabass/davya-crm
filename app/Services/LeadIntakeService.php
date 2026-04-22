@@ -8,11 +8,58 @@ use App\Models\RoundHistory;
 use App\Models\Student;
 use App\Models\StudentNote;
 use App\Models\User;
+use App\Services\LeadImport\ImportAction;
 use Illuminate\Support\Facades\DB;
 
 class LeadIntakeService
 {
     public const WALK_IN_LABEL = 'Walk-in / Self';
+
+    /**
+     * Determine what action would be taken for the given payload, without writing anything.
+     *
+     * Returns an ImportAction with one of: CREATE, MERGE, FLAG, REJECT.
+     */
+    public function preview(array $data): ImportAction
+    {
+        $phone = $this->normalizePhone($data['phone'] ?? null);
+        if ($phone === null || $phone === '') {
+            return ImportAction::reject($data, 'phone missing or unparseable');
+        }
+
+        $ownerName    = $this->trimOrNull($data['owner_name']    ?? null);
+        $referrerName = $this->trimOrNull($data['referrer_name'] ?? null);
+        [$ownerId, $referrerId] = $this->resolveOwnership($ownerName, $referrerName);
+        // Pre-refactor `resolveDuplicate()` passed null for $referrerName in the merge/flag
+        // paths. That difference is unreachable: MERGE requires incoming tier > existing tier,
+        // and FLAG requires both to be head-tier — both cases demand a non-null owner_name,
+        // which makes $ownerName the winning branch in deriveLeadSource() regardless of referrer.
+        $leadSource = $this->deriveLeadSource($data, $ownerName, $referrerName);
+        $mapped = $this->buildStudentAttributes($data, $phone, $ownerId, $referrerId, $leadSource);
+
+        $existing = Student::where('phone', $phone)->first();
+        if ($existing === null) {
+            return ImportAction::create($mapped);
+        }
+
+        $incomingTier = LeadPriority::tierByName($ownerName);
+        $existingTier = LeadPriority::tier($existing->owner);
+
+        if (LeadPriority::isHeadTier($incomingTier)
+            && LeadPriority::isHeadTier($existingTier)
+            && $ownerId !== null
+            && $existing->owner_id !== null
+            && $existing->owner_id !== $ownerId
+        ) {
+            return ImportAction::flag($mapped, $existing->id);
+        }
+
+        if ($incomingTier > $existingTier) {
+            return ImportAction::merge($mapped, $existing->id);
+        }
+
+        return ImportAction::reject($mapped, 'duplicate of existing student', $existing->id);
+    }
 
     /**
      * Ingest a normalized lead payload.
@@ -25,93 +72,59 @@ class LeadIntakeService
      */
     public function ingest(array $data): array
     {
-        $phone = $this->normalizePhone($data['phone'] ?? null);
-
-        $ownerName    = $this->trimOrNull($data['owner_name']    ?? null);
-        $referrerName = $this->trimOrNull($data['referrer_name'] ?? null);
-
-        [$ownerId, $referrerId] = $this->resolveOwnership($ownerName, $referrerName);
-
-        $existing = Student::where('phone', $phone)->first();
-        if ($existing !== null) {
-            return $this->resolveDuplicate($existing, $ownerName, $ownerId, $referrerId, $data, $phone);
-        }
-
-        $leadSource = $this->deriveLeadSource($data, $ownerName, $referrerName);
-
-        $student = DB::transaction(fn () => Student::create(
-            $this->buildStudentAttributes($data, $phone, $ownerId, $referrerId, $leadSource)
-        ));
-
-        return ['student' => $student];
+        return $this->ingestDecision($this->preview($data));
     }
 
     /**
-     * Decide how to handle an incoming lead whose phone already exists.
-     *
-     * Rules:
-     *   incoming tier > existing tier                            → demote existing, insert new, re-parent children
-     *   incoming tier == existing tier (same head, same user)    → reject as plain duplicate
-     *   incoming tier == existing tier == head-tier (different head) → insert flagged-for-review + create DuplicateFlag
-     *   incoming tier < existing tier                            → reject as plain duplicate
+     * Execute a pre-computed import decision, skipping the preview step.
+     * Used by LeadImportService::commit() to honour the decisions made at preview time.
      */
-    private function resolveDuplicate(Student $existing, ?string $ownerName, ?int $ownerId, ?int $referrerId, array $data, ?string $phone): array
+    public function ingestDecision(ImportAction $decision): array
     {
-        $incomingTier = LeadPriority::tierByName($ownerName);
-        $existingOwner = $existing->owner;
-        $existingTier = LeadPriority::tier($existingOwner);
+        return match ($decision->action) {
+            ImportAction::CREATE => ['student' => DB::transaction(fn () => Student::create($decision->mappedPayload))],
+            ImportAction::MERGE  => $this->executeMerge($decision),
+            ImportAction::FLAG   => $this->executeFlag($decision),
+            ImportAction::REJECT => ['duplicate' => true, 'existing_id' => $decision->existingStudentId],
+        };
+    }
 
-        // Head-vs-head conflict (Sonam vs Nikhil in either order, different owners) → flag for admin.
-        // Checked BEFORE the "higher tier demotes" rule because head conflicts are never auto-resolved.
-        if (LeadPriority::isHeadTier($incomingTier)
-            && LeadPriority::isHeadTier($existingTier)
-            && $ownerId !== null
-            && $existing->owner_id !== null
-            && $existing->owner_id !== $ownerId
-        ) {
-            return DB::transaction(function () use ($existing, $data, $phone, $ownerId, $referrerId, $ownerName) {
-                $leadSource = $this->deriveLeadSource($data, $ownerName, null);
-                $attrs = $this->buildStudentAttributes($data, $phone, $ownerId, $referrerId, $leadSource);
-                $attrs['flagged_for_review'] = true;
-                $attrs['flag_reason'] = DuplicateFlag::REASON_HEAD_OWNERSHIP;
-                $new = Student::create($attrs);
+    private function executeMerge(ImportAction $decision): array
+    {
+        return DB::transaction(function () use ($decision) {
+            $existing = Student::findOrFail($decision->existingStudentId);
+            $existing->phone = '__DEMOTED_'.$existing->id;
+            $existing->saveQuietly();
 
-                // Also mark the existing one — admin resolves the pair together.
-                $existing->flagged_for_review = true;
-                $existing->flag_reason = DuplicateFlag::REASON_HEAD_OWNERSHIP;
-                $existing->save();
+            $new = Student::create($decision->mappedPayload);
+            $this->reparentChildren($existing, $new);
+            $demotedId = $existing->id;
+            $existing->delete();
+            return ['student' => $new, 'demoted_existing_id' => $demotedId];
+        });
+    }
 
-                $flag = DuplicateFlag::create([
-                    'phone'        => $phone,
-                    'student_a_id' => $existing->id,
-                    'student_b_id' => $new->id,
-                    'reason'       => DuplicateFlag::REASON_HEAD_OWNERSHIP,
-                ]);
-                return ['student' => $new, 'flag' => $flag];
-            });
-        }
+    private function executeFlag(ImportAction $decision): array
+    {
+        return DB::transaction(function () use ($decision) {
+            $attrs = $decision->mappedPayload;
+            $attrs['flagged_for_review'] = true;
+            $attrs['flag_reason'] = DuplicateFlag::REASON_HEAD_OWNERSHIP;
+            $new = Student::create($attrs);
 
-        // Non-head conflict where incoming beats existing → demote existing, re-parent children, insert new.
-        // Covers Sumit-existing → Sonam/Nikhil-incoming.
-        if ($incomingTier > $existingTier) {
-            return DB::transaction(function () use ($existing, $data, $phone, $ownerId, $referrerId, $ownerName) {
-                // Free the unique `phone` slot before inserting the new record.
-                $existing->phone = '__DEMOTED_'.$existing->id;
-                $existing->saveQuietly();
+            $existing = Student::findOrFail($decision->existingStudentId);
+            $existing->flagged_for_review = true;
+            $existing->flag_reason = DuplicateFlag::REASON_HEAD_OWNERSHIP;
+            $existing->save();
 
-                $leadSource = $this->deriveLeadSource($data, $ownerName, null);
-                $new = Student::create(
-                    $this->buildStudentAttributes($data, $phone, $ownerId, $referrerId, $leadSource)
-                );
-                $this->reparentChildren($existing, $new);
-                $demotedId = $existing->id;
-                $existing->delete();
-                return ['student' => $new, 'demoted_existing_id' => $demotedId];
-            });
-        }
-
-        // Everything else is a plain duplicate: reject the incoming payload.
-        return ['duplicate' => true, 'existing_id' => $existing->id];
+            $flag = DuplicateFlag::create([
+                'phone'        => $new->phone,
+                'student_a_id' => $existing->id,
+                'student_b_id' => $new->id,
+                'reason'       => DuplicateFlag::REASON_HEAD_OWNERSHIP,
+            ]);
+            return ['student' => $new, 'flag' => $flag];
+        });
     }
 
     private function reparentChildren(Student $from, Student $to): void
