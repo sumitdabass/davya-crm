@@ -31,13 +31,7 @@ class ActivityRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('created_at')->label('When')->dateTime('d M Y, H:i')->sortable(),
                 TextColumn::make('causer.name')->label('Who')->badge()->color('gray'),
-                TextColumn::make('description')->label('What'),
-                TextColumn::make('event')->label('Event')->badge()->color(fn ($state) => match ($state) {
-                    'created' => 'success',
-                    'updated' => 'primary',
-                    'deleted' => 'danger',
-                    default   => 'gray',
-                }),
+                TextColumn::make('description')->label('What')->wrap(),
             ])
             ->defaultSort('created_at', 'desc')
             ->paginated([10, 25, 50])
