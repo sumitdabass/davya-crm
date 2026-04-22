@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Actions\RevealIpuPassword;
+use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
@@ -225,6 +226,15 @@ class StudentResource extends Resource
                     Textarea::make('description')->rows(3)->label('Description'),
                     Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
                 ])->columns(1),
+
+            Section::make('First payment (optional)')
+                ->description('Only shown when creating a new student. Additional payments go on the Payments tab.')
+                ->icon('heroicon-o-banknotes')
+                ->statePath('first_payment')
+                ->collapsed()
+                ->visibleOn('create')
+                ->schema(PaymentFormSchema::fields(inlineFirstPayment: true))
+                ->columns(2),
         ]);
     }
 
