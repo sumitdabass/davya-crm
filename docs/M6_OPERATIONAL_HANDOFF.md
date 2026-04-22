@@ -93,38 +93,20 @@ workflow in section 3 (no sheet edits needed).
    - Delete this test student afterward (or use 9100000301 phone so scripts
      already skip it).
 
-## 6. Rotate the SSH deploy key
+## 6. Rotate the SSH deploy key — DONE (2026-04-22)
 
-Reason: the private key at `~/.ssh/davyas-active` was pasted in chat; treat
-it as public knowledge.
+- New keypair: `~/.ssh/davyas-active` (ed25519,
+  `davya-crm-deploy@ipuc-hostinger-20260422`, no passphrase).
+- Public key appended to server `~/.ssh/authorized_keys`.
+- Old (compromised) key removed from `authorized_keys`; server backup at
+  `~/.ssh/authorized_keys.bak-20260422` (keep for a week, then delete on server).
+- Old private key moved to `~/.ssh/davyas-active-revoked-20260422`
+  (shred after a week of no incidents).
+- Verified: new key connects, old key returns `Permission denied (publickey)`.
 
-```sh
-# Local — generate a new keypair
-ssh-keygen -t ed25519 -C "davya-crm-deploy@ipuc-hostinger-$(date +%Y%m%d)" -f ~/.ssh/davyas-active-new
-
-# Copy the new public key to the server
-ssh -i ~/.ssh/davyas-active ipuc@ipu.co.in "cat >> ~/.ssh/authorized_keys" < ~/.ssh/davyas-active-new.pub
-
-# Verify new key works
-ssh -i ~/.ssh/davyas-active-new ipuc@ipu.co.in "whoami && date"
-
-# On server (ipuc@ipu.co.in) — remove the compromised public key line
-# Easiest: open ~/.ssh/authorized_keys in vim and delete the old entry
-# (its comment ends with davya-crm-deploy@ipuc-hostinger and was present
-# before today's rotation).
-
-# Local — swap the names so scripts keep working
-mv ~/.ssh/davyas-active      ~/.ssh/davyas-active-revoked
-mv ~/.ssh/davyas-active-new  ~/.ssh/davyas-active
-mv ~/.ssh/davyas-active-new.pub ~/.ssh/davyas-active.pub
-
-# Final check
-ssh ipuc@ipu.co.in "hostname"   # should succeed with the new key
-shred -u ~/.ssh/davyas-active-revoked  # or rm, if shred not installed
-```
-
-Once verified, also delete the legacy passphrase-locked keys:
-`~/Downloads/davyas-key` and `~/.ssh/davyas-deploy`.
+Optional cleanup you can do any time:
+- `rm ~/Downloads/davyas-key` (legacy, forgotten passphrase).
+- `rm ~/.ssh/davyas-deploy` (legacy, forgotten passphrase).
 
 ## 7. Merge the UI branch
 
