@@ -11,6 +11,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentReport extends Page implements HasForms
 {
@@ -30,6 +31,8 @@ class PaymentReport extends Page implements HasForms
 
     public ?array $data = [];
 
+    public string $activeTab = 'report';
+
     public function mount(): void
     {
         $this->form->fill([
@@ -37,6 +40,7 @@ class PaymentReport extends Page implements HasForms
             'to'   => now('Asia/Kolkata')->endOfDay()->toDateString(),
             'owner_id' => null,
         ]);
+        $this->activeTab = 'report';
     }
 
     public function form(Form $form): Form
@@ -139,5 +143,57 @@ class PaymentReport extends Page implements HasForms
             'byOwner' => $byOwner,
             'byType'  => $byType,
         ];
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = in_array($tab, ['report', 'today'], true) ? $tab : 'report';
+    }
+
+    /**
+     * @return array<int, array{id:int,time:string,student_name:string,student_id:int,amount:float,mode:?string,type:string,owner_name:string}>
+     */
+    public function getTodayRowsProperty(): array
+    {
+        $tz = 'Asia/Kolkata';
+        $start = Carbon::now($tz)->startOfDay();
+        $end   = $start->copy()->addDay();
+
+        return Payment::query()
+            ->whereBetween('received_at', [$start, $end->copy()->subSecond()])
+            ->whereHas('student', fn ($q) => $q->visibleTo(auth()->user()))
+            ->with(['student.owner'])
+            ->orderByDesc('received_at')
+            ->get()
+            ->map(fn (Payment $p) => [
+                'id'           => $p->id,
+                'time'         => $p->received_at->setTimezone($tz)->format('H:i'),
+                'student_name' => $p->student?->name ?? '—',
+                'student_id'   => $p->student_id,
+                'amount'       => (float) $p->amount,
+                'mode'         => $p->mode,
+                'type'         => $p->type,
+                'owner_name'   => $p->student?->owner?->name ?? '—',
+            ])
+            ->all();
+    }
+
+    public function downloadTodayCsv(): StreamedResponse
+    {
+        $rows = $this->todayRows;
+        $filename = 'payments-today-'.now('Asia/Kolkata')->format('Y-m-d').'.csv';
+
+        return response()->streamDownload(function () use ($rows): void {
+            $out = fopen('php://output', 'w');
+            fputcsv($out, ['Time', 'Student', 'Amount', 'Mode', 'Type', 'Owner']);
+            foreach ($rows as $r) {
+                fputcsv($out, [
+                    $r['time'], $r['student_name'],
+                    number_format($r['amount'], 2, '.', ''),
+                    $r['mode'] ?? '', $r['type'], $r['owner_name'],
+                ]);
+            }
+            fclose($out);
+        }, $filename, ['Content-Type' => 'text/csv']);
     }
 }
