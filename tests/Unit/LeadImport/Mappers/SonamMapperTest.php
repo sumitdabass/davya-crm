@@ -30,12 +30,30 @@ class SonamMapperTest extends TestCase
             'phone' => '9000000001',
             'course' => 'BCA',
             'rank' => '1234',
-            'category' => 'D',
+            'category' => 'Delhi',
             'remarks' => 'Fees query',
             'referrer_name' => 'Nisha',
             'owner_name' => 'Sonam',
             'source' => 'Sheet:Sonam',
         ], (new SonamMapper())->map($row));
+    }
+
+    public function test_domicile_translation(): void
+    {
+        $mapper = new SonamMapper();
+        $row = fn (string $dod) => [
+            'Date' => '', 'Ph no' => '9000000010', 'Course' => 'BCA',
+            'Rank' => '', 'D/OD' => $dod, 'enquiry' => '', 'connected to.' => '',
+        ];
+
+        $this->assertSame('Delhi',   $mapper->map($row('D'))['category']);
+        $this->assertSame('Delhi',   $mapper->map($row('d'))['category']);
+        $this->assertSame('Delhi',   $mapper->map($row('Delhi'))['category']);
+        $this->assertSame('Outside', $mapper->map($row('OD'))['category']);
+        $this->assertSame('Outside', $mapper->map($row('od'))['category']);
+        $this->assertSame('Outside', $mapper->map($row('Outside'))['category']);
+        $this->assertNull($mapper->map($row(''))['category']);
+        $this->assertNull($mapper->map($row('whatever'))['category']);
     }
 
     public function test_normalizes_whitespace_and_empty_optional_columns(): void
