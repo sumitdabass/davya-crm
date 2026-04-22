@@ -43,9 +43,11 @@
 | 10 | Nav label "Report" confusing | **Fixed** (`500ac9e`) — sidebar now says "Pipeline"; page H1 stays "Pipeline Report". |
 | 11 | "Duplicate review" nav vs `/duplicate-flags` route | **Open (cosmetic)** — can align in next UI pass. |
 
-## Still gating: B4 decision
+## B4 — RESOLVED: keep published
 
-Legacy workflow "Davya Lead Capture — Sheets → CRM" (reads `18MGObYp3g…_kQ` / `Form Responses 1`) — **recommended deactivate**. Last updated 4 days ago, predates M6 ingest contract, likely source of the 30 failed n8n executions.
+Legacy workflow "Davya Lead Capture — Sheets → CRM" (reads `18MGObYp3g…_kQ` / `Form Responses 1`) stays **published/active** per Sumit's call (2026-04-22).
+
+*Recommendation at time of decision was to deactivate (predates M6 contract, last touched 4 days ago, suspected source of the 30 failed n8n executions). Sumit chose to keep it live — revisit if failure rate doesn't drop after the cred reconnect settles in.*
 
 ## Queued — next sessions (designed, not shipped)
 
