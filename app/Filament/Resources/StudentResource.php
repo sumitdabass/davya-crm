@@ -261,7 +261,7 @@ class StudentResource extends Resource
                     'Closed'                  => 'danger',
                     default                   => 'gray',
                 }),
-                TextColumn::make('deal_amount')->money('INR')->sortable(),
+                TextColumn::make('deal_amount')->money('INR')->sortable()->default(0),
                 TextColumn::make('total_received')->money('INR')->label('Received')
                     ->color('success'),
                 TextColumn::make('pending_amount')->money('INR')->label('Pending')
