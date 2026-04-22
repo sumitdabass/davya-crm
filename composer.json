@@ -12,6 +12,7 @@
         "laravel/framework": "^11.31",
         "laravel/tinker": "^2.9",
         "masbug/flysystem-google-drive-ext": "^2.5",
+        "phpoffice/phpspreadsheet": "^2.0",
         "pragmarx/google2fa": "^9.0",
         "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-permission": "^6.25"
