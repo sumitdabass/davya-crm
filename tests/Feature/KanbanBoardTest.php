@@ -36,7 +36,7 @@ class KanbanBoardTest extends TestCase
     {
         $s1 = $this->student(['stage' => 'Lead Captured']);
         $s2 = $this->student(['stage' => 'Lead Captured']);
-        $this->student(['stage' => 'Onboarded', 'deal_amount' => 50000]);
+        $this->student(['stage' => 'Advance Received', 'deal_amount' => 50000]);
 
         $sumit = User::where('email', 'sumit@davya.local')->first();
         $this->actingAs($sumit);
@@ -44,11 +44,11 @@ class KanbanBoardTest extends TestCase
         $page = new KanbanBoard;
         $board = $page->getBoard();
 
-        $this->assertCount(10, $board);
+        $this->assertCount(12, $board);
         $byStage = collect($board)->keyBy('stage');
 
         $this->assertSame(2, $byStage['Lead Captured']['count']);
-        $this->assertSame(1, $byStage['Onboarded']['count']);
+        $this->assertSame(1, $byStage['Advance Received']['count']);
         $this->assertSame(0, $byStage['Closed']['count']);
     }
 
@@ -57,12 +57,12 @@ class KanbanBoardTest extends TestCase
         $sumit = User::where('email', 'sumit@davya.local')->first();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
 
-        $a = $this->student(['stage' => 'Onboarded', 'deal_amount' => 100000]);
+        $a = $this->student(['stage' => 'Advance Received', 'deal_amount' => 100000]);
         Payment::create([
             'student_id' => $a->id, 'type' => 'advance', 'amount' => 30000,
             'received_at' => now(), 'recorded_by_user_id' => $nikhil->id,
         ]);
-        $b = $this->student(['stage' => 'Onboarded', 'deal_amount' => 50000]);
+        $b = $this->student(['stage' => 'Advance Received', 'deal_amount' => 50000]);
         Payment::create([
             'student_id' => $b->id, 'type' => 'advance', 'amount' => 20000,
             'received_at' => now(), 'recorded_by_user_id' => $nikhil->id,
@@ -71,10 +71,10 @@ class KanbanBoardTest extends TestCase
         $this->actingAs($sumit);
         $board = collect((new KanbanBoard)->getBoard())->keyBy('stage');
 
-        $this->assertEqualsWithDelta(150000.0, $board['Onboarded']['deal'], 0.01);
-        $this->assertEqualsWithDelta(50000.0, $board['Onboarded']['received'], 0.01);
-        $this->assertEqualsWithDelta(100000.0, $board['Onboarded']['pending'], 0.01);
-        $this->assertSame(2, $board['Onboarded']['count']);
+        $this->assertEqualsWithDelta(150000.0, $board['Advance Received']['deal'], 0.01);
+        $this->assertEqualsWithDelta(50000.0, $board['Advance Received']['received'], 0.01);
+        $this->assertEqualsWithDelta(100000.0, $board['Advance Received']['pending'], 0.01);
+        $this->assertSame(2, $board['Advance Received']['count']);
     }
 
     public function test_member_only_sees_own_students_in_kanban(): void
@@ -112,14 +112,14 @@ class KanbanBoardTest extends TestCase
     public function test_moveStudentToStage_blocks_closed_without_close_reason(): void
     {
         $sumit = User::where('email', 'sumit@davya.local')->first();
-        $s = $this->student(['stage' => 'Onboarded']);
+        $s = $this->student(['stage' => 'Advance Received']);
 
         $this->actingAs($sumit);
         $res = (new KanbanBoard)->moveStudentToStage($s->id, 'Closed');
 
         $this->assertFalse($res['ok']);
         $this->assertStringContainsString('close_reason', $res['message']);
-        $this->assertSame('Onboarded', $s->fresh()->stage);
+        $this->assertSame('Advance Received', $s->fresh()->stage);
     }
 
     public function test_moveStudentToStage_rejects_students_outside_visibility(): void
@@ -145,14 +145,14 @@ class KanbanBoardTest extends TestCase
         $nisha  = User::where('email', 'nisha@davya.local')->first();
         $poonam = User::where('email', 'poonam@davya.local')->first();
 
-        $nikhilStudent = $this->student(['owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id, 'lead_source' => 'Nikhil', 'stage' => 'Onboarded']);
-        $nishaStudent  = $this->student(['owner_id' => $nisha->id,  'referrer_id' => $nisha->id,  'lead_source' => 'Nisha',  'stage' => 'Onboarded']);
-        $poonamStudent = $this->student(['owner_id' => $poonam->id, 'referrer_id' => $poonam->id, 'lead_source' => 'Poonam', 'stage' => 'Onboarded']);
+        $nikhilStudent = $this->student(['owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id, 'lead_source' => 'Nikhil', 'stage' => 'Advance Received']);
+        $nishaStudent  = $this->student(['owner_id' => $nisha->id,  'referrer_id' => $nisha->id,  'lead_source' => 'Nisha',  'stage' => 'Advance Received']);
+        $poonamStudent = $this->student(['owner_id' => $poonam->id, 'referrer_id' => $poonam->id, 'lead_source' => 'Poonam', 'stage' => 'Advance Received']);
 
         $this->actingAs($nikhil);
         $board = collect((new KanbanBoard)->getBoard())->keyBy('stage');
 
-        $ids = collect($board['Onboarded']['students'])->pluck('id')->all();
+        $ids = collect($board['Advance Received']['students'])->pluck('id')->all();
         $this->assertContains($nikhilStudent->id, $ids);
         $this->assertContains($nishaStudent->id, $ids);
         $this->assertNotContains($poonamStudent->id, $ids);

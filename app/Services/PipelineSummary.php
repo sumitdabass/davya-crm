@@ -2,26 +2,19 @@
 
 namespace App\Services;
 
+use App\Enums\PipelineStage;
 use App\Models\Student;
 use App\Models\User;
 
 class PipelineSummary
 {
     public const STAGES = [
-        'Lead Captured',
-        'Meeting Scheduled',
-        'Meeting Done',
-        'Onboarded',
-        'University Registration',
-        'Counselling In Progress',
-        'Seat Allotted',
-        'Full Payment Received',
-        'Admission Confirmed',
-        'Closed',
+        'Lead Captured', 'Meeting Scheduled', 'Meeting Done', 'Advance Received',
+        'MQ', 'Round 1', 'Round 2', 'Round 3', 'Sliding', 'Offline',
+        'Seat Allotted', 'Closed',
     ];
 
     public const STAGE_LEAD_CAPTURED = 'Lead Captured';
-    public const STAGE_ADMISSION_CONFIRMED = 'Admission Confirmed';
     public const STAGE_CLOSED = 'Closed';
 
     /**
@@ -64,7 +57,7 @@ class PipelineSummary
             $agg[$uid]['count'] += $c;
             if ($r->stage === self::STAGE_CLOSED) {
                 $agg[$uid]['closed'] += $c;
-            } elseif ($r->stage === self::STAGE_ADMISSION_CONFIRMED) {
+            } elseif ($r->stage === PipelineStage::Closed->value) {
                 $agg[$uid]['admitted'] += $c;
             } else {
                 $agg[$uid]['active'] += $c;

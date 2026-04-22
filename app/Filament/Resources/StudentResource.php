@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Actions\RevealIpuPassword;
+use App\Enums\PipelineStage;
 use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
@@ -63,18 +64,7 @@ class StudentResource extends Resource
         return self::getEloquentQuery();
     }
 
-    protected const STAGES = [
-        'Lead Captured' => 'Lead Captured',
-        'Meeting Scheduled' => 'Meeting Scheduled',
-        'Meeting Done' => 'Meeting Done',
-        'Onboarded' => 'Onboarded',
-        'University Registration' => 'University Registration',
-        'Counselling In Progress' => 'Counselling In Progress',
-        'Seat Allotted' => 'Seat Allotted',
-        'Full Payment Received' => 'Full Payment Received',
-        'Admission Confirmed' => 'Admission Confirmed',
-        'Closed' => 'Closed',
-    ];
+    // Canonical list lives in App\Enums\PipelineStage. Use PipelineStage::options().
 
     public static function form(Form $form): Form
     {
@@ -105,7 +95,7 @@ class StudentResource extends Resource
                 ->description('Where this student is in the pipeline.')
                 ->icon('heroicon-o-flag')
                 ->schema([
-                    Select::make('stage')->options(self::STAGES)->required()->default('Lead Captured')
+                    Select::make('stage')->options(PipelineStage::options())->required()->default('Lead Captured')
                         ->live()
                         ->afterStateUpdated(function ($state, $record) {
                             if (! $record) {
@@ -277,7 +267,7 @@ class StudentResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
-                SelectFilter::make('stage')->options(self::STAGES),
+                SelectFilter::make('stage')->options(PipelineStage::options()),
                 SelectFilter::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
             ])
             ->actions([Tables\Actions\EditAction::make()])

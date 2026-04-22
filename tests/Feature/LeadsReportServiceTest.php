@@ -55,17 +55,20 @@ class LeadsReportServiceTest extends TestCase
 
     public function test_by_owner_breaks_down_active_admitted_closed(): void
     {
+        // Note: after Pipeline Stage Overhaul Task 1, "Admission Confirmed" no longer exists.
+        // `admitted` now tracks Closed alongside `closed` — effectively dead code until
+        // report semantics are reworked. Fixture here uses the new stage list.
         $this->makeStudent($this->sonam, null, 'Meeting Scheduled', '9100001001');   // active
-        $this->makeStudent($this->sonam, null, 'Counselling In Progress', '9100001002'); // active
-        $this->makeStudent($this->sonam, null, 'Admission Confirmed', '9100001003');  // admitted
-        $this->makeStudent($this->sonam, null, 'Closed', '9100001004');               // closed
-        $this->makeStudent($this->sonam, null, 'Lead Captured', '9100001005');        // excluded
+        $this->makeStudent($this->sonam, null, 'Round 1', '9100001002');             // active
+        $this->makeStudent($this->sonam, null, 'Seat Allotted', '9100001003');       // active (not admitted in new scheme)
+        $this->makeStudent($this->sonam, null, 'Closed', '9100001004');              // closed
+        $this->makeStudent($this->sonam, null, 'Lead Captured', '9100001005');       // excluded
 
         $r = PipelineSummary::byOwnerAfterCaptured()[$this->sonam->id];
 
         $this->assertSame(4, $r['count']);
-        $this->assertSame(2, $r['active']);
-        $this->assertSame(1, $r['admitted']);
+        $this->assertSame(3, $r['active']);
+        $this->assertSame(0, $r['admitted']);
         $this->assertSame(1, $r['closed']);
     }
 
