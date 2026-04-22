@@ -101,7 +101,11 @@ class StudentResource extends Resource
                             if (! $record) {
                                 return;
                             }
-                            foreach ((new StageTransitionValidator)->forStageChange($record, $state) as $err) {
+                            $out = (new StageTransitionValidator)->forStageChange($record, $state);
+                            foreach ($out['hard'] as $err) {
+                                Notification::make()->warning()->title($err)->send();
+                            }
+                            foreach ($out['soft'] as $err) {
                                 Notification::make()->warning()->title($err)->send();
                             }
                         }),

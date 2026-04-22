@@ -24,10 +24,10 @@ class EditStudent extends EditRecord
         $hypothetical = clone $this->record;
         $hypothetical->fill($data);
 
-        $errors = (new StageTransitionValidator)->forStageChange($hypothetical, $data['stage']);
-        if (! empty($errors)) {
+        $out = (new StageTransitionValidator)->forStageChange($hypothetical, $data['stage']);
+        if (! empty($out['hard'])) {
             throw ValidationException::withMessages([
-                'data.stage' => $errors[0],
+                'data.stage' => $out['hard'][0],
             ]);
         }
 

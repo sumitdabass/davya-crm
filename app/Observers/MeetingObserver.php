@@ -60,16 +60,18 @@ class MeetingObserver
 
     private function advanceStage(Student $student, string $newStage): void
     {
-        $errors = $this->validator->forStageChange($student, $newStage);
-        if (! empty($errors)) {
+        $out = $this->validator->forStageChange($student, $newStage);
+        if (! empty($out['hard'])) {
             Log::warning('MeetingObserver: stage auto-advance blocked', [
                 'student_id' => $student->id,
                 'from' => $student->stage,
                 'to' => $newStage,
-                'errors' => $errors,
+                'errors' => $out['hard'],
             ]);
             return;
         }
+        // Soft warnings are not logged from the observer — observer runs on infra events,
+        // not user actions. Only user-facing entry points (Kanban drag, form save) show soft warnings.
         Student::withoutEvents(fn () => $student->update(['stage' => $newStage]));
     }
 

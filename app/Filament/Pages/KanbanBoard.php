@@ -93,15 +93,15 @@ class KanbanBoard extends Page
         $original = $student->stage;
         $student->stage = $newStage;
 
-        $errors = (new StageTransitionValidator)->forStageChange($student, $newStage);
-        if ($errors !== []) {
+        $out = (new StageTransitionValidator)->forStageChange($student, $newStage);
+        if (! empty($out['hard'])) {
             $student->stage = $original;
             Notification::make()
                 ->title('Stage move blocked')
-                ->body(implode(' ', $errors))
+                ->body(implode(' ', $out['hard']))
                 ->danger()
                 ->send();
-            return $this->kanbanResponse(false, implode(' ', $errors));
+            return $this->kanbanResponse(false, implode(' ', $out['hard']));
         }
 
         $student->save();
