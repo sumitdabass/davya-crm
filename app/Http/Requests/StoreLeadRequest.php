@@ -25,14 +25,21 @@ class StoreLeadRequest extends FormRequest
     {
         return [
             'phone'          => ['required', 'string', 'regex:/^\d{10}$/'],
-            'name'           => ['required', 'string', 'max:120'],
+            'course'         => ['required', 'string', 'max:80'],
+            'name'           => ['nullable', 'string', 'max:120'],
             'father_name'    => ['nullable', 'string', 'max:120'],
             'phone_2'        => ['nullable', 'string', 'regex:/^\d{10}$/'],
+            'email'          => ['nullable', 'string', 'max:120'],
             'exam_appeared'  => ['nullable', 'string', 'in:IPU CET,CUET,JEE,Other'],
             'twelfth_marks'  => ['nullable', 'string', 'max:20'],
+            'rank'           => ['nullable', 'string', 'max:40'],
             'category'       => ['nullable', 'string', 'in:Delhi,Outside'],
-            'course'         => ['nullable', 'string', 'max:80'],
+            'state'          => ['nullable', 'string', 'max:40'],
+            'college'        => ['nullable', 'string', 'max:120'],
             'referrer_name'  => ['nullable', 'string', 'max:60'],
+            'owner_name'     => ['nullable', 'string', 'max:60'],
+            'remarks'        => ['nullable', 'string', 'max:2000'],
+            'source'         => ['nullable', 'string', 'max:60'],
             'description'    => ['nullable', 'string', 'max:2000'],
         ];
     }
@@ -51,7 +58,6 @@ class StoreLeadRequest extends FormRequest
             return null;
         }
         $digits = preg_replace('/\D+/', '', $v);
-        // Strip leading country code 91 if result is 12 digits (Indian +91 prefix).
         if (strlen($digits) === 12 && str_starts_with($digits, '91')) {
             $digits = substr($digits, 2);
         }

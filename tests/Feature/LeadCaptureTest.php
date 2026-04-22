@@ -160,11 +160,13 @@ class LeadCaptureTest extends TestCase
         $resp->assertJsonValidationErrors('phone');
     }
 
-    public function test_missing_name_returns_422(): void
+    public function test_missing_name_is_accepted_now_that_course_is_the_required_human_field(): void
     {
-        $resp = $this->postLead(['name' => '']);
-        $resp->assertStatus(422);
-        $resp->assertJsonValidationErrors('name');
+        $resp = $this->postLead(['name' => null]);
+        $resp->assertCreated();
+        $student = \App\Models\Student::find($resp->json('id'));
+        $this->assertNull($student->name);
+        $this->assertSame('BCA', $student->course);
     }
 
     public function test_invalid_category_returns_422(): void
@@ -197,5 +199,65 @@ class LeadCaptureTest extends TestCase
         ]);
 
         $this->assertSame(1, Student::where('phone', '9666666666')->count());
+    }
+
+    // --- new required/optional rules ---
+
+    public function test_missing_course_returns_422(): void
+    {
+        $resp = $this->postLead(['course' => null]);
+        $resp->assertStatus(422);
+        $resp->assertJsonValidationErrors('course');
+    }
+
+    public function test_owner_name_overrides_referrer_mapping(): void
+    {
+        $sonam = \App\Models\User::where('email', 'sonam@davya.local')->first();
+        $nisha = \App\Models\User::where('email', 'nisha@davya.local')->first();
+
+        $resp = $this->postLead([
+            'phone' => '9888000001',
+            'referrer_name' => 'Nisha',
+            'owner_name' => 'Sonam',
+        ]);
+
+        $resp->assertCreated();
+        $student = \App\Models\Student::find($resp->json('id'));
+        $this->assertSame($sonam->id, $student->owner_id);
+        $this->assertSame($nisha->id, $student->referrer_id);
+    }
+
+    public function test_accepts_and_stores_new_optional_fields(): void
+    {
+        $resp = $this->postLead([
+            'phone' => '9888000002',
+            'rank' => '55000',
+            'state' => 'Uttar Pradesh',
+            'email' => 'lead@example.com',
+            'college' => 'MAIT',
+            'remarks' => 'asked about scholarship',
+            'source' => 'Sheet:Sumit',
+        ]);
+
+        $resp->assertCreated();
+        $student = \App\Models\Student::find($resp->json('id'));
+        $this->assertSame('55000', $student->rank);
+        $this->assertSame('Uttar Pradesh', $student->state);
+        $this->assertSame('lead@example.com', $student->email);
+        $this->assertSame('MAIT', $student->preference_r1);
+        $this->assertSame('asked about scholarship', $student->extra_notes);
+        $this->assertSame('Sheet:Sumit', $student->lead_source);
+    }
+
+    public function test_source_defaults_to_sheet_owner_when_blank(): void
+    {
+        $resp = $this->postLead([
+            'phone' => '9888000003',
+            'owner_name' => 'Sonam',
+            'source' => null,
+        ]);
+        $resp->assertCreated();
+        $student = \App\Models\Student::find($resp->json('id'));
+        $this->assertSame('Sheet:Sonam', $student->lead_source);
     }
 }

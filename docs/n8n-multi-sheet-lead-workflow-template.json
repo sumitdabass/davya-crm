@@ -1,0 +1,113 @@
+{
+  "name": "lead-<<OWNER_NAME_LOWER>>-sheet",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "documentId": "<<SHEET_ID>>",
+        "sheetName": "Sheet1",
+        "event": "rowAdded"
+      },
+      "name": "Google Sheets Trigger",
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            { "name": "phone",         "value": "={{ $json['Phone'] || $json['Ph no'] || $json['Contact no'] || '' }}" },
+            { "name": "course",        "value": "={{ $json['Course'] || '' }}" },
+            { "name": "name",          "value": "={{ $json['Name'] || $json['Student Name'] || '' }}" },
+            { "name": "father_name",   "value": "={{ $json['Father Name'] || '' }}" },
+            { "name": "twelfth_marks", "value": "={{ $json['12th marks'] || '' }}" },
+            { "name": "rank",          "value": "={{ $json['Rank'] || '' }}" },
+            { "name": "category",      "value": "={{ (() => { const v = String($json['Category'] || $json['D/OD'] || '').trim().toLowerCase(); if (!v) return ''; if (['d','delhi'].includes(v)) return 'Delhi'; if (['od','outside','outsider'].includes(v)) return 'Outside'; return ''; })() }}" },
+            { "name": "state",         "value": "={{ $json['State'] || '' }}" },
+            { "name": "college",       "value": "={{ $json['College'] || '' }}" },
+            { "name": "email",         "value": "={{ $json['Email'] || '' }}" },
+            { "name": "referrer_name", "value": "={{ $json['Reference'] || '' }}" },
+            { "name": "remarks",       "value": "={{ $json['Remarks'] || $json['enquiry'] || $json['Message'] || '' }}" },
+            { "name": "source",        "value": "={{ $json['Source'] || '' }}" },
+            { "name": "owner_name",    "value": "<<OWNER_NAME>>" }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Map columns",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            { "value1": "={{ $json.phone }}",  "operation": "isEmpty" },
+            { "value1": "={{ $json.course }}", "operation": "isEmpty" }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "name": "Missing phone/course?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "documentId": "<<SHEET_ID>>",
+        "sheetName": "Rejected",
+        "operation": "append",
+        "columns": ["Original Row Number", "Row Data JSON", "Error", "Timestamp"]
+      },
+      "name": "Append to Rejected tab",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [960, 180]
+    },
+    {
+      "parameters": {
+        "url": "https://davyas.ipu.co.in/api/leads",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "method": "POST",
+        "sendHeaders": true,
+        "sendBody": true,
+        "contentType": "json",
+        "bodyParametersJson": "={{ JSON.stringify($json) }}",
+        "options": { "response": { "response": { "fullResponse": true, "neverError": true } } }
+      },
+      "name": "POST /api/leads",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [960, 420]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            { "value2": 201 },
+            { "value2": 409 },
+            { "value2": 422 }
+          ]
+        },
+        "value1": "={{ $json.statusCode }}"
+      },
+      "name": "Switch on status",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1200, 420]
+    }
+  ],
+  "connections": {
+    "Google Sheets Trigger": { "main": [[{ "node": "Map columns", "type": "main", "index": 0 }]] },
+    "Map columns":           { "main": [[{ "node": "Missing phone/course?", "type": "main", "index": 0 }]] },
+    "Missing phone/course?": { "main": [
+      [{ "node": "Append to Rejected tab", "type": "main", "index": 0 }],
+      [{ "node": "POST /api/leads",        "type": "main", "index": 0 }]
+    ]},
+    "POST /api/leads":       { "main": [[{ "node": "Switch on status",       "type": "main", "index": 0 }]] }
+  }
+}

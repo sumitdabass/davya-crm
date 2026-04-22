@@ -16,14 +16,21 @@ X-Lead-Token: <token>
 
 {
   "phone": "9999911111",
+  "course": "BCA",
   "name": "Ankit Sharma",
   "father_name": "Mr Sharma",
   "phone_2": null,
+  "email": "ankit@example.com",
   "exam_appeared": "IPU CET",
   "twelfth_marks": "85%",
+  "rank": "55000",
   "category": "Delhi",
-  "course": "BCA",
+  "state": "Delhi",
+  "college": "MAIT",
   "referrer_name": "Nisha",
+  "owner_name": "Sonam",
+  "remarks": "Asked about scholarship",
+  "source": "Sheet:Sumit",
   "description": "Walked in via Google Form"
 }
 ```
@@ -33,14 +40,21 @@ X-Lead-Token: <token>
 | Field | Required | Type | Constraint |
 |---|---|---|---|
 | `phone` | ✓ | string | Normalized to 10 digits server-side. Accepts `+91 99999 11111` etc.; country code `91` prefix is stripped. |
-| `name` | ✓ | string | Max 120 chars |
+| `course` | ✓ | string | Max 80 |
+| `name` |  | string | Max 120. Optional since 2026-04-21 (multi-sheet ingestion — phone-only entries are valid enquiries). |
 | `father_name` |  | string | Max 120 |
 | `phone_2` |  | string | Same normalization as `phone` |
+| `email` |  | string | Max 120 |
 | `exam_appeared` |  | enum | `IPU CET` \| `CUET` \| `JEE` \| `Other` |
 | `twelfth_marks` |  | string | Max 20 (freeform: %, CGPA, marks) |
+| `rank` |  | string | Max 40 (freeform — accepts "55000", "81%", "Cat 30") |
 | `category` |  | enum | `Delhi` \| `Outside` |
-| `course` |  | string | Max 80 |
-| `referrer_name` | ✓ | string | Max 60. See "Referrer dropdown" below |
+| `state` |  | string | Max 40 (freeform) |
+| `college` |  | string | Max 120. Persists to `students.preference_r1`. |
+| `referrer_name` |  | string | Max 60. See "Referrer dropdown" below |
+| `owner_name` |  | string | Max 60. Case-insensitive User name lookup; **overrides** referrer-derived owner. See "Owner resolution" below. |
+| `remarks` |  | string | Max 2000. Persists to `students.extra_notes`. |
+| `source` |  | string | Max 60. Persists to `students.lead_source`. Defaults server-side to `Sheet:<owner_name>` when `owner_name` is present and `source` is blank. |
 | `description` |  | string | Max 2000 |
 
 ### Referrer dropdown (8 options)
@@ -57,6 +71,16 @@ X-Lead-Token: <token>
 | `Walk-in / Self` | referrer=null, owner=Sumit (admin default) |
 
 Match is case-insensitive. Any unrecognized name falls through to `referrer=null, owner=Sumit` (no request fails for a typo in the dropdown).
+
+### Owner resolution
+
+Order of precedence when deriving `students.owner_id`:
+
+1. **`owner_name` in payload** — if it case-insensitively matches a `User.name`, that user is the owner. `referrer_name` (if present and matched) becomes the referrer. Used by the multi-sheet pipeline: each sheet's n8n workflow hardcodes its owner (Sonam / Nikhil / Sumit) regardless of who filled the row.
+2. **`referrer_name` mapping** — as per the dropdown table above (referrer → team_head, heads → self, `Walk-in / Self` → admin).
+3. **Fallback** — `owner = Sumit (admin)`, `referrer_id = null`.
+
+`owner_name` with no matching user falls through to step 2, not an error.
 
 ## Responses
 
