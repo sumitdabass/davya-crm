@@ -78,12 +78,12 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNull($visible, 'Nikhil must NOT see leads owned by Sonam');
     }
 
-    public function test_nikhil_sees_admin_owned_unallocated_pool(): void
+    public function test_nikhil_does_not_see_unallocated_admin_lead(): void
     {
         $nikhil = $this->nikhil();
-        // No owner_name, no referrer_name → falls through to admin (Sumit),
-        // referrer_id is null. This is the shared "unallocated" pool — all
-        // heads and their team members can see and claim these.
+        // owner=Sumit, referrer=null (common for backfilled or website leads
+        // with no Nikhil connection). Stays admin-only unless the lead_source
+        // names Nikhil's team.
         $s = app(LeadIntakeService::class)->ingest([
             'phone' => '7280000334',
             'course' => 'BCA',
@@ -94,7 +94,7 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNull($s->referrer_id);
 
         $visible = Student::visibleTo($nikhil)->where('phone', '7280000334')->first();
-        $this->assertNotNull($visible, 'unallocated admin-owned lead goes into the shared pool — visible to heads');
+        $this->assertNull($visible, 'admin-owned lead with no Nikhil/Nisha name on it stays invisible to Nikhil');
     }
 
     public function test_nikhil_sees_lead_where_he_is_referrer_even_if_owner_is_admin(): void

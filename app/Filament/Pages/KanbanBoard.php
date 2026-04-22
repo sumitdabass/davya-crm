@@ -122,16 +122,7 @@ class KanbanBoard extends Page
 
     private function visibleStudentQuery(User $user): Builder
     {
-        $q = Student::query();
-
-        if ($user->hasRole('admin')) {
-            return $q;
-        }
-        if ($user->hasRole('head')) {
-            $teamIds = User::where('team_head_id', $user->id)->pluck('id')->all();
-            $teamIds[] = $user->id;
-            return $q->whereIn('owner_id', $teamIds);
-        }
-        return $q->where('owner_id', $user->id);
+        // Single source of truth — stays in lockstep with list/edit scope + policy.
+        return Student::query()->visibleTo($user);
     }
 }

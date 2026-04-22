@@ -34,11 +34,6 @@ class StudentPolicy
 
             $adminId = User::role('admin')->value('id');
 
-            // Unallocated admin pool (owner=admin, no human referrer): shared across teams.
-            if ($student->owner_id === $adminId && $student->referrer_id === null) {
-                return true;
-            }
-
             // Admin-owned leads whose lead_source names this team belong to this team.
             if ($student->owner_id === $adminId
                 && $student->referrer_id === $adminId

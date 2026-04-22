@@ -49,11 +49,6 @@ class Student extends Model
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
                 ->orWhereIn('referrer_id', $teamIds)
-                // Unallocated admin pool (owner=admin, no human referrer) is shared
-                // across all heads + their teams — e.g. backfilled Sheet:Sumit leads.
-                ->orWhere(fn ($qq) => $qq
-                    ->where('owner_id', $adminId)
-                    ->whereNull('referrer_id'))
                 // Admin-owned leads whose lead_source names this team go to that team.
                 ->orWhere(fn ($qq) => $qq
                     ->where('owner_id', $adminId)
@@ -68,6 +63,11 @@ class Student extends Model
     }
 
     protected $casts = [
+        // MySQL returns FK columns as strings; Laravel auto-casts primary keys
+        // to int, so `$student->owner_id === $user->id` fails silently without
+        // these casts. Matters for StudentPolicy::view and scopeVisibleTo.
+        'owner_id' => 'integer',
+        'referrer_id' => 'integer',
         'ipu_password' => 'encrypted',
         'deal_amount' => 'decimal:2',
         'refund_amount' => 'decimal:2',
