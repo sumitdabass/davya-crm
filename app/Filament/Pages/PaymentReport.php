@@ -46,7 +46,7 @@ class PaymentReport extends Page implements HasForms
                 DatePicker::make('from')->label('From')->required()->native(false),
                 DatePicker::make('to')->label('To')->required()->native(false),
                 Select::make('owner_id')->label('Owner (optional)')
-                    ->options(fn () => User::orderBy('name')->pluck('name', 'id'))
+                    ->options(fn () => $this->ownerOptions())
                     ->searchable()
                     ->nullable(),
             ])
@@ -59,6 +59,24 @@ class PaymentReport extends Page implements HasForms
         return auth()->user()?->hasRole(['admin', 'head']) ?? false;
     }
 
+    /** @return array<int,string> */
+    protected function ownerOptions(): array
+    {
+        $user = auth()->user();
+        if ($user === null) {
+            return [];
+        }
+        if ($user->hasRole('admin')) {
+            return User::orderBy('name')->pluck('name', 'id')->all();
+        }
+        // Head: own team members (including self).
+        return User::where('id', $user->id)
+            ->orWhere('team_head_id', $user->id)
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
     /**
      * @return array{totals:array<string,float>, byOwner:array<int,array{name:string,received:float,refunds:float,count:int}>, byType:array<string,float>}
      */
@@ -68,8 +86,11 @@ class PaymentReport extends Page implements HasForms
         $to   = Carbon::parse($this->data['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
         $ownerId = $this->data['owner_id'] ?? null;
 
+        $user = auth()->user();
+
         $base = Payment::query()
-            ->whereBetween('received_at', [$from, $to]);
+            ->whereBetween('received_at', [$from, $to])
+            ->whereHas('student', fn ($q) => $q->visibleTo($user));
 
         if ($ownerId) {
             $base->whereHas('student', fn ($q) => $q->where('owner_id', $ownerId));
