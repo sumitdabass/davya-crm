@@ -69,7 +69,6 @@ class Student extends Model
         'seat_fee_due' => 'boolean',
         'address_sent' => 'boolean',
         'office_visit' => 'boolean',
-        'admission_date' => 'date',
         'meeting_date' => 'datetime',
     ];
 

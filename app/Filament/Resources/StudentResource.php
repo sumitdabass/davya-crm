@@ -3,7 +3,6 @@
 namespace App\Filament\Resources;
 
 use App\Enums\PipelineStage;
-use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\MeetingsRelationManager;
@@ -14,8 +13,6 @@ use App\Services\StageTransitionValidator;
 use Filament\Notifications\Notification;
 use App\Models\Student;
 use App\Models\User;
-use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -39,7 +36,7 @@ class StudentResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'phone', 'phone_2', 'email', 'father_name', 'ipu_user_id', 'final_college'];
+        return ['name', 'phone', 'phone_2', 'email', 'father_name', 'ipu_user_id'];
     }
 
     public static function getGlobalSearchResultTitle($record): string
@@ -184,30 +181,6 @@ class StudentResource extends Resource
                     Toggle::make('seat_fee_due')->disabled(),
                 ])->columns(2),
 
-            Section::make('Final allotment')
-                ->description('Locked-in college and admission date.')
-                ->icon('heroicon-o-check-badge')
-                ->collapsible()
-                ->schema([
-                    TextInput::make('final_college'),
-                    TextInput::make('final_course'),
-                    DatePicker::make('admission_date'),
-                ])->columns(3),
-
-            Section::make('Logistics')
-                ->description('Office visit and meeting tracking.')
-                ->icon('heroicon-o-map-pin')
-                ->collapsible()
-                ->collapsed()
-                ->schema([
-                    DateTimePicker::make('meeting_date')
-                        ->disabled()
-                        ->helperText('Scheduling is managed in the Meetings tab (read-only cache).'),
-                    TextInput::make('meeting_location'),
-                    Toggle::make('address_sent'),
-                    Toggle::make('office_visit'),
-                ])->columns(2),
-
             Section::make('Closure')
                 ->description('Only fill when closing or re-opening a student.')
                 ->icon('heroicon-o-x-circle')
@@ -234,15 +207,6 @@ class StudentResource extends Resource
                     Textarea::make('description')->rows(3)->label('Description'),
                     Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
                 ])->columns(1),
-
-            Section::make('First payment (optional)')
-                ->description('Only shown when creating a new student. Additional payments go on the Payments tab.')
-                ->icon('heroicon-o-banknotes')
-                ->statePath('first_payment')
-                ->collapsed()
-                ->visibleOn('create')
-                ->schema(PaymentFormSchema::fields(inlineFirstPayment: true))
-                ->columns(2),
         ]);
     }
 
