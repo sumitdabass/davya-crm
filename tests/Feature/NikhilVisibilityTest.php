@@ -118,46 +118,36 @@ class NikhilVisibilityTest extends TestCase
         $this->assertTrue($policy->update($nikhil, $s), 'Nikhil must be able to edit the lead he referred');
     }
 
-    public function test_nikhil_sees_lead_where_sonam_is_referrer(): void
+    public function test_cross_head_referrals_stay_private(): void
     {
-        // Cross-head collaboration: any lead referred by a head (Sonam) is visible
-        // to every head (Nikhil), regardless of who owns it.
+        // After removing the cross-head rule: Nikhil does NOT see Sonam-referred
+        // leads, and Sonam does NOT see Nikhil-referred or Nikhil-owned leads.
         $nikhil = $this->nikhil();
         $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
 
-        $s = Student::create([
-            'phone' => '7280000339',
-            'course' => 'BCA',
-            'owner_id' => $sumit->id,
-            'referrer_id' => $sonam->id,
+        // Sonam-referred, admin-owned: only Sonam sees it.
+        $a = Student::create([
+            'phone' => '7280000339', 'course' => 'BCA',
+            'owner_id' => $sumit->id, 'referrer_id' => $sonam->id,
             'lead_source' => 'Walk-in / Self',
         ]);
+        $this->assertNull(Student::visibleTo($nikhil)->where('id', $a->id)->first(),
+            'Nikhil must NOT see leads referred only by Sonam');
+        $this->assertNotNull(Student::visibleTo($sonam)->where('id', $a->id)->first(),
+            'Sonam still sees her own referrals');
 
-        $visible = Student::visibleTo($nikhil)->where('phone', '7280000339')->first();
-        $this->assertNotNull($visible, 'Nikhil must see leads referred by Sonam (another head)');
-
-        $policy = new \App\Policies\StudentPolicy();
-        $this->assertTrue($policy->view($nikhil, $s), 'policy mirrors scope for cross-head referrals');
-    }
-
-    public function test_sonam_sees_lead_where_nikhil_is_referrer(): void
-    {
-        // Mirror of the above: Sonam sees Nikhil-referred leads.
-        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
-        $nikhil = $this->nikhil();
-        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
-
-        $s = Student::create([
-            'phone' => '7280000340',
-            'course' => 'BCA',
-            'owner_id' => $sumit->id,
-            'referrer_id' => $nikhil->id,
-            'lead_source' => 'Walk-in / Self',
+        // Nikhil-owned + Nikhil-referred: only Nikhil sees it (this is the
+        // exact leak reported in prod for phone 7280000331).
+        $b = Student::create([
+            'phone' => '7280000340', 'course' => 'BCA',
+            'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil',
         ]);
-
-        $visible = Student::visibleTo($sonam)->where('phone', '7280000340')->first();
-        $this->assertNotNull($visible, 'Sonam must see leads referred by Nikhil (another head)');
+        $this->assertNull(Student::visibleTo($sonam)->where('id', $b->id)->first(),
+            'Sonam must NOT see Nikhil-owned leads');
+        $this->assertNotNull(Student::visibleTo($nikhil)->where('id', $b->id)->first(),
+            'Nikhil still sees his own leads');
     }
 
     public function test_nikhil_sees_admin_owned_lead_sourced_from_his_team(): void
@@ -225,10 +215,9 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNull(Student::visibleTo($sonam)->where('phone', '7280000370')->first());
     }
 
-    public function test_member_still_does_not_see_cross_head_referrals(): void
+    public function test_member_sees_only_own_leads(): void
     {
-        // The cross-head rule applies ONLY to heads. Members and freelancers
-        // are unchanged — still see only leads they own or referred themselves.
+        // Members and freelancers see only leads they own or referred themselves.
         $nisha = User::where('email', 'nisha@davya.local')->firstOrFail();
         $nikhil = $this->nikhil();
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
@@ -242,7 +231,7 @@ class NikhilVisibilityTest extends TestCase
         ]);
 
         $visible = Student::visibleTo($nisha)->where('phone', '7280000341')->first();
-        $this->assertNull($visible, 'member (Nisha) does not get cross-head visibility');
+        $this->assertNull($visible, 'member (Nisha) cannot see a lead owned + referred by others');
     }
 
     public function test_nikhil_sees_lead_where_nisha_is_referrer(): void

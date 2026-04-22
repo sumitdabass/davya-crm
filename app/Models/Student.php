@@ -34,12 +34,6 @@ class Student extends Model
         if ($user->hasRole('head')) {
             $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
             $teamIds[] = $user->id;
-            // Any non-admin head (Nikhil, Sonam) acting as referrer is visible to
-            // every head — lets heads coordinate on each other's referrals while
-            // keeping admin (Sumit) referrals out of cross-head leakage.
-            $nonAdminHeadIds = User::role('head')
-                ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin'))
-                ->pluck('id')->toArray();
             // Admin-owned leads whose lead_source matches a team member (plain name
             // or "Sheet:<name>") belong to that team's head even though the DB
             // ownership fell through to admin.
@@ -52,7 +46,6 @@ class Student extends Model
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
                 ->orWhereIn('referrer_id', $teamIds)
-                ->orWhereIn('referrer_id', $nonAdminHeadIds)
                 ->orWhere(fn ($qq) => $qq
                     ->where('owner_id', $adminId)
                     ->where('referrer_id', $adminId)

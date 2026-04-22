@@ -27,13 +27,6 @@ class StudentPolicy
                 || in_array($student->referrer_id, $teamIds, true)) {
                 return true;
             }
-            // Referrals made by a non-admin head are visible to every head.
-            if ($student->referrer_id !== null) {
-                $referrer = User::find($student->referrer_id);
-                if ($referrer?->hasRole('head') && !$referrer->hasRole('admin')) {
-                    return true;
-                }
-            }
             // Admin-owned leads whose lead_source matches a team member label
             // belong to that team's head.
             $adminId = User::role('admin')->value('id');
