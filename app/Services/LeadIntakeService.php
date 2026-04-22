@@ -72,8 +72,15 @@ class LeadIntakeService
      */
     public function ingest(array $data): array
     {
-        $decision = $this->preview($data);
+        return $this->ingestDecision($this->preview($data));
+    }
 
+    /**
+     * Execute a pre-computed import decision, skipping the preview step.
+     * Used by LeadImportService::commit() to honour the decisions made at preview time.
+     */
+    public function ingestDecision(ImportAction $decision): array
+    {
         return match ($decision->action) {
             ImportAction::CREATE => ['student' => DB::transaction(fn () => Student::create($decision->mappedPayload))],
             ImportAction::MERGE  => $this->executeMerge($decision),
