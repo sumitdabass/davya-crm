@@ -2,14 +2,17 @@
 
 namespace App\Console\Commands;
 
+use App\Models\User;
 use App\Services\LeadIntakeService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Auth;
 
 class BackfillSumitSheet extends Command
 {
     protected $signature = 'leads:backfill-sumit-sheet
                             {file : Path to the CSV export}
-                            {--dry-run : Parse and normalize but do not insert}';
+                            {--dry-run : Parse and normalize but do not insert}
+                            {--as-user= : Email of the user to attribute as causer in activity_log (defaults to first admin)}';
 
     protected $description = 'Import Sumit website-form sheet export into students (owner=Sumit).';
 
@@ -20,6 +23,17 @@ class BackfillSumitSheet extends Command
             $this->error("File not readable: {$path}");
             return self::FAILURE;
         }
+
+        $email  = (string) ($this->option('as-user') ?? '');
+        $causer = $email !== ''
+            ? User::where('email', $email)->first()
+            : User::role('admin')->orderBy('id')->first();
+        if ($causer === null) {
+            $this->error($email !== '' ? "No user with email: {$email}" : 'No admin user found; use --as-user=<email>');
+            return self::FAILURE;
+        }
+        Auth::login($causer);
+        $this->info("Attributing activity to: {$causer->email}");
 
         $handle = fopen($path, 'r');
         if ($handle === false) {
