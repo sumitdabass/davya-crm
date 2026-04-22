@@ -192,4 +192,46 @@ class StudentPolicyTest extends TestCase
         ]);
         $this->assertFalse($nisha->can('delete', $s), 'counsellor must NOT delete (even own)');
     }
+
+    public function test_admin_can_transfer_student(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9950000001',
+            'name' => 'S',
+            'owner_id' => $nikhil->id,
+            'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil',
+        ]);
+        $this->assertTrue($sumit->can('transfer', $s), 'admin transfers any lead');
+    }
+
+    public function test_head_can_transfer_team_lead(): void
+    {
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9950000002',
+            'name' => 'S',
+            'owner_id' => $poonam->id,
+            'referrer_id' => $poonam->id,
+            'lead_source' => 'Poonam',
+        ]);
+        $this->assertTrue($sonam->can('transfer', $s), 'head transfers team lead');
+    }
+
+    public function test_head_cannot_transfer_other_team_lead(): void
+    {
+        $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
+        $poonam = User::where('email', 'poonam@davya.local')->firstOrFail();
+        $s = Student::create([
+            'phone' => '9950000003',
+            'name' => 'S',
+            'owner_id' => $poonam->id,
+            'referrer_id' => $poonam->id,
+            'lead_source' => 'Poonam',
+        ]);
+        $this->assertFalse($nikhil->can('transfer', $s), 'head cannot transfer other team lead');
+    }
 }
