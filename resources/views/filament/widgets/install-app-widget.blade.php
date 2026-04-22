@@ -1,6 +1,8 @@
 @php
-    $isIos = str_contains(strtolower(request()->userAgent() ?? ''), 'iphone')
-        || str_contains(strtolower(request()->userAgent() ?? ''), 'ipad');
+    $ua = strtolower(request()->userAgent() ?? '');
+    $isIos = str_contains($ua, 'iphone') || str_contains($ua, 'ipad');
+    $isAndroid = str_contains($ua, 'android');
+    $isMobile = $isIos || $isAndroid;
 @endphp
 
 <div
@@ -9,7 +11,11 @@
         installed: false,
         standalone: false,
         isIos: @js($isIos),
-        showIosHint: false,
+        isAndroid: @js($isAndroid),
+        isMobile: @js($isMobile),
+        showHint: false,
+        hintTitle: '',
+        hintSteps: [],
 
         init() {
             this.standalone = window.matchMedia('(display-mode: standalone)').matches
@@ -27,21 +33,38 @@
         },
 
         install() {
-            if (this.isIos && !this.standalone) {
-                this.showIosHint = true;
+            if (this.deferredPrompt) {
+                this.deferredPrompt.prompt();
+                this.deferredPrompt.userChoice.then(() => { this.deferredPrompt = null; });
                 return;
             }
-            if (!this.deferredPrompt) return;
-            this.deferredPrompt.prompt();
-            this.deferredPrompt.userChoice.then(() => {
-                this.deferredPrompt = null;
-            });
+            if (this.isIos) {
+                this.hintTitle = 'On iPhone / iPad (Safari):';
+                this.hintSteps = [
+                    'Tap the Share icon at the bottom of Safari.',
+                    'Scroll down and tap Add to Home Screen.',
+                    'Tap Add. Davya will appear like a native app.',
+                ];
+            } else if (this.isAndroid) {
+                this.hintTitle = 'On Android:';
+                this.hintSteps = [
+                    'Open this page in Chrome (not an in-app browser).',
+                    'Tap the three-dot menu in the top-right.',
+                    'Tap Install app or Add to Home screen.',
+                ];
+            } else {
+                this.hintTitle = 'On desktop Chrome / Edge:';
+                this.hintSteps = [
+                    'Look for the install icon at the right of the address bar (a small monitor with a down-arrow).',
+                    'Click it, then Install.',
+                    'The app opens in its own window — no browser tabs.',
+                ];
+            }
+            this.showHint = true;
         },
 
         get shouldShow() {
-            if (this.standalone || this.installed) return false;
-            if (this.isIos) return true;
-            return this.deferredPrompt !== null;
+            return !this.standalone && !this.installed;
         },
     }"
     x-show="shouldShow"
@@ -55,47 +78,35 @@
                 </div>
                 <div>
                     <h3 class="text-base font-semibold text-gray-950 dark:text-white">
-                        Install Davya CRM on your phone
+                        Install Davya CRM as an app
                     </h3>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Add to your home screen for one-tap access, no browser bar, works like a native app.
+                        One-tap access, standalone window, no browser bar. Works on phone and desktop.
                     </p>
                 </div>
             </div>
 
             <div class="flex gap-2">
-                <template x-if="!isIos">
-                    <x-filament::button
-                        x-on:click="install()"
-                        icon="heroicon-m-arrow-down-tray"
-                        color="primary"
-                    >
-                        Install as App
-                    </x-filament::button>
-                </template>
-
-                <template x-if="isIos">
-                    <x-filament::button
-                        x-on:click="install()"
-                        icon="heroicon-m-arrow-up-on-square"
-                        color="primary"
-                    >
-                        How to install
-                    </x-filament::button>
-                </template>
+                <x-filament::button
+                    x-on:click="install()"
+                    icon="heroicon-m-arrow-down-tray"
+                    color="primary"
+                >
+                    Install
+                </x-filament::button>
             </div>
         </div>
 
         <div
-            x-show="showIosHint"
+            x-show="showHint"
             x-collapse
             class="mt-4 rounded-lg bg-gray-50 p-4 text-sm text-gray-700 dark:bg-gray-800 dark:text-gray-300"
         >
-            <p class="font-medium text-gray-950 dark:text-white mb-2">On iPhone / iPad:</p>
+            <p class="font-medium text-gray-950 dark:text-white mb-2" x-text="hintTitle"></p>
             <ol class="list-decimal list-inside space-y-1">
-                <li>Tap the <span class="font-semibold">Share</span> icon at the bottom of Safari.</li>
-                <li>Scroll down and tap <span class="font-semibold">Add to Home Screen</span>.</li>
-                <li>Tap <span class="font-semibold">Add</span>. Davya will appear on your home screen like a native app.</li>
+                <template x-for="step in hintSteps">
+                    <li x-text="step"></li>
+                </template>
             </ol>
         </div>
     </x-filament::section>
