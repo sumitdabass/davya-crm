@@ -82,6 +82,7 @@ class User extends Authenticatable implements FilamentUser
             'is_freelancer' => 'boolean',
             'is_active' => 'boolean',
             'must_change_password' => 'boolean',
+            'team_head_id' => 'integer',
             'totp_secret' => 'encrypted',
             'totp_confirmed_at' => 'datetime',
             'totp_recovery_codes' => 'encrypted',
