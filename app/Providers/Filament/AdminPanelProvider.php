@@ -38,12 +38,26 @@ class AdminPanelProvider extends PanelProvider
                 'gray'    => Color::Slate,
             ])
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
+                <link rel="manifest" href="/manifest.json">
+                <meta name="theme-color" content="#065f46">
+                <meta name="mobile-web-app-capable" content="yes">
+                <meta name="apple-mobile-web-app-capable" content="yes">
+                <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+                <meta name="apple-mobile-web-app-title" content="Davya">
+                <link rel="apple-touch-icon" href="/apple-touch-icon.png">
                 <style>
                     /* Narrow the login/challenge card so the giant "Sign in" block feels right-sized. */
                     .fi-simple-main { max-width: 24rem; }
                     /* Slightly tighter main content — matches Bigin's airy-but-dense look. */
                     .fi-main-ctn { padding-top: 1rem; }
                 </style>
+                <script>
+                    if ('serviceWorker' in navigator) {
+                        window.addEventListener('load', () => {
+                            navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
+                        });
+                    }
+                </script>
             BLADE))
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
@@ -53,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
+                \App\Filament\Widgets\InstallAppWidget::class,
                 \App\Filament\Widgets\PipelineSummaryWidget::class,
                 \App\Filament\Widgets\SeatFeePendingWidget::class,
                 \App\Filament\Widgets\ReEntryCandidatesWidget::class,
