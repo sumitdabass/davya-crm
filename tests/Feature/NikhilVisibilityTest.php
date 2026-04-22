@@ -78,11 +78,12 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNull($visible, 'Nikhil must NOT see leads owned by Sonam');
     }
 
-    public function test_nikhil_does_not_see_leads_with_no_connection_to_him(): void
+    public function test_nikhil_sees_admin_owned_unallocated_pool(): void
     {
         $nikhil = $this->nikhil();
-        // No owner_name, no referrer_name → falls through to admin (Sumit), and Nikhil
-        // is neither owner nor referrer. Stays invisible.
+        // No owner_name, no referrer_name → falls through to admin (Sumit),
+        // referrer_id is null. This is the shared "unallocated" pool — all
+        // heads and their team members can see and claim these.
         $s = app(LeadIntakeService::class)->ingest([
             'phone' => '7280000334',
             'course' => 'BCA',
@@ -90,9 +91,10 @@ class NikhilVisibilityTest extends TestCase
 
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
         $this->assertSame($sumit->id, $s->owner_id);
+        $this->assertNull($s->referrer_id);
 
         $visible = Student::visibleTo($nikhil)->where('phone', '7280000334')->first();
-        $this->assertNull($visible, 'admin-fallback lead with no Nikhil/Nisha connection stays invisible');
+        $this->assertNotNull($visible, 'unallocated admin-owned lead goes into the shared pool — visible to heads');
     }
 
     public function test_nikhil_sees_lead_where_he_is_referrer_even_if_owner_is_admin(): void
@@ -215,23 +217,31 @@ class NikhilVisibilityTest extends TestCase
         $this->assertNull(Student::visibleTo($sonam)->where('phone', '7280000370')->first());
     }
 
-    public function test_member_sees_only_own_leads(): void
+    public function test_member_shares_team_visibility_with_head(): void
     {
-        // Members and freelancers see only leads they own or referred themselves.
+        // A member of Nikhil's team (Nisha) now sees everything Nikhil sees.
+        // Lets all team members handle the same bucket of leads.
         $nisha = User::where('email', 'nisha@davya.local')->firstOrFail();
         $nikhil = $this->nikhil();
-        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
 
-        $s = Student::create([
-            'phone' => '7280000341',
-            'course' => 'BCA',
-            'owner_id' => $sumit->id,
-            'referrer_id' => $nikhil->id,
-            'lead_source' => 'Walk-in / Self',
+        // Nikhil-owned lead: Nisha sees it (same team).
+        $nikhilLead = Student::create([
+            'phone' => '7280000341', 'course' => 'BCA',
+            'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil',
         ]);
+        $this->assertNotNull(Student::visibleTo($nisha)->where('id', $nikhilLead->id)->first(),
+            'Nisha (member) must see Nikhil-owned leads — same team');
 
-        $visible = Student::visibleTo($nisha)->where('phone', '7280000341')->first();
-        $this->assertNull($visible, 'member (Nisha) cannot see a lead owned + referred by others');
+        // Sonam-owned lead: Nisha does NOT see it (different team).
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $sonamLead = Student::create([
+            'phone' => '7280000342', 'course' => 'BCA',
+            'owner_id' => $sonam->id, 'referrer_id' => $sonam->id,
+            'lead_source' => 'Sonam',
+        ]);
+        $this->assertNull(Student::visibleTo($nisha)->where('id', $sonamLead->id)->first(),
+            'Nisha must NOT see Sonam-team leads — different team');
     }
 
     public function test_nikhil_sees_lead_where_nisha_is_referrer(): void

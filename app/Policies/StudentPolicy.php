@@ -20,16 +20,26 @@ class StudentPolicy
         if ($student->owner_id === $user->id || $student->referrer_id === $user->id) {
             return true;
         }
-        if ($user->hasRole('head')) {
-            $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
-            $teamIds[] = $user->id;
+
+        // Heads and their team members share visibility — the team is one unit.
+        if ($user->hasRole('head') || $user->hasRole('member')) {
+            $headId = $user->hasRole('head') ? $user->id : ($user->team_head_id ?? $user->id);
+            $teamIds = User::where('team_head_id', $headId)->pluck('id')->toArray();
+            $teamIds[] = $headId;
+
             if (in_array($student->owner_id, $teamIds, true)
                 || in_array($student->referrer_id, $teamIds, true)) {
                 return true;
             }
-            // Admin-owned leads whose lead_source matches a team member label
-            // belong to that team's head.
+
             $adminId = User::role('admin')->value('id');
+
+            // Unallocated admin pool (owner=admin, no human referrer): shared across teams.
+            if ($student->owner_id === $adminId && $student->referrer_id === null) {
+                return true;
+            }
+
+            // Admin-owned leads whose lead_source names this team belong to this team.
             if ($student->owner_id === $adminId
                 && $student->referrer_id === $adminId
                 && $student->lead_source !== null

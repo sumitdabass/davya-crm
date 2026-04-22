@@ -31,26 +31,37 @@ class Student extends Model
         if ($user->hasRole('admin')) {
             return $query;
         }
-        if ($user->hasRole('head')) {
-            $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
-            $teamIds[] = $user->id;
-            // Admin-owned leads whose lead_source matches a team member (plain name
-            // or "Sheet:<name>") belong to that team's head even though the DB
-            // ownership fell through to admin.
+
+        // Heads and their team members share the same visibility — a team acts as one unit.
+        // Freelancers are restricted to what they personally own or referred.
+        if ($user->hasRole('head') || $user->hasRole('member')) {
+            $headId = $user->hasRole('head') ? $user->id : ($user->team_head_id ?? $user->id);
+            $teamIds = User::where('team_head_id', $headId)->pluck('id')->toArray();
+            $teamIds[] = $headId;
+
             $teamNames = User::whereIn('id', $teamIds)->pluck('name')->toArray();
             $teamLeadSources = array_merge(
                 $teamNames,
                 array_map(fn ($n) => 'Sheet:'.$n, $teamNames),
             );
             $adminId = User::role('admin')->value('id');
+
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
                 ->orWhereIn('referrer_id', $teamIds)
+                // Unallocated admin pool (owner=admin, no human referrer) is shared
+                // across all heads + their teams — e.g. backfilled Sheet:Sumit leads.
+                ->orWhere(fn ($qq) => $qq
+                    ->where('owner_id', $adminId)
+                    ->whereNull('referrer_id'))
+                // Admin-owned leads whose lead_source names this team go to that team.
                 ->orWhere(fn ($qq) => $qq
                     ->where('owner_id', $adminId)
                     ->where('referrer_id', $adminId)
                     ->whereIn('lead_source', $teamLeadSources)));
         }
+
+        // Freelancer — strictly own.
         return $query->where(fn ($q) => $q
             ->where('owner_id', $user->id)
             ->orWhere('referrer_id', $user->id));

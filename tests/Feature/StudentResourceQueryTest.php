@@ -48,11 +48,12 @@ class StudentResourceQueryTest extends TestCase
         $this->assertEquals(['NikhilOwned', 'NishaOwned'], $names);
     }
 
-    public function test_member_sees_only_own(): void
+    public function test_member_shares_team_visibility_with_head(): void
     {
+        // Members now share team visibility with their head (Nisha is on Nikhil's team).
         $this->actingAs($this->nisha);
-        $names = StudentResource::getEloquentQuery()->pluck('name')->all();
-        $this->assertEquals(['NishaOwned'], $names);
+        $names = StudentResource::getEloquentQuery()->pluck('name')->sort()->values()->all();
+        $this->assertEquals(['NikhilOwned', 'NishaOwned'], $names);
     }
 
     public function test_freelancer_sees_only_own(): void
