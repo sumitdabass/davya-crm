@@ -292,4 +292,43 @@ class NikhilVisibilityTest extends TestCase
         $this->assertTrue($policy->view($nikhil, $s), 'head views own lead');
         $this->assertTrue($policy->update($nikhil, $s), 'head updates own lead — edit rights already exist');
     }
+
+    public function test_head_sees_lead_routed_by_lead_source_even_when_non_admin_owned(): void
+    {
+        // Kapil (freelancer, team_head_id = Sumit) owns the lead, but lead_source = 'Sheet:Nikhil'
+        // — meaning the lead came in via Nikhil's team. Nikhil must see it even though owner is not admin.
+        $nikhil = $this->nikhil();
+        $kapil = User::where('email', 'kapil@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '7280000380',
+            'course' => 'BCA',
+            'owner_id' => $kapil->id,
+            'referrer_id' => null,
+            'lead_source' => 'Sheet:Nikhil',
+        ]);
+
+        $visible = Student::visibleTo($nikhil)->where('id', $s->id)->first();
+        $this->assertNotNull($visible, 'Nikhil must see a non-admin-owned lead whose lead_source names his team');
+    }
+
+    public function test_member_sees_lead_routed_to_own_team_via_lead_source(): void
+    {
+        // Admin-owned (not admin-referred-with-admin-owner, just owner=admin) lead with lead_source naming Nikhil's team.
+        // The old gate required BOTH owner_id=admin AND referrer_id=admin; here referrer is null, so the
+        // old rule would hide this from the Nikhil team. New rule: lead_source alone is enough.
+        $nisha = User::where('email', 'nisha@davya.local')->firstOrFail();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '7280000381',
+            'course' => 'BCA',
+            'owner_id' => $sumit->id,
+            'referrer_id' => null,
+            'lead_source' => 'Sheet:Nikhil',
+        ]);
+
+        $visible = Student::visibleTo($nisha)->where('id', $s->id)->first();
+        $this->assertNotNull($visible, 'Nisha (member of Nikhil) must see a lead routed via lead_source');
+    }
 }

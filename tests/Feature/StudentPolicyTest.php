@@ -67,4 +67,21 @@ class StudentPolicyTest extends TestCase
         $s = Student::create(['phone' => '9666666666', 'name' => 'S', 'owner_id' => $nisha->id, 'referrer_id' => $nisha->id, 'lead_source' => 'Nisha']);
         $this->assertFalse($nisha->can('transfer', $s));
     }
+
+    public function test_head_can_view_lead_routed_by_lead_source_even_when_non_admin_owned(): void
+    {
+        // Mirror of the scope test, via $user->can('view', $student).
+        $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
+        $kapil = User::where('email', 'kapil@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '9700000001',
+            'name' => 'S',
+            'owner_id' => $kapil->id,
+            'referrer_id' => null,
+            'lead_source' => 'Sheet:Nikhil',
+        ]);
+
+        $this->assertTrue($nikhil->can('view', $s), 'policy view must allow head when lead_source names his team');
+    }
 }

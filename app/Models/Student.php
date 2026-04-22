@@ -44,16 +44,11 @@ class Student extends Model
                 $teamNames,
                 array_map(fn ($n) => 'Sheet:'.$n, $teamNames),
             );
-            $adminId = User::role('admin')->value('id');
 
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
                 ->orWhereIn('referrer_id', $teamIds)
-                // Admin-owned leads whose lead_source names this team go to that team.
-                ->orWhere(fn ($qq) => $qq
-                    ->where('owner_id', $adminId)
-                    ->where('referrer_id', $adminId)
-                    ->whereIn('lead_source', $teamLeadSources)));
+                ->orWhereIn('lead_source', $teamLeadSources));
         }
 
         // Freelancer — strictly own.

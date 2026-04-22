@@ -32,13 +32,7 @@ class StudentPolicy
                 return true;
             }
 
-            $adminId = User::role('admin')->value('id');
-
-            // Admin-owned leads whose lead_source names this team belong to this team.
-            if ($student->owner_id === $adminId
-                && $student->referrer_id === $adminId
-                && $student->lead_source !== null
-            ) {
+            if ($student->lead_source !== null) {
                 $teamNames = User::whereIn('id', $teamIds)->pluck('name')->toArray();
                 $teamLeadSources = array_merge(
                     $teamNames,
