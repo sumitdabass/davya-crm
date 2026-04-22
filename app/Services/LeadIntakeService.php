@@ -30,6 +30,10 @@ class LeadIntakeService
         $ownerName    = $this->trimOrNull($data['owner_name']    ?? null);
         $referrerName = $this->trimOrNull($data['referrer_name'] ?? null);
         [$ownerId, $referrerId] = $this->resolveOwnership($ownerName, $referrerName);
+        // Pre-refactor `resolveDuplicate()` passed null for $referrerName in the merge/flag
+        // paths. That difference is unreachable: MERGE requires incoming tier > existing tier,
+        // and FLAG requires both to be head-tier — both cases demand a non-null owner_name,
+        // which makes $ownerName the winning branch in deriveLeadSource() regardless of referrer.
         $leadSource = $this->deriveLeadSource($data, $ownerName, $referrerName);
         $mapped = $this->buildStudentAttributes($data, $phone, $ownerId, $referrerId, $leadSource);
 
@@ -74,9 +78,7 @@ class LeadIntakeService
             ImportAction::CREATE => ['student' => DB::transaction(fn () => Student::create($decision->mappedPayload))],
             ImportAction::MERGE  => $this->executeMerge($decision),
             ImportAction::FLAG   => $this->executeFlag($decision),
-            ImportAction::REJECT => $decision->existingStudentId !== null
-                ? ['duplicate' => true, 'existing_id' => $decision->existingStudentId]
-                : ['duplicate' => true, 'existing_id' => null],
+            ImportAction::REJECT => ['duplicate' => true, 'existing_id' => $decision->existingStudentId],
         };
     }
 
