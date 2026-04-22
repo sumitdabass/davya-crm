@@ -15,7 +15,7 @@ class KanbanBoard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-view-columns';
 
-    protected static ?string $navigationLabel = 'Report';
+    protected static ?string $navigationLabel = 'Pipeline';
 
     protected static ?int $navigationSort = -1;
 
