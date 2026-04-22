@@ -23,8 +23,18 @@ class StudentPolicy
         if ($user->hasRole('head')) {
             $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
             $teamIds[] = $user->id;
-            return in_array($student->owner_id, $teamIds, true)
-                || in_array($student->referrer_id, $teamIds, true);
+            if (in_array($student->owner_id, $teamIds, true)
+                || in_array($student->referrer_id, $teamIds, true)) {
+                return true;
+            }
+            // Referrals made by a non-admin head are visible to every head.
+            if ($student->referrer_id !== null) {
+                $referrer = User::find($student->referrer_id);
+                if ($referrer?->hasRole('head') && !$referrer->hasRole('admin')) {
+                    return true;
+                }
+            }
+            return false;
         }
         return false;
     }

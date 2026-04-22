@@ -34,9 +34,16 @@ class Student extends Model
         if ($user->hasRole('head')) {
             $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
             $teamIds[] = $user->id;
+            // Any non-admin head (Nikhil, Sonam) acting as referrer is visible to
+            // every head — lets heads coordinate on each other's referrals while
+            // keeping admin (Sumit) referrals out of cross-head leakage.
+            $nonAdminHeadIds = User::role('head')
+                ->whereDoesntHave('roles', fn ($q) => $q->where('name', 'admin'))
+                ->pluck('id')->toArray();
             return $query->where(fn ($q) => $q
                 ->whereIn('owner_id', $teamIds)
-                ->orWhereIn('referrer_id', $teamIds));
+                ->orWhereIn('referrer_id', $teamIds)
+                ->orWhereIn('referrer_id', $nonAdminHeadIds));
         }
         return $query->where(fn ($q) => $q
             ->where('owner_id', $user->id)

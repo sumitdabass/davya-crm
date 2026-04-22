@@ -118,6 +118,68 @@ class NikhilVisibilityTest extends TestCase
         $this->assertTrue($policy->update($nikhil, $s), 'Nikhil must be able to edit the lead he referred');
     }
 
+    public function test_nikhil_sees_lead_where_sonam_is_referrer(): void
+    {
+        // Cross-head collaboration: any lead referred by a head (Sonam) is visible
+        // to every head (Nikhil), regardless of who owns it.
+        $nikhil = $this->nikhil();
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '7280000339',
+            'course' => 'BCA',
+            'owner_id' => $sumit->id,
+            'referrer_id' => $sonam->id,
+            'lead_source' => 'Walk-in / Self',
+        ]);
+
+        $visible = Student::visibleTo($nikhil)->where('phone', '7280000339')->first();
+        $this->assertNotNull($visible, 'Nikhil must see leads referred by Sonam (another head)');
+
+        $policy = new \App\Policies\StudentPolicy();
+        $this->assertTrue($policy->view($nikhil, $s), 'policy mirrors scope for cross-head referrals');
+    }
+
+    public function test_sonam_sees_lead_where_nikhil_is_referrer(): void
+    {
+        // Mirror of the above: Sonam sees Nikhil-referred leads.
+        $sonam = User::where('email', 'sonam@davya.local')->firstOrFail();
+        $nikhil = $this->nikhil();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '7280000340',
+            'course' => 'BCA',
+            'owner_id' => $sumit->id,
+            'referrer_id' => $nikhil->id,
+            'lead_source' => 'Walk-in / Self',
+        ]);
+
+        $visible = Student::visibleTo($sonam)->where('phone', '7280000340')->first();
+        $this->assertNotNull($visible, 'Sonam must see leads referred by Nikhil (another head)');
+    }
+
+    public function test_member_still_does_not_see_cross_head_referrals(): void
+    {
+        // The cross-head rule applies ONLY to heads. Members and freelancers
+        // are unchanged — still see only leads they own or referred themselves.
+        $nisha = User::where('email', 'nisha@davya.local')->firstOrFail();
+        $nikhil = $this->nikhil();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+
+        $s = Student::create([
+            'phone' => '7280000341',
+            'course' => 'BCA',
+            'owner_id' => $sumit->id,
+            'referrer_id' => $nikhil->id,
+            'lead_source' => 'Walk-in / Self',
+        ]);
+
+        $visible = Student::visibleTo($nisha)->where('phone', '7280000341')->first();
+        $this->assertNull($visible, 'member (Nisha) does not get cross-head visibility');
+    }
+
     public function test_nikhil_sees_lead_where_nisha_is_referrer(): void
     {
         // Nisha (Nikhil's team member) referred a lead that got admin ownership.
