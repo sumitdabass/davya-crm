@@ -79,6 +79,7 @@ class Student extends Model
     public function payments(): HasMany { return $this->hasMany(Payment::class); }
     public function roundHistory(): HasMany { return $this->hasMany(RoundHistory::class); }
     public function notes(): HasMany { return $this->hasMany(StudentNote::class)->latest(); }
+    public function meetings(): HasMany { return $this->hasMany(Meeting::class); }
 
     public function getTotalReceivedAttribute(): float
     {

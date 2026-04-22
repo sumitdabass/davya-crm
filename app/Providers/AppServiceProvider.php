@@ -54,5 +54,7 @@ class AppServiceProvider extends ServiceProvider
                 $config,
             );
         });
+
+        \App\Models\Meeting::observe(\App\Observers\MeetingObserver::class);
     }
 }
