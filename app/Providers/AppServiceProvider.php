@@ -56,5 +56,6 @@ class AppServiceProvider extends ServiceProvider
         });
 
         \App\Models\Meeting::observe(\App\Observers\MeetingObserver::class);
+        \App\Models\Student::observe(\App\Observers\StudentObserver::class);
     }
 }

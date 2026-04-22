@@ -91,6 +91,7 @@ class Student extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logAll()->logOnlyDirty();
+        // Humanized logging is done explicitly via ActivityDescriber; suppress Spatie auto-log.
+        return LogOptions::defaults()->logOnly([])->dontSubmitEmptyLogs();
     }
 }
