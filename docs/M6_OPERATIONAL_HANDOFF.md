@@ -5,21 +5,23 @@ admin UI for rank/state/email) is merged to `main` / landed on the
 `feature/student-admin-ui-multi-sheet-fields` branch. What remains is all in
 external systems (n8n UI, Google Sheets, the browser, shell).
 
-## 0. One-time: create the central Rejections spreadsheet
+## 0. Central Rejections spreadsheet — ALREADY CREATED
 
-**Rule:** we never modify owner-driven sheets (Sonam / Nikhil). Rejected rows go
-to a **central spreadsheet you own** instead, so bad rows are still auditable
-without touching Sonam's or Nikhil's files.
+**Rule:** we never modify owner-driven sheets (Sonam / Nikhil). Rejected rows
+go to a **central spreadsheet owned by `admission@ipu.co.in`** instead.
 
-Steps:
-1. In Google Drive, create a new spreadsheet named `davya-crm Lead Rejections`.
-2. First tab: rename to `Rejections`.
-3. Row 1 headers (left→right, exact spelling — n8n matches on these):
-   `Timestamp | Owner | Source Sheet Id | Original Row Number | Row Data JSON | Error`
-4. Copy its sheet id from the URL (the long string between `/d/` and `/edit`).
-5. Paste that id in place of `<<CENTRAL_REJECTIONS_SHEET_ID>>` in
-   `docs/n8n-lead-sonam-workflow.json` **before importing**, and use the same
-   id when you edit Sumit's + Nikhil's workflows in n8n UI (see §1, §2).
+- **Sheet id:** `10tjTmA39Lmdq3kJhWI_MZCOZmswRcSz9zpjlgEwQcHs`
+- **URL:** https://docs.google.com/spreadsheets/d/10tjTmA39Lmdq3kJhWI_MZCOZmswRcSz9zpjlgEwQcHs/edit
+- **Owner:** admission@ipu.co.in (same account as the existing n8n OAuth
+  credential `A8Grx7J6ZfarJVR1`, so no re-consent flow needed).
+- **Headers row 1:** `Timestamp | Owner | Source Sheet Id | Original Row Number | Row Data JSON | Error`
+
+**One tiny UI check:** the first tab may be named `Sheet1` after CSV import.
+Rename it to `Rejections` (double-click the tab → rename) before activating
+any of the three workflows. The n8n nodes reference `sheetName: "Rejections"`.
+
+The Sonam workflow JSON (`docs/n8n-lead-sonam-workflow.json`) already has this
+id wired in — you can import it as-is.
 
 ## 1. Activate `lead-sumit-website-sheet` in n8n
 
@@ -62,16 +64,13 @@ workflow — don't touch it.
 Her sheet columns are `Date | Ph no | Course | Rank | D/OD | enquiry | connected to.` (narrower than Nikhil's). The workflow maps them as-is — no sheet edits needed. `connected to.` → `referrer_name`, so Poonam/Neetu get referrer credit while Sonam stays owner.
 
 Steps:
-1. Open `docs/n8n-lead-sonam-workflow.json` in a text editor and replace
-   `<<CENTRAL_REJECTIONS_SHEET_ID>>` with the central Rejections sheet id
-   from §0.
-2. In n8n UI: **Workflows → Import from file** → upload the edited JSON.
-3. Open the imported workflow.
-4. Bind the **Google Sheets Trigger** node to credential `A8Grx7J6ZfarJVR1` (the same one used by Nikhil's and Sumit's workflows).
-5. Bind the **"Append to central Rejections sheet"** node to a `googleSheetsOAuth2Api` credential.
-6. Bind **POST /api/leads** to the `httpHeaderAuth` credential carrying `X-Lead-Token`.
-7. Save + activate. **No edits to Sonam's sheet needed.**
-8. Smoke test: ask Sonam to add a row with just `Ph no` + `Course` and confirm a student appears in `/admin/students` with owner=Sonam. Then add a row with no phone and confirm a line lands on the central Rejections sheet.
+1. In n8n UI: **Workflows → Import from file** → upload `docs/n8n-lead-sonam-workflow.json` as-is (the central sheet id is already wired in).
+2. Open the imported workflow.
+3. Bind the **Google Sheets Trigger** node to credential `A8Grx7J6ZfarJVR1` (the same one used by Nikhil's and Sumit's workflows).
+4. Bind the **"Append to central Rejections sheet"** node to a `googleSheetsOAuth2Api` credential (the same admission@ipu.co.in account already owns the central sheet).
+5. Bind **POST /api/leads** to the `httpHeaderAuth` credential carrying `X-Lead-Token`.
+6. Save + activate. **No edits to Sonam's sheet needed.**
+7. Smoke test: ask Sonam to add a row with just `Ph no` + `Course` and confirm a student appears in `/admin/students` with owner=Sonam. Then add a row with no phone and confirm a line lands on the central Rejections sheet.
 
 ## 4. (Optional) Nikhil's column layout
 

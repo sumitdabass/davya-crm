@@ -57,7 +57,7 @@
     },
     {
       "parameters": {
-        "documentId": "<<CENTRAL_REJECTIONS_SHEET_ID>>",
+        "documentId": "10tjTmA39Lmdq3kJhWI_MZCOZmswRcSz9zpjlgEwQcHs",
         "sheetName": "Rejections",
         "operation": "append",
         "columns": ["Timestamp", "Owner", "Source Sheet Id", "Original Row Number", "Row Data JSON", "Error"]
