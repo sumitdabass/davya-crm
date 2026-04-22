@@ -34,9 +34,13 @@ class Student extends Model
         if ($user->hasRole('head')) {
             $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
             $teamIds[] = $user->id;
-            return $query->whereIn('owner_id', $teamIds);
+            return $query->where(fn ($q) => $q
+                ->whereIn('owner_id', $teamIds)
+                ->orWhereIn('referrer_id', $teamIds));
         }
-        return $query->where('owner_id', $user->id);
+        return $query->where(fn ($q) => $q
+            ->where('owner_id', $user->id)
+            ->orWhere('referrer_id', $user->id));
     }
 
     protected $casts = [

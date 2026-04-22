@@ -17,13 +17,14 @@ class StudentPolicy
         if ($user->hasRole('admin')) {
             return true;
         }
-        if ($student->owner_id === $user->id) {
+        if ($student->owner_id === $user->id || $student->referrer_id === $user->id) {
             return true;
         }
         if ($user->hasRole('head')) {
             $teamIds = User::where('team_head_id', $user->id)->pluck('id')->toArray();
             $teamIds[] = $user->id;
-            return in_array($student->owner_id, $teamIds, true);
+            return in_array($student->owner_id, $teamIds, true)
+                || in_array($student->referrer_id, $teamIds, true);
         }
         return false;
     }
