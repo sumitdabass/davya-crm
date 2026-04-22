@@ -1,5 +1,30 @@
 # Architecture Decisions
 
+## 2026-04-22 — Ownership-priority dedup + DuplicateFlag review (PR #5)
+
+**Status:** Shipped in `feature/lead-dedup-priority` (merged `d23cf9e`). Replaces hard `UNIQUE(students.phone)` with logical dedup in `LeadIntakeService`.
+
+- **Priority rule:** Sonam > Nikhil > Sumit. On duplicate phone:
+  - *Sumit-vs-head dupes:* Sumit's row is auto-demoted; payments, notes, and `round_history` are re-parented to the winning (head-owned) row. No admin review needed.
+  - *Sonam-vs-Nikhil dupes:* a `DuplicateFlag` record is created, both students are marked `flagged_for_review=true`, and admin resolves manually.
+- **Admin review UI:** `Reports → Duplicate review` at `/admin/duplicate-flags` (admin-only, policy-gated). Resolution action picks a winning row, migrates children, soft-deletes the loser.
+- **Schema change:** migration `2026_04_22_120000_add_duplicate_flag_system` creates `duplicate_flags` table, adds `flagged_for_review` boolean to students, **drops** `UNIQUE(students.phone)` (logical dedup replaces it). New service enforces uniqueness at write time.
+- **Key files:** `app/Services/LeadPriority.php`, `app/Services/LeadIntakeService.php`, `app/Models/DuplicateFlag.php`, `app/Filament/Pages/DuplicateFlagsReview.php`.
+- **Why drop the DB unique constraint:** the rule is priority-aware (winner picked by owner, not by order of insertion). A hard unique can't encode "Sonam's row wins over Nikhil's row inserted five minutes earlier" — only service-level logic can.
+
+---
+
+## 2026-04-22 — Admin-only Leads report by owner + referrer (PR #4)
+
+**Status:** Shipped in `feature/admin-leads-report` (merged `a6b1be6`). New Filament page at `/admin/leads-report`.
+
+- **Visibility:** admin-only. Heads use their own `/admin/students` list filters; this report is the cross-team view.
+- **Columns:** leads counted by owner (current `owner_id`) and by referrer (`referrer_name` / `referrer_id`). Both dimensions shown side-by-side so Sumit can reconcile "who generated vs. who's managing."
+- **Active-lead scope:** the report excludes stage `Lead Captured` so the numbers reflect *working* pipelines, not raw intake. Dashboard stat card still shows raw `Lead Captured` count (504); Leads report shows active count (8 at time of ship). This dual-counting is intentional — dashboard = volume, report = operator load.
+- **Date window:** default is "all time" (no filter), explicit date range optional. Matches how admin reviews.
+
+---
+
 ## 2026-04-21 — Multi-sheet lead ingestion
 
 **Status:** Shipped in `feature/multi-sheet-leads`. Three n8n workflows (Sonam / Nikhil / Sumit-website) clone a shared template in `docs/n8n-multi-sheet-lead-workflow-template.json` and feed `POST /api/leads`.
