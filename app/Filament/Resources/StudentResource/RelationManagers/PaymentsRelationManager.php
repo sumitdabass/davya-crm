@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\StudentResource\RelationManagers;
 
-use Filament\Forms;
+use App\Filament\Resources\Shared\PaymentFormSchema;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -14,43 +14,7 @@ class PaymentsRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        return $form->schema([
-            Forms\Components\Select::make('type')
-                ->options([
-                    'advance' => 'Advance',
-                    'partial' => 'Partial',
-                    'full' => 'Full',
-                    'refund' => 'Refund',
-                ])
-                ->required(),
-            Forms\Components\TextInput::make('amount')
-                ->numeric()
-                ->prefix('₹')
-                ->required(),
-            Forms\Components\Select::make('mode')
-                ->options([
-                    'cash' => 'Cash',
-                    'upi' => 'UPI',
-                    'bank_transfer' => 'Bank Transfer',
-                    'card' => 'Card',
-                    'cheque' => 'Cheque',
-                    'other' => 'Other',
-                ]),
-            Forms\Components\TextInput::make('reference_number')
-                ->maxLength(80),
-            Forms\Components\DateTimePicker::make('received_at')
-                ->required()
-                ->default(now()),
-            Forms\Components\TextInput::make('proof_url')
-                ->label('Proof URL')
-                ->placeholder('https://...')
-                ->url()
-                ->maxLength(2048),
-            Forms\Components\Textarea::make('notes')
-                ->rows(2),
-            Forms\Components\Hidden::make('recorded_by_user_id')
-                ->default(fn () => auth()->id()),
-        ]);
+        return $form->schema(PaymentFormSchema::fields(inlineFirstPayment: false));
     }
 
     public function table(Table $table): Table
@@ -65,7 +29,8 @@ class PaymentsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('recordedBy.name')->label('Recorded by'),
             ])
             ->headerActions([
-                Tables\Actions\CreateAction::make(),
+                Tables\Actions\CreateAction::make()
+                    ->mutateFormDataUsing(fn (array $data): array => PaymentFormSchema::resolveProofUpload($data)),
             ])
             ->actions([
                 Tables\Actions\Action::make('open_proof')
@@ -74,7 +39,8 @@ class PaymentsRelationManager extends RelationManager
                     ->url(fn ($record) => $record->proof_url)
                     ->openUrlInNewTab()
                     ->visible(fn ($record) => filled($record->proof_url)),
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(fn (array $data): array => PaymentFormSchema::resolveProofUpload($data)),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
