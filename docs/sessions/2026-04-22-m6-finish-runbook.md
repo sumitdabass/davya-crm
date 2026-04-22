@@ -27,12 +27,13 @@ Open the central Rejections sheet (tab 2 above). If the visible tab is named `Sh
 The `googleSheetsOAuth2Api` credential has been broken since 2026-04-17. All three lead workflows poll silently with zero output until this is fixed. Per `reference_n8n_sheets_trigger_broken.md`.
 
 1. In n8n UI: **Credentials** (left sidebar).
-2. Find the **`googleSheetsOAuth2Api`** credential bound to the admission@ipu.co.in account (the one used by the Append-to-Rejections nodes).
-3. Click it → **Reconnect** / **Sign in with Google** → approve.
+2. Find the **"Google Sheets Trigger account"** credential, id **`A8Grx7J6ZfarJVR1`** (type `googleSheetsTriggerOAuth2Api`) — this is the one powering all four workflows' triggers. It's the broken one per `reference_n8n_sheets_trigger_broken.md`.
+3. Click it → **Reconnect** / **Sign in with Google** (admission@ipu.co.in) → approve.
 4. Save. Confirm green "Connected" state.
-5. **Do NOT touch** the Sheets Trigger credential `A8Grx7J6ZfarJVR1` — that one is working.
+5. Also reconnect **"Google Sheets account"** (type `googleSheetsOAuth2Api`) — used by the Append-to-Rejections nodes. Same Google Cloud app, likely also stale.
+6. Deactivate → reactivate each workflow afterwards to re-register the triggers.
 
-**Verification:** once this step is done, proceed. The next step triggers real polls, so the cred must be healthy first.
+**Verification:** once done, proceed. The next step triggers real polls, so both creds must be healthy first.
 
 ---
 
@@ -43,8 +44,8 @@ The Sonam workflow isn't in n8n yet; the JSON is ready on disk.
 1. In n8n UI: **Workflows → Import from file**.
 2. Upload: `/Users/Sumit/davya-crm/docs/n8n-lead-sonam-workflow.json`.
 3. Open the imported workflow (it's named `lead-sonam-sheet`).
-4. Click the **Google Sheets Trigger** node → Credentials dropdown → select **`A8Grx7J6ZfarJVR1`** (the one that already works).
-5. Click the **Append to central Rejections sheet** node → Credentials dropdown → select the `googleSheetsOAuth2Api` cred you just reconnected in Step 1.
+4. Click the **Google Sheets Trigger** node → Credentials dropdown → select **`A8Grx7J6ZfarJVR1`** (reconnected in Step 1).
+5. Click the **Append to central Rejections sheet** node → Credentials dropdown → select the `googleSheetsOAuth2Api` cred (also reconnected in Step 1).
 6. Click the **POST /api/leads** node → Credentials dropdown → select the `httpHeaderAuth` credential carrying `X-Lead-Token` (same one Nikhil/Sumit-website workflows use).
 7. **Save** (top-right).
 8. Toggle **Active** switch (top-right). Confirm it flips to green.
