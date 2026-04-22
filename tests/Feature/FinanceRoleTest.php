@@ -60,4 +60,28 @@ class FinanceRoleTest extends TestCase
         $this->actingAs($nisha);
         $this->assertFalse(\App\Filament\Resources\ExpenseResource::canViewAny());
     }
+
+    public function test_admin_can_access_investment_list(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+        Livewire::test(\App\Filament\Resources\InvestmentResource\Pages\ListInvestments::class)->assertStatus(200);
+    }
+
+    public function test_head_cannot_access_investment_list(): void
+    {
+        $this->seed();
+        $nikhil = $this->unblock(User::where('email', 'nikhil@davya.local')->firstOrFail());
+        $this->actingAs($nikhil);
+        $this->assertFalse(\App\Filament\Resources\InvestmentResource::canViewAny());
+    }
+
+    public function test_member_cannot_access_investment_list(): void
+    {
+        $this->seed();
+        $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->firstOrFail());
+        $this->actingAs($nisha);
+        $this->assertFalse(\App\Filament\Resources\InvestmentResource::canViewAny());
+    }
 }
