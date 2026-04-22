@@ -7,7 +7,7 @@
 
 <div
     x-data="{
-        deferredPrompt: null,
+        deferredPrompt: window.__davyaInstallPrompt || null,
         installed: false,
         standalone: false,
         isIos: @js($isIos),
@@ -24,18 +24,23 @@
             window.addEventListener('beforeinstallprompt', (e) => {
                 e.preventDefault();
                 this.deferredPrompt = e;
+                window.__davyaInstallPrompt = e;
             });
 
             window.addEventListener('appinstalled', () => {
                 this.installed = true;
                 this.deferredPrompt = null;
+                window.__davyaInstallPrompt = null;
             });
         },
 
         install() {
             if (this.deferredPrompt) {
                 this.deferredPrompt.prompt();
-                this.deferredPrompt.userChoice.then(() => { this.deferredPrompt = null; });
+                this.deferredPrompt.userChoice.then(() => {
+                    this.deferredPrompt = null;
+                    window.__davyaInstallPrompt = null;
+                });
                 return;
             }
             if (this.isIos) {

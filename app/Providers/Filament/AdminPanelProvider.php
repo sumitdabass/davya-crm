@@ -52,6 +52,18 @@ class AdminPanelProvider extends PanelProvider
                     .fi-main-ctn { padding-top: 1rem; }
                 </style>
                 <script>
+                    // Capture beforeinstallprompt as early as possible so Alpine
+                    // components (dashboard widget + InstallApp page) can read the
+                    // deferred event even if the browser fires it before Alpine mounts.
+                    window.__davyaInstallPrompt = null;
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        window.__davyaInstallPrompt = e;
+                    });
+                    window.addEventListener('appinstalled', () => {
+                        window.__davyaInstallPrompt = null;
+                    });
+
                     if ('serviceWorker' in navigator) {
                         window.addEventListener('load', () => {
                             navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
@@ -59,6 +71,12 @@ class AdminPanelProvider extends PanelProvider
                     }
                 </script>
             BLADE))
+            ->userMenuItems([
+                \Filament\Navigation\MenuItem::make()
+                    ->label('Install app')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->url(fn (): string => \App\Filament\Pages\InstallApp::getUrl()),
+            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
