@@ -193,7 +193,18 @@
                         if (!id || to === from) return;
                         const res = await wire.call('moveStudentToStage', id, to);
                         if (!res || !res.ok) {
+                            // Return card to original column first
                             evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex] ?? null);
+                            // If the backend said fields are missing, open the inline fix-up modal
+                            if (res && Array.isArray(res.missing_fields) && res.missing_fields.length > 0) {
+                                window.dispatchEvent(new CustomEvent('open-fix-modal', { detail: {
+                                    studentId: res.student_id,
+                                    studentName: res.student_name,
+                                    targetStage: res.target_stage,
+                                    missingFields: res.missing_fields,
+                                    errorMessages: res.errors || [],
+                                }}));
+                            }
                         }
                     },
                 });
@@ -227,4 +238,99 @@
         .fi-kanban-ghost { opacity: .4; transform: rotate(1deg); }
         .fi-kanban-card:active { transform: rotate(2deg); }
     </style>
+
+    {{-- Inline fix-up modal — opens when a HARD rule blocks a move because a student field is empty --}}
+    @php($fieldLabels = [
+        'close_reason' => 'Close reason',
+        're_entry_reason' => 'Re-entry reason',
+        'student_response' => 'Student response',
+        'deal_amount' => 'Deal amount',
+        'course' => 'Course',
+        'category' => 'Category',
+        'plan' => 'Plan',
+        'meeting_date' => 'Meeting date (YYYY-MM-DD HH:MM)',
+        'meeting_location' => 'Meeting location',
+        'current_round' => 'Current round',
+        'final_college' => 'Final college',
+        'final_course' => 'Final course',
+        'admission_date' => 'Admission date (YYYY-MM-DD)',
+        'is_ipu_registered' => 'IPU registered (1 or 0)',
+        'ipu_login_code' => 'IPU login code',
+        'father_name' => "Father's name",
+        'twelfth_marks' => '12th marks',
+        'exam_appeared' => 'Exam appeared',
+        'refund_amount' => 'Refund amount',
+    ])
+    <div x-data="{
+            open: false,
+            studentId: null,
+            studentName: '',
+            targetStage: '',
+            missingFields: [],
+            errorMessages: [],
+            values: {},
+            submitting: false,
+            labels: @js($fieldLabels)
+        }"
+        x-on:open-fix-modal.window="
+            studentId = $event.detail.studentId;
+            studentName = $event.detail.studentName;
+            targetStage = $event.detail.targetStage;
+            missingFields = $event.detail.missingFields;
+            errorMessages = $event.detail.errorMessages;
+            values = {};
+            missingFields.forEach(f => values[f] = '');
+            open = true;
+        ">
+        <div x-show="open" x-cloak class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-[520px] max-h-[85vh] overflow-y-auto shadow-xl" @click.outside="open = false">
+                <h3 class="font-semibold text-lg mb-1">Fill missing details</h3>
+                <p class="text-sm text-gray-600 mb-3">
+                    Moving <span class="font-semibold" x-text="studentName"></span> to <span class="font-semibold" x-text="targetStage"></span> requires:
+                </p>
+                <template x-if="errorMessages.length">
+                    <ul class="text-xs text-red-700 bg-red-50 border border-red-200 rounded px-3 py-2 mb-3 list-disc list-inside">
+                        <template x-for="msg in errorMessages" :key="msg">
+                            <li x-text="msg"></li>
+                        </template>
+                    </ul>
+                </template>
+
+                <div class="space-y-3 mb-4">
+                    <template x-for="field in missingFields" :key="field">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1" x-text="labels[field] || field"></label>
+                            <input x-model="values[field]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Enter value">
+                        </div>
+                    </template>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-gray-100">
+                    <button type="button" @click="open = false" class="px-3 py-1.5 text-sm rounded hover:bg-gray-100">Cancel</button>
+                    <button type="button"
+                        x-bind:disabled="submitting"
+                        @click="
+                            submitting = true;
+                            $wire.call('fixAndMove', studentId, targetStage, values).then(res => {
+                                submitting = false;
+                                if (res && res.ok) {
+                                    open = false;
+                                    setTimeout(() => window.location.reload(), 300);
+                                } else if (res && Array.isArray(res.missing_fields) && res.missing_fields.length > 0) {
+                                    missingFields = res.missing_fields;
+                                    errorMessages = res.errors || [];
+                                    const next = {};
+                                    missingFields.forEach(f => { next[f] = values[f] || ''; });
+                                    values = next;
+                                } else {
+                                    open = false;
+                                }
+                            }).catch(() => { submitting = false; });
+                        "
+                        class="px-4 py-1.5 text-sm font-semibold text-white rounded disabled:opacity-60"
+                        style="background-color: #059669;">Save &amp; move</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-filament-panels::page>

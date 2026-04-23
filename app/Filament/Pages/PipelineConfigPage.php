@@ -42,6 +42,15 @@ class PipelineConfigPage extends Page
         ];
     }
 
+    /** @return array<int,int> stageId => student count */
+    public function getStageStudentCounts(): array
+    {
+        return Stage::where('pipeline_id', $this->getPipeline()->id)
+            ->withCount('students')
+            ->pluck('students_count', 'id')
+            ->all();
+    }
+
     public function createStage(string $name, string $type): void
     {
         if (! static::canAccess()) abort(403);

@@ -25,7 +25,7 @@ class StageTransitionEngine
         return [];
     }
 
-    /** @return array{hard: string[], soft: string[]} */
+    /** @return array{hard: string[], soft: string[], hard_missing_fields: string[], soft_missing_fields: string[]} */
     public function forStageChange(Student $student, int $toStageId): array
     {
         $fromStageId = $student->stage_id;
@@ -35,20 +35,29 @@ class StageTransitionEngine
 
         $hard = [];
         $soft = [];
+        $hardFields = [];
+        $softFields = [];
 
         foreach ($rules as $rule) {
             $failures = $this->failingConditions($rule, $student);
-            if (empty($failures)) continue;
+            if (empty($failures['messages'])) continue;
 
-            $message = $this->humanMessage($rule, $failures);
+            $message = $this->humanMessage($rule, $failures['messages']);
             if ($rule->severity === StageTransitionRule::SEV_HARD) {
                 $hard[] = $message;
+                $hardFields = array_merge($hardFields, $failures['fields']);
             } else {
                 $soft[] = $message;
+                $softFields = array_merge($softFields, $failures['fields']);
             }
         }
 
-        return ['hard' => $hard, 'soft' => $soft];
+        return [
+            'hard' => $hard,
+            'soft' => $soft,
+            'hard_missing_fields' => array_values(array_unique($hardFields)),
+            'soft_missing_fields' => array_values(array_unique($softFields)),
+        ];
     }
 
     /** @return Collection<int,StageTransitionRule> */
@@ -65,16 +74,21 @@ class StageTransitionEngine
             ->get();
     }
 
-    /** @return string[] human descriptions of each failing condition */
+    /** @return array{messages: string[], fields: string[]} */
     private function failingConditions(StageTransitionRule $rule, Student $student): array
     {
-        $out = [];
+        $messages = [];
+        $fields = [];
         foreach ($rule->conditions as $cond) {
             if (! $this->evaluator->passes($cond, $student)) {
-                $out[] = $this->describeCondition($cond);
+                $messages[] = $this->describeCondition($cond);
+                // Only field checks are user-fixable via inline modal; relation checks (e.g. "at least one payment") can't be filled inline
+                if ($cond->condition_type === 'FIELD_CHECK') {
+                    $fields[] = $cond->field_or_relation;
+                }
             }
         }
-        return $out;
+        return ['messages' => $messages, 'fields' => $fields];
     }
 
     private function describeCondition(StageTransitionCondition $cond): string

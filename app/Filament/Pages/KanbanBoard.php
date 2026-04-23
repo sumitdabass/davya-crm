@@ -153,13 +153,25 @@ class KanbanBoard extends Page
         $out = app(StageTransitionEngine::class)->forStageChange($student, $target->id);
 
         if (! empty($out['hard'])) {
-            Notification::make()
-                ->title('Stage move blocked')
-                ->body(implode("\n", $out['hard']))
-                ->danger()
-                ->send();
+            // Only notify without missing fields — frontend shows inline fix modal when missing_fields present.
+            if (empty($out['hard_missing_fields'])) {
+                Notification::make()
+                    ->title('Stage move blocked')
+                    ->body(implode("\n", $out['hard']))
+                    ->danger()
+                    ->persistent()
+                    ->send();
+            }
 
-            return $this->kanbanResponse(false, implode(' ', $out['hard']), $out['hard']);
+            return [
+                'ok' => false,
+                'message' => implode(' ', $out['hard']),
+                'errors' => $out['hard'],
+                'missing_fields' => $out['hard_missing_fields'],
+                'student_id' => $student->id,
+                'student_name' => $student->name,
+                'target_stage' => $newStage,
+            ];
         }
 
         $student->stage = $newStage;
@@ -171,6 +183,7 @@ class KanbanBoard extends Page
                 ->title("Moved to {$newStage} — some fields still missing")
                 ->body(implode("\n", $out['soft']))
                 ->warning()
+                ->persistent()
                 ->send();
         } else {
             Notification::make()
@@ -189,6 +202,37 @@ class KanbanBoard extends Page
     private function kanbanResponse(bool $ok, string $message, array $errors = []): array
     {
         return ['ok' => $ok, 'message' => $message, 'errors' => $errors];
+    }
+
+    /**
+     * Fill in the missing student fields then retry moveStudentToStage.
+     * Called by the kanban fix-up modal. Only whitelisted fields can be set.
+     *
+     * @param  array<string,mixed>  $fieldUpdates
+     */
+    public function fixAndMove(int $studentId, string $newStage, array $fieldUpdates): array
+    {
+        $user = auth()->user();
+        $student = $this->visibleStudentQuery($user)->whereKey($studentId)->first();
+        if (! $student) {
+            return $this->kanbanResponse(false, 'Not allowed.');
+        }
+
+        $allowed = [
+            'close_reason', 're_entry_reason', 'student_response', 'deal_amount', 'course',
+            'category', 'plan', 'meeting_date', 'meeting_location', 'current_round',
+            'final_college', 'final_course', 'admission_date', 'is_ipu_registered',
+            'ipu_login_code', 'father_name', 'twelfth_marks', 'exam_appeared', 'refund_amount',
+        ];
+        $dirty = array_intersect_key($fieldUpdates, array_flip($allowed));
+        if (! empty($dirty)) {
+            foreach ($dirty as $k => $v) {
+                $student->{$k} = $v === '' ? null : $v;
+            }
+            $student->save();
+        }
+
+        return $this->moveStudentToStage($studentId, $newStage);
     }
 
     private function visibleStudentQuery(User $user): Builder
