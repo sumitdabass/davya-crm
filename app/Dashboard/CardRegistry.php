@@ -7,6 +7,7 @@ use App\Dashboard\Cards\ListCards\SeatFeePendingCard;
 use App\Dashboard\Cards\ListCards\StuckLeadsCard;
 use App\Dashboard\Cards\ListCards\TodayMeetingsCard;
 use App\Dashboard\Cards\ListCards\TodayPaymentsCard;
+use App\Dashboard\Cards\Stat\MeetingsHeldTodayCard;
 
 class CardRegistry
 {
@@ -44,7 +45,8 @@ class CardRegistry
             new StuckLeadsCard,
             new ReEntryCandidatesCard,
             new SeatFeePendingCard,
-            // Stat cards and stage cards added in later tasks.
+            new MeetingsHeldTodayCard,
+            // Other stat cards and stage cards added in later tasks.
         ];
 
         $byId = [];
