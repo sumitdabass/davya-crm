@@ -10,6 +10,8 @@ use App\Dashboard\Cards\ListCards\TodayPaymentsCard;
 use App\Dashboard\Cards\Stat\AdmissionsClosedTodayCard;
 use App\Dashboard\Cards\Stat\LeadsCapturedTodayCard;
 use App\Dashboard\Cards\Stat\MeetingsHeldTodayCard;
+use App\Dashboard\Cards\Stat\StageStatCard;
+use App\Models\Stage;
 
 class CardRegistry
 {
@@ -41,7 +43,7 @@ class CardRegistry
     /** @return array<string, Card> */
     private static function build(): array
     {
-        $cards = [
+        $static = [
             new TodayMeetingsCard,
             new TodayPaymentsCard,
             new StuckLeadsCard,
@@ -50,8 +52,15 @@ class CardRegistry
             new MeetingsHeldTodayCard,
             new LeadsCapturedTodayCard,
             new AdmissionsClosedTodayCard,
-            // Other stat cards and stage cards added in later tasks.
         ];
+
+        $dynamic = Stage::orderBy('display_order')
+            ->orderBy('id')
+            ->get()
+            ->map(fn (Stage $s) => new StageStatCard($s))
+            ->all();
+
+        $cards = [...$static, ...$dynamic];
 
         $byId = [];
         foreach ($cards as $card) {
