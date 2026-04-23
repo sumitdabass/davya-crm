@@ -10,9 +10,13 @@ use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationMana
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageTransitionEngine;
+use App\StudentFields\FieldRenderer;
 use Filament\Notifications\Notification;
 use App\Models\Student;
+use App\Models\StudentField;
+use App\Models\StudentFieldSection;
 use App\Models\User;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
@@ -70,7 +74,7 @@ class StudentResource extends Resource
 
     public static function form(Form $form): Form
     {
-        return $form->schema([
+        $baseSchema = [
             Tabs::make('student_form')
                 ->columnSpanFull()
                 ->tabs([
@@ -196,7 +200,32 @@ class StudentResource extends Resource
                         ])->columns(2),
                 ])
                 ->persistTabInQueryString(),
-        ]);
+        ];
+
+        return $form->schema(array_merge($baseSchema, self::dynamicSections()));
+    }
+
+    /**
+     * Build Section components for any custom (non-built-in) StudentFields,
+     * grouped by their StudentFieldSection. Empty sections are skipped.
+     *
+     * @return array<int, \Filament\Forms\Components\Section>
+     */
+    protected static function dynamicSections(): array
+    {
+        return StudentFieldSection::orderBy('position')->get()->map(function ($section) {
+            $fields = StudentField::active()->custom()
+                ->where('section_id', $section->id)
+                ->orderBy('position')
+                ->get();
+            if ($fields->isEmpty()) {
+                return null;
+            }
+
+            return Section::make($section->name)
+                ->schema($fields->map(fn ($f) => (new FieldRenderer())->render($f))->all())
+                ->collapsed(false);
+        })->filter()->values()->all();
     }
 
     public static function table(Table $table): Table

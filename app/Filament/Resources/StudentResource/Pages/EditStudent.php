@@ -5,12 +5,15 @@ namespace App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageTransitionEngine;
+use App\StudentFields\StudentFormDynamicTrait;
 use Filament\Actions;
 use Filament\Resources\Pages\EditRecord;
 use Illuminate\Validation\ValidationException;
 
 class EditStudent extends EditRecord
 {
+    use StudentFormDynamicTrait;
+
     protected static string $resource = StudentResource::class;
 
     protected function getHeaderActions(): array
@@ -20,8 +23,23 @@ class EditStudent extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        return $this->hydrateCustomFields($this->record, $data);
+    }
+
+    protected function afterSave(): void
+    {
+        $this->persistCustomFields($this->record, $this->data);
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        // Custom fields are persisted separately via afterSave(); strip from
+        // the column-mapped payload so Filament doesn't try to write them
+        // as a `students.custom_fields` column.
+        unset($data['custom_fields']);
+
         $hypothetical = clone $this->record;
         $hypothetical->fill($data);
 

@@ -66,4 +66,38 @@ class DynamicStudentFormTest extends TestCase
         $this->assertSame(1, StudentFieldValue::where('student_id', $student->id)->count());
         $this->assertSame('2010-01-01', StudentFieldValue::where('student_id', $student->id)->first()->value_date->toDateString());
     }
+
+    public function test_create_page_renders_custom_fields_section(): void
+    {
+        $this->fixture();
+        $admin = \App\Models\User::where('email', 'sumit@davya.local')->first();
+        $admin->must_change_password = false; $admin->save();
+
+        \Livewire\Livewire::actingAs($admin)
+            ->test(\App\Filament\Resources\StudentResource\Pages\CreateStudent::class)
+            ->assertSee('Demographics')
+            ->assertFormFieldExists('custom_fields.dob');
+    }
+
+    public function test_edit_page_persists_custom_fields_on_save(): void
+    {
+        ['dob' => $dob, 'marks' => $marks] = $this->fixture();
+        $admin = \App\Models\User::where('email', 'sumit@davya.local')->first();
+        $admin->must_change_password = false; $admin->save();
+        $student = \App\Models\Student::factory()->create(['preference_r1' => 'BCA']);
+
+        \Livewire\Livewire::actingAs($admin)
+            ->test(\App\Filament\Resources\StudentResource\Pages\EditStudent::class, ['record' => $student->id])
+            ->fillForm([
+                'custom_fields' => ['dob' => '2010-01-01', 'marks' => '90.5'],
+            ])
+            ->call('save');
+
+        $dobValue = \App\Models\StudentFieldValue::where(['student_id' => $student->id, 'student_field_id' => $dob->id])->first();
+        $this->assertNotNull($dobValue);
+        $this->assertSame('2010-01-01', $dobValue->value_date->toDateString());
+        $marksValue = \App\Models\StudentFieldValue::where(['student_id' => $student->id, 'student_field_id' => $marks->id])->first();
+        $this->assertNotNull($marksValue);
+        $this->assertSame('90.5000', (string) $marksValue->value_number);
+    }
 }
