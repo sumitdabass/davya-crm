@@ -39,6 +39,46 @@ class BackfillStudentStageIdTest extends TestCase
         $this->assertSame($scheduledStageId, $row->stage_id);
     }
 
+    public function test_migration_file_backfills_existing_students(): void
+    {
+        // Insert legacy-shape rows (stage_id NULL) then re-run the migration
+        // file directly — proves edits to the migration's up() are exercised,
+        // not just the copy-pasted SQL in the other tests.
+        $p = Pipeline::default();
+        $scheduledStageId = $p->stages()->where('name', 'Meeting Scheduled')->value('id');
+        $ownerId = \App\Models\User::factory()->create()->id;
+
+        DB::table('students')->insert([
+            [
+                'name' => 'Pre-migration A', 'phone' => '9000000010',
+                'owner_id' => $ownerId, 'referrer_id' => $ownerId,
+                'lead_source' => 'test',
+                'stage' => 'Meeting Scheduled', 'stage_id' => null,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+            [
+                'name' => 'Pre-migration B (orphan)', 'phone' => '9000000011',
+                'owner_id' => $ownerId, 'referrer_id' => $ownerId,
+                'lead_source' => 'test',
+                'stage' => 'Defunct Legacy Stage', 'stage_id' => null,
+                'created_at' => now(), 'updated_at' => now(),
+            ],
+        ]);
+
+        // Directly invoke the backfill migration's up() via require — catches
+        // any drift between the test's inline SQL and the migration file.
+        $migration = require database_path('migrations/2026_04_23_100500_backfill_student_stage_id.php');
+        $migration->up();
+
+        $a = DB::table('students')->where('phone', '9000000010')->first();
+        $b = DB::table('students')->where('phone', '9000000011')->first();
+        $leadCapturedId = $p->stages()->where('name', 'Lead Captured')->value('id');
+
+        $this->assertSame($scheduledStageId, $a->stage_id);
+        $this->assertSame($leadCapturedId, $b->stage_id);
+        $this->assertSame('Lead Captured', $b->stage);
+    }
+
     public function test_orphan_row_is_parked_at_lead_captured(): void
     {
         // A row whose legacy stage doesn't match any seeded stage name should
