@@ -31,5 +31,5 @@
     @endif
 
     @livewire(\App\Livewire\StudentSlideOver::class)
-    {{-- CustomizeCardsModal mounted in T15 --}}
+    @livewire(\App\Livewire\CustomizeCardsModal::class)
 </x-filament-panels::page>
