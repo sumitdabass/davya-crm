@@ -2,6 +2,8 @@
 
 namespace App\Filament\Pages;
 
+use App\Dashboard\Card;
+use App\Dashboard\Resolver\UserPrefsResolver;
 use Filament\Pages\Page;
 
 class TodayPage extends Page
@@ -23,16 +25,14 @@ class TodayPage extends Page
         return auth()->check();
     }
 
-    protected function getHeaderWidgets(): array
+    /** @return Card[] */
+    public function cards(): array
     {
-        return [
-            \App\Filament\Widgets\TodayMeetingsWidget::class,
-            \App\Filament\Widgets\TodayPaymentsWidget::class,
-        ];
+        return app(UserPrefsResolver::class)->resolve(auth()->user(), 'today');
     }
 
-    public function getHeaderWidgetsColumns(): int | array
+    public function surface(): string
     {
-        return 1;
+        return 'today';
     }
 }

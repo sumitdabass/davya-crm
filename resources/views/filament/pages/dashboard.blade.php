@@ -2,7 +2,7 @@
     <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 16px;">
         <button
             type="button"
-            wire:click="$dispatch('open-customize-modal', { surface: 'today' })"
+            wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
             style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: white; background: #059669; border: none; border-radius: 4px; cursor: pointer;"
             onmouseover="this.style.background='#047857';"
             onmouseout="this.style.background='#059669';"
@@ -14,7 +14,7 @@
             No cards enabled.
             <button
                 type="button"
-                wire:click="$dispatch('open-customize-modal', { surface: 'today' })"
+                wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
                 style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
             >Customize &rarr;</button>
         </div>

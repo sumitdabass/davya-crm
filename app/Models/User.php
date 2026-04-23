@@ -86,6 +86,7 @@ class User extends Authenticatable implements FilamentUser
             'totp_secret' => 'encrypted',
             'totp_confirmed_at' => 'datetime',
             'totp_recovery_codes' => 'encrypted',
+            'dashboard_prefs' => 'array',
         ];
     }
 }
