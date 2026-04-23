@@ -25,9 +25,33 @@
                         @if ($stage->stage_type === 'CLOSED_LOST') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800">Lost</span> @endif
                     </div>
                 @endforeach
+                @php($capHit = $total >= 20)
+                @php($bucketType = $key === 'open' ? 'OPEN' : ($key === 'won' ? 'CLOSED_WON' : 'CLOSED_LOST'))
+                <button
+                    x-on:click.stop="$dispatch('open-stage-modal', { type: '{{ $bucketType }}' })"
+                    @disabled($capHit)
+                    class="text-sm font-medium text-blue-600 hover:underline px-2 py-1 {{ $capHit ? 'opacity-40 cursor-not-allowed' : '' }}">
+                    + Stage
+                </button>
             @endforeach
         </div>
     @else
         <div class="text-gray-500 text-sm">Rules tab — populated in Task 18.</div>
     @endif
+
+    <div x-data="{ open: false, type: 'OPEN', name: '' }"
+         x-on:open-stage-modal.window="open = true; type = $event.detail.type; name = ''">
+        <div x-show="open" x-cloak class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+            <div class="bg-white rounded-lg p-6 w-96 shadow-xl" @click.outside="open = false">
+                <h3 class="font-semibold mb-3">New Stage</h3>
+                <input x-model="name" class="w-full border border-gray-300 rounded px-3 py-2 text-sm mb-3" placeholder="Stage name">
+                <div class="flex justify-end gap-2">
+                    <button @click="open = false" class="px-3 py-1.5 text-sm">Cancel</button>
+                    <button
+                        @click="$wire.createStage(name, type); open = false"
+                        class="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded">Create</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </x-filament-panels::page>
