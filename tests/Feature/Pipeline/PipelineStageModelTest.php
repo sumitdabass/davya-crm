@@ -22,13 +22,15 @@ class PipelineStageModelTest extends TestCase
 
     public function test_stage_scope_by_type(): void
     {
-        $p = Pipeline::create(['name' => 'T', 'is_default' => true]);
+        // Task 6's seed migration always runs in RefreshDatabase, so we scope
+        // to a test-owned pipeline to isolate the count assertions.
+        $p = Pipeline::create(['name' => 'Scope Test Pipeline', 'is_default' => false]);
         Stage::create(['pipeline_id' => $p->id, 'name' => 'A', 'stage_type' => 'OPEN', 'display_order' => 1]);
         Stage::create(['pipeline_id' => $p->id, 'name' => 'B', 'stage_type' => 'CLOSED_WON', 'display_order' => 2]);
         Stage::create(['pipeline_id' => $p->id, 'name' => 'C', 'stage_type' => 'CLOSED_LOST', 'display_order' => 3]);
-        $this->assertSame(1, Stage::openStages()->count());
-        $this->assertSame(1, Stage::wonStages()->count());
-        $this->assertSame(1, Stage::lostStages()->count());
+        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_OPEN)->count());
+        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_WON)->count());
+        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_LOST)->count());
     }
 
     public function test_rule_has_conditions_and_from_to_relations(): void
