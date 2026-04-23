@@ -24,4 +24,5 @@ class TodayPaymentsCard implements Card
     {
         return route('filament.admin.pages.payments-report').'?activeTab=today';
     }
+    public function isAvailableFor(User $viewer): bool { return true; }
 }

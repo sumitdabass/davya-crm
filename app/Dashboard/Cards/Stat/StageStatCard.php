@@ -58,6 +58,8 @@ class StageStatCard implements Card
             .'?tableFilters[stage_id][value]='.$this->stage->id;
     }
 
+    public function isAvailableFor(User $viewer): bool { return true; }
+
     private function baseQuery(User $viewer)
     {
         return Student::query()

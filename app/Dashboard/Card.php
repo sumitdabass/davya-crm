@@ -26,4 +26,7 @@ interface Card
 
     /** Optional "View all" deep link for list cards; null if not applicable. */
     public function viewAllHref(User $viewer): ?string;
+
+    /** Whether this card is visible to the given viewer (separate from whether it's on/off in their prefs). */
+    public function isAvailableFor(User $viewer): bool;
 }

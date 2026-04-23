@@ -43,6 +43,7 @@ class LeadsCapturedTodayCard implements Card
     }
 
     public function viewAllHref(User $viewer): ?string { return null; }
+    public function isAvailableFor(User $viewer): bool { return true; }
 
     private function baseQuery(User $viewer)
     {

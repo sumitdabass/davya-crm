@@ -24,4 +24,5 @@ class ReEntryCandidatesCard implements Card
     {
         return route('filament.admin.resources.students.index').'?tableFilters[re_entry][isActive]=1';
     }
+    public function isAvailableFor(User $viewer): bool { return true; }
 }

@@ -11,7 +11,9 @@ use App\Dashboard\Cards\Stat\AdmissionsClosedTodayCard;
 use App\Dashboard\Cards\Stat\LeadsCapturedTodayCard;
 use App\Dashboard\Cards\Stat\MeetingsHeldTodayCard;
 use App\Dashboard\Cards\Stat\StageStatCard;
+use App\Dashboard\Cards\Stat\TeamStatCard;
 use App\Models\Stage;
+use App\Models\User;
 
 class CardRegistry
 {
@@ -60,7 +62,22 @@ class CardRegistry
             ->map(fn (Stage $s) => new StageStatCard($s))
             ->all();
 
-        $cards = [...$static, ...$dynamic];
+        // Team cards — one per (head, metric) pair. Only heads with at least one team member.
+        $teamCards = [];
+        $heads = User::role('head')
+            ->whereHas('teamMembers')
+            ->get();
+        foreach ($heads as $head) {
+            foreach ([
+                TeamStatCard::METRIC_LEADS_CAPTURED,
+                TeamStatCard::METRIC_MEETINGS_HELD,
+                TeamStatCard::METRIC_ADMISSIONS_CLOSED,
+            ] as $metric) {
+                $teamCards[] = new TeamStatCard($head, $metric);
+            }
+        }
+
+        $cards = [...$static, ...$dynamic, ...$teamCards];
 
         $byId = [];
         foreach ($cards as $card) {

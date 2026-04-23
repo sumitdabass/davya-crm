@@ -24,4 +24,5 @@ class StuckLeadsCard implements Card
     {
         return route('filament.admin.resources.students.index').'?tableFilters[stuck][isActive]=1';
     }
+    public function isAvailableFor(User $viewer): bool { return true; }
 }

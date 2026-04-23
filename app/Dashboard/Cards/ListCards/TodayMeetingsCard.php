@@ -21,4 +21,5 @@ class TodayMeetingsCard implements Card
 
     public function drillDown(User $viewer): ?DrillDownPayload { return null; }
     public function viewAllHref(User $viewer): ?string { return null; }
+    public function isAvailableFor(User $viewer): bool { return true; }
 }

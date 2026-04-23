@@ -24,4 +24,5 @@ class SeatFeePendingCard implements Card
     {
         return route('filament.admin.resources.students.index').'?tableFilters[seat_fee_pending][isActive]=1';
     }
+    public function isAvailableFor(User $viewer): bool { return true; }
 }

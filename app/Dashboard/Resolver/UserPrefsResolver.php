@@ -15,6 +15,7 @@ class UserPrefsResolver
         $saved = $prefs[$surface]['enabled'] ?? null;
 
         $available = CardRegistry::all();
+        $available = array_filter($available, fn (Card $c) => $c->isAvailableFor($user));
         $availableById = [];
         foreach ($available as $card) {
             $availableById[$card->id()] = $card;
