@@ -157,6 +157,16 @@ class StudentFieldsConfigPage extends Page
         });
     }
 
+    public function archiveField(int $id): void
+    {
+        $field = StudentField::findOrFail($id);
+        if ($field->is_built_in) {
+            $this->addError('archive', 'Built-in fields cannot be archived.');
+            return;
+        }
+        $field->update(['archived_at' => now()]);
+    }
+
     private function generateUniqueKey(string $label): string
     {
         // Replace common symbols before slugging.

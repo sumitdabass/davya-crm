@@ -131,6 +131,32 @@ class StudentFieldsConfigPageTest extends TestCase
         $this->assertSame(1, $a->fresh()->position);
     }
 
+    public function test_built_in_field_cannot_be_archived(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'sumit@davya.local')->first();
+        $phone = StudentField::where('key', 'phone')->first();
+
+        \Livewire\Livewire::actingAs($admin)
+            ->test(StudentFieldsConfigPage::class)
+            ->call('archiveField', $phone->id)
+            ->assertHasErrors(['archive']);
+        $this->assertNull($phone->fresh()->archived_at);
+    }
+
+    public function test_built_in_field_type_cannot_be_changed(): void
+    {
+        $this->seed();
+        $admin = User::where('email', 'sumit@davya.local')->first();
+        $name = StudentField::where('key', 'name')->first();
+        $original = $name->type;
+
+        \Livewire\Livewire::actingAs($admin)
+            ->test(StudentFieldsConfigPage::class)
+            ->call('updateField', $name->id, ['type' => 'number']);
+        $this->assertSame($original, $name->fresh()->type);
+    }
+
     private function seedAdmin(): User
     {
         $this->seed();
