@@ -60,5 +60,6 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Payment::observe(\App\Observers\PaymentObserver::class);
         \App\Models\RoundHistory::observe(\App\Observers\RoundHistoryObserver::class);
         \App\Models\StudentNote::observe(\App\Observers\StudentNoteObserver::class);
+        \App\Models\StudentFieldValue::observe(\App\Observers\StudentFieldValueObserver::class);
     }
 }
