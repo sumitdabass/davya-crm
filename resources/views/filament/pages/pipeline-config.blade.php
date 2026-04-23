@@ -1,4 +1,7 @@
 {{-- resources/views/filament/pages/pipeline-config.blade.php --}}
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+@endpush
 <x-filament-panels::page>
     <div class="flex gap-2 border-b border-gray-200 mb-6">
         <button wire:click="$set('activeTab', 'stages')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'stages' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Stages</button>
@@ -17,14 +20,35 @@
 
             @foreach (['open' => 'Open Stages', 'won' => 'Won Stages', 'lost' => 'Lost Stages'] as $key => $label)
                 <div class="text-xs uppercase tracking-wide text-gray-500 font-semibold mt-4 mb-2">{{ $label }}</div>
-                @foreach ($buckets[$key] as $stage)
-                    <div class="flex items-center gap-3 px-3 py-2 border border-gray-200 rounded mb-1.5" wire:key="stage-{{ $stage->id }}">
-                        <span class="text-gray-300 text-sm tracking-widest select-none">⋮⋮</span>
-                        <span class="flex-1 text-sm font-medium text-gray-800">{{ $stage->name }}</span>
-                        @if ($stage->stage_type === 'CLOSED_WON') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">Won</span> @endif
-                        @if ($stage->stage_type === 'CLOSED_LOST') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800">Lost</span> @endif
-                    </div>
-                @endforeach
+                <div
+                    x-data
+                    x-init="new Sortable($el, {
+                        animation: 150,
+                        handle: '.grip',
+                        onEnd: (e) => {
+                            const thisIds = Array.from($el.children).map(c => parseInt(c.dataset.stageId, 10));
+                            const all = [];
+                            document.querySelectorAll('[data-stage-section]').forEach(sec => {
+                                if (sec === $el) {
+                                    all.push(...thisIds);
+                                } else {
+                                    Array.from(sec.children).forEach(c => all.push(parseInt(c.dataset.stageId, 10)));
+                                }
+                            });
+                            $wire.reorderStages(all);
+                        }
+                    })"
+                    data-stage-section="{{ $key }}"
+                >
+                    @foreach ($buckets[$key] as $stage)
+                        <div data-stage-id="{{ $stage->id }}" class="flex items-center gap-3 px-3 py-2 border border-gray-200 rounded mb-1.5" wire:key="stage-{{ $stage->id }}">
+                            <span class="grip text-gray-300 text-sm tracking-widest select-none cursor-grab">⋮⋮</span>
+                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $stage->name }}</span>
+                            @if ($stage->stage_type === 'CLOSED_WON') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">Won</span> @endif
+                            @if ($stage->stage_type === 'CLOSED_LOST') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800">Lost</span> @endif
+                        </div>
+                    @endforeach
+                </div>
                 @php($capHit = $total >= 20)
                 @php($bucketType = $key === 'open' ? 'OPEN' : ($key === 'won' ? 'CLOSED_WON' : 'CLOSED_LOST'))
                 <button

@@ -87,4 +87,17 @@ class PipelineConfigPage extends Page
             Notification::make()->title('Change failed')->body(collect($e->errors())->flatten()->first())->danger()->send();
         }
     }
+
+    public function reorderStages(array $orderedIds): void
+    {
+        if (! static::canAccess()) abort(403);
+        try {
+            app(StageRepository::class)->reorder($this->getPipeline(), array_map('intval', $orderedIds));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Filament\Notifications\Notification::make()
+                ->title('Reorder failed')
+                ->body(collect($e->errors())->flatten()->first())
+                ->danger()->send();
+        }
+    }
 }

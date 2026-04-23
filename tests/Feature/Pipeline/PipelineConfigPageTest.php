@@ -98,4 +98,26 @@ class PipelineConfigPageTest extends TestCase
             ->assertHasNoErrors();
         $this->assertDatabaseMissing('stages', ['id' => $stage->id]);
     }
+
+    public function test_admin_can_reorder_stages(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email','sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        $p = \App\Models\Pipeline::default();
+        $openIds = $p->stages()->where('stage_type','OPEN')->orderBy('display_order')->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $wonIds  = $p->stages()->where('stage_type','CLOSED_WON')->orderBy('display_order')->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $lostIds = $p->stages()->where('stage_type','CLOSED_LOST')->orderBy('display_order')->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        // Reverse only the open stages; full list must contain all 13 ids (per StageRepository::reorder guard).
+        $reversed = array_reverse($openIds);
+        $allOrdered = array_merge($reversed, $wonIds, $lostIds);
+
+        Livewire::test(PipelineConfigPage::class)
+            ->call('reorderStages', $allOrdered);
+
+        $newFirstOpen = $p->stages()->where('stage_type','OPEN')->orderBy('display_order')->first();
+        $this->assertSame($reversed[0], (int) $newFirstOpen->id);
+    }
 }
