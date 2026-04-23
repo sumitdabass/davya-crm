@@ -234,6 +234,19 @@ class StudentResource extends Resource
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
                 SelectFilter::make('stage')->options(fn () => self::stageOptions()),
                 SelectFilter::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
+                Tables\Filters\Filter::make('stuck')
+                    ->label('Stuck leads (14+ days)')
+                    ->query(fn ($query) => $query
+                        ->where('updated_at', '<', now()->subDays(14))
+                        ->whereNotIn('stage', ['Admission Confirmed', 'Closed'])),
+                Tables\Filters\Filter::make('seat_fee_pending')
+                    ->label('Seat fee pending')
+                    ->query(fn ($query) => $query->whereHas('roundHistory', fn ($q) => $q
+                        ->where('outcome', 'Allotted — Fee Pending')
+                        ->where('seat_fee_paid', false))),
+                Tables\Filters\Filter::make('re_entry')
+                    ->label('Re-entry candidates')
+                    ->query(fn ($query) => $query->whereIn('id', \App\Models\RoundHistory::reEntryCandidates()->pluck('student_id'))),
             ])
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([
