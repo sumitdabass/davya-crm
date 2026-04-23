@@ -6,41 +6,47 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up(): void
     {
-        $now = now();
-        $pipelineId = DB::table('pipelines')->insertGetId([
-            'name' => 'IPU Admission',
-            'record_label' => 'Student',
-            'is_default' => true,
-            'created_at' => $now, 'updated_at' => $now,
-        ]);
-
-        $stages = [
-            ['Lead Captured',              'OPEN'],
-            ['Meeting Scheduled',          'OPEN'],
-            ['Meeting Done',               'OPEN'],
-            ['Advance Received',           'OPEN'],
-            ['MQ',                         'OPEN'],
-            ['Round 1',                    'OPEN'],
-            ['Round 2',                    'OPEN'],
-            ['Round 3',                    'OPEN'],
-            ['Sliding',                    'OPEN'],
-            ['Offline',                    'OPEN'],
-            ['Seat Allotted',              'OPEN'],
-            ['Complete Payment Received',  'CLOSED_WON'],
-            ['Closed',                     'CLOSED_LOST'],
-        ];
-
-        $rows = [];
-        foreach ($stages as $i => [$name, $type]) {
-            $rows[] = [
-                'pipeline_id' => $pipelineId,
-                'name' => $name,
-                'stage_type' => $type,
-                'display_order' => $i + 1,
-                'created_at' => $now, 'updated_at' => $now,
-            ];
+        if (DB::table('pipelines')->where('name', 'IPU Admission')->exists()) {
+            return;
         }
-        DB::table('stages')->insert($rows);
+
+        DB::transaction(function () {
+            $now = now();
+            $pipelineId = DB::table('pipelines')->insertGetId([
+                'name' => 'IPU Admission',
+                'record_label' => 'Student',
+                'is_default' => true,
+                'created_at' => $now, 'updated_at' => $now,
+            ]);
+
+            $stages = [
+                ['Lead Captured',              'OPEN'],
+                ['Meeting Scheduled',          'OPEN'],
+                ['Meeting Done',               'OPEN'],
+                ['Advance Received',           'OPEN'],
+                ['MQ',                         'OPEN'],
+                ['Round 1',                    'OPEN'],
+                ['Round 2',                    'OPEN'],
+                ['Round 3',                    'OPEN'],
+                ['Sliding',                    'OPEN'],
+                ['Offline',                    'OPEN'],
+                ['Seat Allotted',              'OPEN'],
+                ['Complete Payment Received',  'CLOSED_WON'],
+                ['Closed',                     'CLOSED_LOST'],
+            ];
+
+            $rows = [];
+            foreach ($stages as $i => [$name, $type]) {
+                $rows[] = [
+                    'pipeline_id' => $pipelineId,
+                    'name' => $name,
+                    'stage_type' => $type,
+                    'display_order' => $i + 1,
+                    'created_at' => $now, 'updated_at' => $now,
+                ];
+            }
+            DB::table('stages')->insert($rows);
+        });
     }
 
     public function down(): void
