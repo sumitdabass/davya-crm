@@ -16,8 +16,12 @@ class StageRepository
 
     public function create(Pipeline $pipeline, string $name, string $type, ?string $description = null): Stage
     {
+        $name = trim($name);
+
         if (! in_array($type, Stage::TYPES, true)) {
-            throw ValidationException::withMessages(['stage_type' => "Invalid stage type: $type"]);
+            throw ValidationException::withMessages([
+                'stage_type' => "Invalid stage type '$type'. Allowed: " . implode(', ', Stage::TYPES) . '.',
+            ]);
         }
 
         if ($pipeline->stages()->count() >= self::MAX_STAGES_PER_PIPELINE) {
@@ -47,6 +51,8 @@ class StageRepository
 
     public function rename(Stage $stage, string $newName): Stage
     {
+        $newName = trim($newName);
+
         if ($stage->pipeline->stages()->where('name', $newName)->where('id', '!=', $stage->id)->exists()) {
             throw ValidationException::withMessages([
                 'name' => "A stage named \"$newName\" already exists.",
@@ -60,6 +66,16 @@ class StageRepository
     /** @param int[] $orderedStageIds */
     public function reorder(Pipeline $pipeline, array $orderedStageIds): void
     {
+        // Guard: the reorder list must exactly match the pipeline's current stages.
+        // Partial or foreign IDs would leave display_order in a half-updated, duplicated state.
+        $owned = $pipeline->stages()->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $given = collect($orderedStageIds)->map(fn ($id) => (int) $id)->sort()->values()->all();
+        if ($owned !== $given) {
+            throw ValidationException::withMessages([
+                'stages' => "Reorder list must contain exactly the pipeline's current stage IDs.",
+            ]);
+        }
+
         DB::transaction(function () use ($pipeline, $orderedStageIds) {
             foreach ($orderedStageIds as $i => $id) {
                 $pipeline->stages()->where('id', $id)->update(['display_order' => $i + 1]);

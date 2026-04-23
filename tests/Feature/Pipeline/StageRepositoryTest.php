@@ -53,9 +53,23 @@ class StageRepositoryTest extends TestCase
     {
         $repo = app(StageRepository::class);
         $p = Pipeline::default();
-        $ids = $p->stages->pluck('id')->reverse()->values()->all();
+        $ids = $p->stages->pluck('id')->reverse()->values()->map(fn ($id) => (int) $id)->all();
         $repo->reorder($p, $ids);
         $firstAfter = $p->stages()->orderBy('display_order')->first();
-        $this->assertSame($ids[0], $firstAfter->id);
+        $this->assertSame($ids[0], (int) $firstAfter->id);
+
+        // Pin the full permutation, not just the head.
+        $reordered = $p->stages()->orderBy('display_order')->pluck('id')->map(fn ($id) => (int) $id)->all();
+        $this->assertSame($ids, $reordered);
+    }
+
+    public function test_reorder_rejects_partial_id_list(): void
+    {
+        $repo = app(StageRepository::class);
+        $p = Pipeline::default();
+        $partial = $p->stages->pluck('id')->take(5)->all();  // only 5 of 13
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessageMatches('/current stage IDs/i');
+        $repo->reorder($p, $partial);
     }
 }
