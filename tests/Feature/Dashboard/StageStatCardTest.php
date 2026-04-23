@@ -75,7 +75,7 @@ class StageStatCardTest extends TestCase
         Stage::create([
             'pipeline_id' => $pipeline->id,
             'name' => 'Brand New Stage',
-            'stage_type' => 'active',
+            'stage_type' => 'OPEN',
             'display_order' => 999,
         ]);
         CardRegistry::reset();
