@@ -32,14 +32,14 @@
                             type="button"
                             wire:click="moveUp('{{ $item['id'] }}')"
                             title="Move up"
-                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === 0 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
+                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: #f9fafb; color: #111827; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === 0 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
                             {{ $i === 0 ? 'disabled' : '' }}
                         >&#x25B2;</button>
                         <button
                             type="button"
                             wire:click="moveDown('{{ $item['id'] }}')"
                             title="Move down"
-                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === count($enabledItems) - 1 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
+                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: #f9fafb; color: #111827; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === count($enabledItems) - 1 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
                             {{ $i === count($enabledItems) - 1 ? 'disabled' : '' }}
                         >&#x25BC;</button>
                         <span style="flex: 1; font-size: 14px; color: #111827;">{{ $item['label'] }}</span>

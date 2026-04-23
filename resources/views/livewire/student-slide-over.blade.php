@@ -1,61 +1,78 @@
 <div>
     @if ($isOpen && $payload)
         <div
-            class="fixed inset-0 z-40 bg-black/40"
+            style="position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.45);"
             wire:click="close"
         ></div>
         <div
-            class="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-white dark:bg-gray-900 shadow-xl flex flex-col"
+            style="position: fixed; top: 0; right: 0; bottom: 0; z-index: 9999; width: 100%; max-width: 36rem; background: white; box-shadow: -4px 0 12px rgba(0,0,0,0.1); display: flex; flex-direction: column;"
         >
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="font-semibold">{{ $payload->title }} — {{ $rows->total() }} students</h2>
-                <button wire:click="close" aria-label="Close" class="text-gray-500 hover:text-red-500">✕</button>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #e5e7eb;">
+                <h2 style="font-size: 15px; font-weight: 600; margin: 0; color: #111827;">
+                    {{ $payload->title }} — {{ $rows->total() }} students
+                </h2>
+                <button
+                    type="button"
+                    wire:click="close"
+                    aria-label="Close"
+                    style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #6b7280; line-height: 1;"
+                >&#x2715;</button>
             </div>
 
-            <div class="p-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
+            <div style="display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #e5e7eb;">
                 <input
                     type="search"
                     wire:model.live.debounce.300ms="search"
                     placeholder="Search name or phone"
-                    class="flex-1 rounded border-gray-300 dark:bg-gray-800"
+                    style="flex: 1; padding: 6px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px;"
                 />
                 <a
                     href="{{ route('admin.dashboard.drill-csv', ['cardId' => $cardId, 'search' => $search]) }}"
-                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-sm"
-                >
-                    ↓ CSV
-                </a>
+                    style="display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; text-decoration: none;"
+                >&#x2193; CSV</a>
             </div>
 
-            <div class="flex-1 overflow-auto">
-                <table class="w-full text-sm">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
+            <div style="flex: 1; overflow-y: auto;">
+                <table style="width: 100%; font-size: 13px; border-collapse: collapse;">
+                    <thead style="background: #f9fafb; position: sticky; top: 0;">
                         <tr>
                             @foreach ($payload->columns as $col)
-                                <th class="px-3 py-2 text-left">{{ $col['label'] }}</th>
+                                <th style="padding: 8px 12px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #e5e7eb;">{{ $col['label'] }}</th>
                             @endforeach
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($rows as $row)
-                            <tr class="border-t border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                            <tr style="border-bottom: 1px solid #f3f4f6;"
+                                onmouseover="this.style.background='#f9fafb';"
+                                onmouseout="this.style.background='white';">
                                 @foreach ($payload->columns as $col)
-                                    <td class="px-3 py-2">
+                                    <td style="padding: 8px 12px; color: #111827;">
                                         {{ \App\Dashboard\RowFormatter::format($row, $col['key']) }}
                                     </td>
                                 @endforeach
                             </tr>
                         @endforeach
+                        @if ($rows->isEmpty())
+                            <tr>
+                                <td colspan="{{ count($payload->columns) }}" style="padding: 24px; text-align: center; color: #6b7280;">
+                                    No rows match.
+                                </td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
 
-            <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                {{ $rows->links() }}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid #e5e7eb; background: white;">
+                <div style="font-size: 12px; color: #6b7280;">
+                    {{ $rows->links() }}
+                </div>
                 @if ($viewAllHref)
-                    <a href="{{ $viewAllHref }}" class="text-sm text-primary-600 hover:underline">
-                        Open in full table →
-                    </a>
+                    <a href="{{ $viewAllHref }}"
+                       style="font-size: 13px; color: #2563eb; text-decoration: none;"
+                       onmouseover="this.style.textDecoration='underline';"
+                       onmouseout="this.style.textDecoration='none';">Open in full table &rarr;</a>
                 @endif
             </div>
         </div>

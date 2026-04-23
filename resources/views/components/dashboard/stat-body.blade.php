@@ -6,21 +6,21 @@
     'drillable' => false,
 ])
 
-<div class="p-4">
-    <div class="flex items-baseline gap-3">
-        <button
-            @if ($drillable)
+<div style="padding: 16px;">
+    <div style="display: flex; align-items: baseline; gap: 12px;">
+        @if ($drillable)
+            <button
+                type="button"
                 wire:click="$dispatch('open-slide-over', { cardId: '{{ $cardId }}' })"
-                class="text-3xl font-semibold text-primary-600 hover:underline"
-            @else
-                class="text-3xl font-semibold text-gray-900 dark:text-gray-100"
-                disabled
-            @endif
-        >
-            {{ $value }}
-        </button>
+                style="font-size: 30px; font-weight: 600; color: #2563eb; background: transparent; border: none; cursor: pointer; padding: 0; line-height: 1;"
+                onmouseover="this.style.textDecoration='underline';"
+                onmouseout="this.style.textDecoration='none';"
+            >{{ $value }}</button>
+        @else
+            <span style="font-size: 30px; font-weight: 600; color: #111827;">{{ $value }}</span>
+        @endif
     </div>
     @if ($secondary)
-        <div class="mt-1 text-sm text-gray-600 dark:text-gray-400">{{ $secondary }}</div>
+        <div style="margin-top: 4px; font-size: 13px; color: #6b7280;">{{ $secondary }}</div>
     @endif
 </div>
