@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\PipelineSummary;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageTransitionEngine;
+use App\StudentFields\KanbanExtrasFormatter;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -101,6 +102,8 @@ class KanbanBoard extends Page
 
         $byStage = $students->groupBy('stage');
 
+        $extrasFormatter = new KanbanExtrasFormatter();
+
         $columns = [];
         foreach (PipelineSummary::stages() as $stage) {
             $group = $byStage->get($stage, collect());
@@ -123,6 +126,7 @@ class KanbanBoard extends Page
                     'pending'      => max(0, (float) ($s->deal_amount ?? 0) - (float) ($paymentsByStudent[$s->id] ?? 0)),
                     'current_round' => $s->roundHistory->first()?->round_name,
                     'days_in_stage' => (int) $s->updated_at->diffInDays(now()),
+                    'extras'       => $extrasFormatter->format($s),
                 ]),
             ];
         }

@@ -162,6 +162,14 @@
                                     @endif
                                     <span>{{ $s['days_in_stage'] }}d</span>
                                 </div>
+
+                                @if (! empty($s['extras'] ?? []))
+                                    <div class="mt-1 text-xs text-gray-700 dark:text-gray-300 space-y-0.5">
+                                        @foreach ($s['extras'] as $line)
+                                            <div>{{ $line }}</div>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
                         @endforeach
 
