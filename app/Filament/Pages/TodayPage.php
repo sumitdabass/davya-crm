@@ -5,9 +5,16 @@ namespace App\Filament\Pages;
 use App\Dashboard\Card;
 use App\Dashboard\Resolver\UserPrefsResolver;
 use Filament\Pages\Page;
+use Livewire\Attributes\On;
 
 class TodayPage extends Page
 {
+    #[On('dashboard-prefs-saved')]
+    public function refreshAfterPrefsSaved(): void
+    {
+        // See DashboardPage::refreshAfterPrefsSaved — same purpose.
+    }
+
     protected static ?string $navigationIcon = 'heroicon-o-sun';
 
     protected static ?string $navigationLabel = 'Today';

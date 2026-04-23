@@ -24,6 +24,18 @@ class StudentResourceDeepLinkFiltersTest extends TestCase
         return $sumit;
     }
 
+    public function test_persistFiltersInSession_is_enabled_so_url_state_hydrates_filters(): void
+    {
+        // Bug 1 from prod smoke 2026-04-23: tableFilters[stuck][isActive]=1 URL
+        // params were ignored on initial page load because Filament's
+        // bootedInteractsWithTable() only fills the form from URL state when
+        // session persistence is enabled. Without this guard, deep-link cards
+        // land on the unfiltered list — defeating their purpose.
+        $reflection = new \ReflectionClass(\App\Filament\Resources\StudentResource::class);
+        $body = file_get_contents($reflection->getFileName());
+        $this->assertStringContainsString('->persistFiltersInSession()', $body);
+    }
+
     public function test_stuck_filter_returns_students_not_updated_for_14_days_and_not_closed(): void
     {
         $admin = $this->admin();

@@ -1,4 +1,7 @@
 <x-filament-widgets::widget>
+    {{-- Required for $this->scheduleAction to actually open its form modal --}}
+    <x-filament-actions::modals />
+
     <x-filament::section>
         <x-slot name="heading">Meetings — next 5 days</x-slot>
         <x-slot name="headerEnd">

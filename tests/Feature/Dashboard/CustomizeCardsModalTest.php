@@ -25,6 +25,18 @@ class CustomizeCardsModalTest extends TestCase
         return $u;
     }
 
+    public function test_dashboard_and_today_pages_listen_for_dashboard_prefs_saved(): void
+    {
+        // Bug 2 from prod smoke 2026-04-23: dashboard kept rendering defaults
+        // after Save with empty enabled array because DashboardPage / TodayPage
+        // didn't listen for the dashboard-prefs-saved Livewire event, so the
+        // page never re-rendered. Guard the listener exists on both pages.
+        foreach ([\App\Filament\Pages\DashboardPage::class, \App\Filament\Pages\TodayPage::class] as $pageClass) {
+            $body = file_get_contents((new \ReflectionClass($pageClass))->getFileName());
+            $this->assertStringContainsString("#[On('dashboard-prefs-saved')]", $body, "$pageClass missing #[On('dashboard-prefs-saved')] listener");
+        }
+    }
+
     public function test_save_empty_enabled_array_persists_as_empty_not_defaults(): void
     {
         // SP#3 follow-up (b): previously the resolver auto-appended defaults

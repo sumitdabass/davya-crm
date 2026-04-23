@@ -202,6 +202,7 @@ class StudentResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->persistFiltersInSession()
             ->columns([
                 TextColumn::make('name')->searchable()->weight('medium')->sortable()
                     ->description(fn ($record) => $record->phone),
