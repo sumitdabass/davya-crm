@@ -10,6 +10,7 @@ use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationMana
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageTransitionEngine;
+use App\StudentFields\DynamicTableColumns;
 use App\StudentFields\FieldRenderer;
 use Filament\Notifications\Notification;
 use App\Models\Student;
@@ -230,36 +231,38 @@ class StudentResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $baseColumns = [
+            TextColumn::make('name')->searchable()->weight('medium')->sortable()
+                ->description(fn ($record) => $record->phone),
+            TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
+            TextColumn::make('stage')->badge()->color(fn ($state) => match ($state) {
+                'Lead Captured'           => 'gray',
+                'Meeting Scheduled'       => 'info',
+                'Meeting Done'            => 'info',
+                'Onboarded'               => 'warning',
+                'University Registration' => 'warning',
+                'Counselling In Progress' => 'primary',
+                'Seat Allotted'           => 'primary',
+                'Full Payment Received'   => 'success',
+                'Admission Confirmed'     => 'success',
+                'Closed'                  => 'danger',
+                default                   => 'gray',
+            }),
+            TextColumn::make('deal_amount')->money('INR')->sortable()->default(0),
+            TextColumn::make('total_received')->money('INR')->label('Received')
+                ->color('success'),
+            TextColumn::make('pending_amount')->money('INR')->label('Pending')
+                ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
+            TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
+            TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
+            TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
+            TextColumn::make('updated_at')->since()->label('Last update')->sortable()
+                ->toggleable(),
+        ];
+
         return $table
             ->persistFiltersInSession()
-            ->columns([
-                TextColumn::make('name')->searchable()->weight('medium')->sortable()
-                    ->description(fn ($record) => $record->phone),
-                TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
-                TextColumn::make('stage')->badge()->color(fn ($state) => match ($state) {
-                    'Lead Captured'           => 'gray',
-                    'Meeting Scheduled'       => 'info',
-                    'Meeting Done'            => 'info',
-                    'Onboarded'               => 'warning',
-                    'University Registration' => 'warning',
-                    'Counselling In Progress' => 'primary',
-                    'Seat Allotted'           => 'primary',
-                    'Full Payment Received'   => 'success',
-                    'Admission Confirmed'     => 'success',
-                    'Closed'                  => 'danger',
-                    default                   => 'gray',
-                }),
-                TextColumn::make('deal_amount')->money('INR')->sortable()->default(0),
-                TextColumn::make('total_received')->money('INR')->label('Received')
-                    ->color('success'),
-                TextColumn::make('pending_amount')->money('INR')->label('Pending')
-                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
-                TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
-                TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
-                TextColumn::make('updated_at')->since()->label('Last update')->sortable()
-                    ->toggleable(),
-            ])
+            ->columns(array_merge($baseColumns, (new DynamicTableColumns())->build()))
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
                 SelectFilter::make('stage')->options(fn () => self::stageOptions()),
