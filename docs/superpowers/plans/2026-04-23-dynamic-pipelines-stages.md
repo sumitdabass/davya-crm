@@ -1772,7 +1772,7 @@ class StageTransitionEngineTest extends TestCase
     {
         $engine = app(StageTransitionEngine::class);
         $s = $this->studentInStage('Lead Captured');
-        $s->meetings()->create(['scheduled_at' => now()->addDay(), 'status' => 'scheduled', 'created_by' => $s->owner_id]);
+        $s->meetings()->create(['scheduled_at' => now()->addDay(), 'status' => 'scheduled', 'owner_id' => $s->owner_id, 'created_by_id' => $s->owner_id]);
         $msId = Pipeline::default()->stages()->where('name','Meeting Scheduled')->value('id');
         $out = $engine->forStageChange($s, $msId);
         $this->assertEmpty($out['soft']);
@@ -2866,7 +2866,7 @@ class PipelineEndToEndTest extends TestCase
         $board = app(KanbanBoard::class);
 
         // Walk forward: Lead → Meeting Scheduled (soft warn OK to bypass in non-UI context; engine returns warning but moveStudentToStage accepts)
-        $s->meetings()->create(['scheduled_at' => now()->addDay(), 'status' => 'scheduled', 'created_by' => $s->owner_id]);
+        $s->meetings()->create(['scheduled_at' => now()->addDay(), 'status' => 'scheduled', 'owner_id' => $s->owner_id, 'created_by_id' => $s->owner_id]);
         $this->assertTrue($board->moveStudentToStage($s->id, 'Meeting Scheduled')['ok']);
 
         // Meeting Done
