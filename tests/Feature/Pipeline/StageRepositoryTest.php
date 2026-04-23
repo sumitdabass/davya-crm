@@ -72,4 +72,55 @@ class StageRepositoryTest extends TestCase
         $this->expectExceptionMessageMatches('/current stage IDs/i');
         $repo->reorder($p, $partial);
     }
+
+    public function test_delete_without_students_succeeds(): void
+    {
+        $repo = app(StageRepository::class);
+        $s = $repo->create(Pipeline::default(), 'Empty', Stage::TYPE_OPEN);
+        $repo->delete($s);
+        $this->assertDatabaseMissing('stages', ['id' => $s->id]);
+    }
+
+    public function test_delete_with_students_and_no_target_throws(): void
+    {
+        $repo = app(StageRepository::class);
+        $p = Pipeline::default();
+        $s = $p->stages()->where('name','Meeting Scheduled')->firstOrFail();
+        $ownerId = \App\Models\User::factory()->create()->id;
+        \DB::table('students')->insert([
+            'name'=>'S','phone'=>'9111111111','owner_id'=>$ownerId,'referrer_id'=>$ownerId,
+            'lead_source'=>'t','stage'=>'Meeting Scheduled','stage_id'=>$s->id,
+            'created_at'=>now(),'updated_at'=>now(),
+        ]);
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessageMatches('/has 1 student|transfer_to_stage_id/i');
+        $repo->delete($s);
+    }
+
+    public function test_delete_with_students_and_target_migrates_then_deletes(): void
+    {
+        $repo = app(StageRepository::class);
+        $p = Pipeline::default();
+        $from = $p->stages()->where('name','Meeting Scheduled')->firstOrFail();
+        $to   = $p->stages()->where('name','Meeting Done')->firstOrFail();
+        $ownerId = \App\Models\User::factory()->create()->id;
+        \DB::table('students')->insert([
+            'name'=>'S','phone'=>'9222222222','owner_id'=>$ownerId,'referrer_id'=>$ownerId,
+            'lead_source'=>'t','stage'=>'Meeting Scheduled','stage_id'=>$from->id,
+            'created_at'=>now(),'updated_at'=>now(),
+        ]);
+        $repo->delete($from, $to->id);
+        $this->assertDatabaseMissing('stages', ['id' => $from->id]);
+        $this->assertSame($to->id, \DB::table('students')->where('phone','9222222222')->value('stage_id'));
+        $this->assertSame('Meeting Done', \DB::table('students')->where('phone','9222222222')->value('stage'));
+    }
+
+    public function test_change_type_moves_stage_to_new_section(): void
+    {
+        $repo = app(StageRepository::class);
+        $p = Pipeline::default();
+        $s = $p->stages()->where('name', 'Seat Allotted')->firstOrFail();
+        $repo->changeType($s, Stage::TYPE_WON);
+        $this->assertSame(Stage::TYPE_WON, $s->fresh()->stage_type);
+    }
 }

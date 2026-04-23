@@ -83,4 +83,46 @@ class StageRepository
         });
         $this->config->invalidate();
     }
+
+    public function delete(Stage $stage, ?int $transferToStageId = null): void
+    {
+        $studentCount = Student::where('stage_id', $stage->id)->count();
+
+        if ($studentCount > 0 && $transferToStageId === null) {
+            throw ValidationException::withMessages([
+                'transfer_to_stage_id' => "Stage has $studentCount student(s). Choose a target stage to move them to before deleting.",
+            ]);
+        }
+
+        if ($studentCount > 0) {
+            if ($transferToStageId === $stage->id) {
+                throw ValidationException::withMessages(['transfer_to_stage_id' => 'Cannot transfer to the same stage.']);
+            }
+            $target = $stage->pipeline->stages()->where('id', $transferToStageId)->firstOrFail();
+
+            DB::transaction(function () use ($stage, $target) {
+                Student::where('stage_id', $stage->id)->update([
+                    'stage_id' => $target->id,
+                    'stage' => $target->name,
+                ]);
+                $stage->delete();
+            });
+        } else {
+            $stage->delete();
+        }
+
+        $this->config->invalidate();
+    }
+
+    public function changeType(Stage $stage, string $newType): Stage
+    {
+        if (! in_array($newType, Stage::TYPES, true)) {
+            throw ValidationException::withMessages([
+                'stage_type' => "Invalid stage type '$newType'. Allowed: " . implode(', ', Stage::TYPES) . '.',
+            ]);
+        }
+        $stage->update(['stage_type' => $newType]);
+        $this->config->invalidate();
+        return $stage->fresh();
+    }
 }
