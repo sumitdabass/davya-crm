@@ -43,6 +43,12 @@ class PipelineConfig
         return $this->stages()->pluck('name')->all();
     }
 
+    /** Piggy-backs on the stages cache — avoids a second DB hit per transition evaluation. */
+    public function defaultPipelineId(): int
+    {
+        return (int) $this->stages()->first()->pipeline_id;
+    }
+
     public function invalidate(): void
     {
         Cache::forget(self::CACHE_KEY);

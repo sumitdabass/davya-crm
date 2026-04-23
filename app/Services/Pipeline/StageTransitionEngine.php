@@ -2,7 +2,7 @@
 // app/Services/Pipeline/StageTransitionEngine.php
 namespace App\Services\Pipeline;
 
-use App\Models\Pipeline;
+use App\Models\StageTransitionCondition;
 use App\Models\StageTransitionRule;
 use App\Models\Student;
 use Illuminate\Support\Collection;
@@ -18,7 +18,7 @@ class StageTransitionEngine
     public function forStageChange(Student $student, int $toStageId): array
     {
         $fromStageId = $student->stage_id;
-        $pipelineId  = Pipeline::default()->id;
+        $pipelineId  = $this->config->defaultPipelineId();
 
         $rules = $this->matchingRules($pipelineId, $fromStageId, $toStageId);
 
@@ -66,7 +66,7 @@ class StageTransitionEngine
         return $out;
     }
 
-    private function describeCondition($cond): string
+    private function describeCondition(StageTransitionCondition $cond): string
     {
         if ($cond->condition_type === 'FIELD_CHECK') {
             if ($cond->operator === 'is_not_empty') {
