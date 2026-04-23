@@ -120,4 +120,18 @@ class PipelineConfigPageTest extends TestCase
         $newFirstOpen = $p->stages()->where('stage_type','OPEN')->orderBy('display_order')->first();
         $this->assertSame($reversed[0], (int) $newFirstOpen->id);
     }
+
+    public function test_rules_tab_lists_4_seeded_rules(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email','sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::test(PipelineConfigPage::class)
+            ->set('activeTab', 'rules')
+            ->assertSeeText('Closed requires reason')
+            ->assertSeeText('Re-opening requires re-entry reason')
+            ->assertSeeText('Meeting Scheduled needs a future meeting')
+            ->assertSeeText('Sliding needs prior allotment');
+    }
 }

@@ -100,4 +100,9 @@ class PipelineConfigPage extends Page
                 ->danger()->send();
         }
     }
+
+    public function getTransitionRules(): \Illuminate\Support\Collection
+    {
+        return $this->getPipeline()->transitionRules()->with(['fromStage','toStage','conditions'])->orderBy('id')->get();
+    }
 }

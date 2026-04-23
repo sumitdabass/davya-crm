@@ -60,7 +60,42 @@
             @endforeach
         </div>
     @else
-        <div class="text-gray-500 text-sm">Rules tab — populated in Task 18.</div>
+        <div class="flex justify-end mb-4">
+            <button class="bg-emerald-600 text-white px-4 py-2 rounded text-sm font-semibold" wire:click="$dispatch('open-rule-editor', { ruleId: null })">+ Add Rule</button>
+        </div>
+        @foreach ($this->getTransitionRules() as $rule)
+            <div class="bg-white border border-gray-200 rounded-lg p-4 mb-2" wire:key="rule-{{ $rule->id }}">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="font-semibold text-sm flex-1">{{ $rule->name }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $rule->severity === 'HARD' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-900' }}">
+                        {{ $rule->severity === 'HARD' ? 'Hard · Blocks' : 'Soft · Warns' }}
+                    </span>
+                    <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $rule->is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600' }}">
+                        {{ $rule->is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+                <div class="text-sm text-gray-600 mb-2">
+                    <span class="px-2 py-1 rounded {{ $rule->from_stage_id ? 'bg-gray-100' : 'bg-indigo-50 italic text-indigo-800' }}">
+                        {{ $rule->fromStage?->name ?? 'Any stage' }}
+                    </span>
+                    →
+                    <span class="px-2 py-1 rounded {{ $rule->to_stage_id ? 'bg-gray-100' : 'bg-indigo-50 italic text-indigo-800' }}">
+                        {{ $rule->toStage?->name ?? 'Any stage' }}
+                    </span>
+                </div>
+                @foreach ($rule->conditions as $cond)
+                    <div class="text-xs text-gray-500 border-t border-dashed border-gray-200 pt-2 mt-2">
+                        <b>IF</b>
+                        @if ($cond->condition_type === 'FIELD_CHECK')
+                            field <code class="bg-gray-100 px-1 rounded">{{ $cond->field_or_relation }}</code> {{ $cond->operator }}
+                            @if (is_array($cond->value) && isset($cond->value['rhs'])) <code class="bg-gray-100 px-1 rounded">{{ $cond->value['rhs'] }}</code> @endif
+                        @else
+                            record has ≥{{ $cond->value['count_min'] ?? 1 }} <code class="bg-gray-100 px-1 rounded">{{ $cond->field_or_relation }}</code>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endforeach
     @endif
 
     <div x-data="{ open: false, type: 'OPEN', name: '' }"
