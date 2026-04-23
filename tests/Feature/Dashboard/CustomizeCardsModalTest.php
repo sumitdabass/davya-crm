@@ -96,4 +96,21 @@ class CustomizeCardsModalTest extends TestCase
             'Expected dashboard_prefs to be null or not have today key after reset'
         );
     }
+
+    public function test_reorder_updates_enabled_array_order(): void
+    {
+        $admin = $this->admin();
+
+        $cmp = Livewire::actingAs($admin)
+            ->test(CustomizeCardsModal::class)
+            ->dispatch('open-customize-modal', surface: 'today');
+
+        $originalFirst = $cmp->get('enabled')[0];
+        $reversed = array_reverse($cmp->get('enabled'));
+
+        $cmp->call('reorder', $reversed);
+
+        $this->assertSame($reversed, $cmp->get('enabled'));
+        $this->assertNotSame($originalFirst, $cmp->get('enabled')[0]);
+    }
 }

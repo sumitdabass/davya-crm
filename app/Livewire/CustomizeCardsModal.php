@@ -41,6 +41,16 @@ class CustomizeCardsModal extends Component
         }
     }
 
+    /** @param string[] $newOrder */
+    public function reorder(array $newOrder): void
+    {
+        $enabledSet = array_flip($this->enabled);
+        $this->enabled = array_values(array_filter(
+            $newOrder,
+            fn ($id) => isset($enabledSet[$id]),
+        ));
+    }
+
     public function save(): void
     {
         $user = auth()->user();

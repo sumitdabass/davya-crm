@@ -1,4 +1,5 @@
 <div>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
     @if ($isOpen)
         <div class="fixed inset-0 z-40 bg-black/40" wire:click="close"></div>
         <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-gray-900 shadow-xl flex flex-col">
@@ -51,5 +52,31 @@
                 </div>
             </div>
         </div>
+    @endif
+
+    @if ($isOpen)
+        @script
+        <script>
+            (function () {
+                const container = document.getElementById('customize-sortable-{{ $surface }}');
+                if (!container || container.dataset.sortableReady) return;
+                container.dataset.sortableReady = 'true';
+
+                const onReady = () => {
+                    if (typeof Sortable === 'undefined') return setTimeout(onReady, 50);
+                    Sortable.create(container, {
+                        animation: 150,
+                        draggable: '.sortable-item',
+                        onEnd: function () {
+                            const ids = Array.from(container.querySelectorAll('.sortable-item'))
+                                .map(el => el.dataset.id);
+                            @this.call('reorder', ids);
+                        },
+                    });
+                };
+                onReady();
+            })();
+        </script>
+        @endscript
     @endif
 </div>
