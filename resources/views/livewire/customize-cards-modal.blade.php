@@ -83,7 +83,7 @@
                     <button
                         type="button"
                         wire:click="save"
-                        style="padding: 6px 14px; font-size: 13px; color: white; background: #2563eb; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;"
+                        style="padding: 6px 14px; font-size: 13px; color: white; background: #059669; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;"
                     >Save</button>
                 </div>
             </div>

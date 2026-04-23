@@ -12,7 +12,7 @@
             <button
                 type="button"
                 wire:click="$dispatch('open-slide-over', { cardId: '{{ $cardId }}' })"
-                style="font-size: 30px; font-weight: 600; color: #2563eb; background: transparent; border: none; cursor: pointer; padding: 0; line-height: 1;"
+                style="font-size: 30px; font-weight: 600; color: #059669; background: transparent; border: none; cursor: pointer; padding: 0; line-height: 1;"
                 onmouseover="this.style.textDecoration='underline';"
                 onmouseout="this.style.textDecoration='none';"
             >{{ $value }}</button>

@@ -3,9 +3,9 @@
         <button
             type="button"
             wire:click="$dispatch('open-customize-modal', { surface: 'today' })"
-            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: white; background: #2563eb; border: none; border-radius: 4px; cursor: pointer;"
-            onmouseover="this.style.background='#1d4ed8';"
-            onmouseout="this.style.background='#2563eb';"
+            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: white; background: #059669; border: none; border-radius: 4px; cursor: pointer;"
+            onmouseover="this.style.background='#047857';"
+            onmouseout="this.style.background='#059669';"
         >Customize</button>
     </div>
 
@@ -15,7 +15,7 @@
             <button
                 type="button"
                 wire:click="$dispatch('open-customize-modal', { surface: 'today' })"
-                style="color: #2563eb; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
             >Customize &rarr;</button>
         </div>
     @else

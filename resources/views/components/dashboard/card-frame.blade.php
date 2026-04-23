@@ -17,7 +17,7 @@
             <div style="display: flex; align-items: center; gap: 8px;">
                 @if ($href = $card->viewAllHref($viewer))
                     <a href="{{ $href }}"
-                       style="font-size: 11px; color: #2563eb; text-decoration: none;"
+                       style="font-size: 11px; color: #059669; text-decoration: none;"
                        onmouseover="this.style.textDecoration='underline';"
                        onmouseout="this.style.textDecoration='none';">View all &rarr;</a>
                 @endif

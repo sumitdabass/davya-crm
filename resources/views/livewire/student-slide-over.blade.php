@@ -70,7 +70,7 @@
                 </div>
                 @if ($viewAllHref)
                     <a href="{{ $viewAllHref }}"
-                       style="font-size: 13px; color: #2563eb; text-decoration: none;"
+                       style="font-size: 13px; color: #059669; text-decoration: none;"
                        onmouseover="this.style.textDecoration='underline';"
                        onmouseout="this.style.textDecoration='none';">Open in full table &rarr;</a>
                 @endif
