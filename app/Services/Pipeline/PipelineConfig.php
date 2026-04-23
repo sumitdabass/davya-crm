@@ -49,6 +49,12 @@ class PipelineConfig
         return (int) $this->stages()->first()->pipeline_id;
     }
 
+    /** Piggy-backs on the stages cache — returns the default pipeline model without an extra query. */
+    public function defaultPipeline(): Pipeline
+    {
+        return $this->stages()->first()->pipeline;
+    }
+
     public function invalidate(): void
     {
         Cache::forget(self::CACHE_KEY);

@@ -4,7 +4,6 @@ namespace App\Filament\Pages;
 
 use App\Models\Pipeline;
 use App\Services\Pipeline\PipelineConfig;
-use App\Services\Pipeline\StageRepository;
 use Filament\Pages\Page;
 
 class PipelineConfigPage extends Page
@@ -26,7 +25,7 @@ class PipelineConfigPage extends Page
 
     public function getPipeline(): Pipeline
     {
-        return Pipeline::default();
+        return app(PipelineConfig::class)->defaultPipeline();
     }
 
     public function getStagesByType(): array
