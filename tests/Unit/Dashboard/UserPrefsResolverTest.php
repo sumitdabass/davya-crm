@@ -75,8 +75,11 @@ class UserPrefsResolverTest extends TestCase
         $this->assertContains('today_payments', $ids);
     }
 
-    public function test_empty_array_renders_empty_surface(): void
+    public function test_empty_saved_array_respects_user_uncheck_all(): void
     {
+        // SP#3 follow-up (b): previously, saving [] auto-appended defaults, so
+        // "uncheck all" silently reset to defaults. Per spec option C, empty must
+        // persist as empty; the surface blade shows a "Reset to defaults" empty state.
         $resolver = app(UserPrefsResolver::class);
         $user = $this->user();
         $user->dashboard_prefs = ['today' => ['enabled' => []]];
@@ -84,11 +87,6 @@ class UserPrefsResolverTest extends TestCase
 
         $cards = $resolver->resolve($user, 'today');
 
-        // Per spec: saving explicitly-empty triggers auto-append of any defaults
-        // the user has never saved before. So `today_meetings` / `today_payments`
-        // DO come back on an empty array.
-        $ids = array_map(fn ($c) => $c->id(), $cards);
-        $this->assertContains('today_meetings', $ids);
-        $this->assertContains('today_payments', $ids);
+        $this->assertSame([], $cards);
     }
 }

@@ -28,6 +28,12 @@ class UserPrefsResolver
             ));
         }
 
+        // Empty saved array is a deliberate "uncheck all" — respect it.
+        // Auto-appending defaults here would silently revert the user's choice.
+        if ($saved === []) {
+            return [];
+        }
+
         $resolved = [];
         foreach ($saved as $id) {
             if (isset($availableById[$id])) {

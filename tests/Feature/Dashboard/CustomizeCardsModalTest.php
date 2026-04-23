@@ -25,6 +25,37 @@ class CustomizeCardsModalTest extends TestCase
         return $u;
     }
 
+    public function test_save_empty_enabled_array_persists_as_empty_not_defaults(): void
+    {
+        // SP#3 follow-up (b): previously the resolver auto-appended defaults
+        // for empty saved arrays, which silently undid "uncheck all". The
+        // resolver now respects []; this test guards the end-to-end save path.
+        $admin = $this->admin();
+
+        Livewire::actingAs($admin)
+            ->test(CustomizeCardsModal::class)
+            ->dispatch('open-customize-modal', surface: 'today')
+            ->set('enabled', [])
+            ->call('save');
+
+        $fresh = $admin->fresh();
+        $this->assertSame([], $fresh->dashboard_prefs['today']['enabled']);
+    }
+
+    public function test_reset_cards_to_defaults_event_restores_defaults_for_surface(): void
+    {
+        $admin = $this->admin();
+        $admin->dashboard_prefs = ['today' => ['enabled' => []]];
+        $admin->save();
+
+        Livewire::actingAs($admin)
+            ->test(CustomizeCardsModal::class)
+            ->dispatch('reset-cards-to-defaults', surface: 'today');
+
+        $prefs = $admin->fresh()->dashboard_prefs ?? [];
+        $this->assertArrayNotHasKey('today', $prefs, 'reset should wipe the surface key so defaults apply again');
+    }
+
     public function test_opens_with_current_enabled_and_available_cards_for_surface(): void
     {
         $admin = $this->admin();

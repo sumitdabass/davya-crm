@@ -96,6 +96,14 @@ class CustomizeCardsModal extends Component
         );
     }
 
+    #[On('reset-cards-to-defaults')]
+    public function onResetFromEmptyState(string $surface): void
+    {
+        $this->surface = $surface;
+        $this->resetToDefaults();
+        $this->dispatch('dashboard-prefs-saved', surface: $surface);
+    }
+
     #[On('remove-card')]
     public function removeCardFromSurface(string $surface, string $cardId): void
     {

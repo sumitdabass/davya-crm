@@ -11,7 +11,13 @@
 
     @if (count($this->cards()) === 0)
         <div style="text-align: center; padding: 48px 0; color: #6b7280;">
-            No cards enabled.
+            You've hidden all cards.
+            <button
+                type="button"
+                wire:click="$dispatch('reset-cards-to-defaults', { surface: 'today' })"
+                style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+            >Reset to defaults</button>
+            <span style="margin: 0 6px;">·</span>
             <button
                 type="button"
                 wire:click="$dispatch('open-customize-modal', { surface: 'today' })"
