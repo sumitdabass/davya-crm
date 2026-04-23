@@ -78,6 +78,7 @@ class Student extends Model
     public function roundHistory(): HasMany { return $this->hasMany(RoundHistory::class); }
     public function notes(): HasMany { return $this->hasMany(StudentNote::class)->latest(); }
     public function meetings(): HasMany { return $this->hasMany(Meeting::class); }
+    public function fieldValues(): HasMany { return $this->hasMany(StudentFieldValue::class); }
 
     public function getTotalReceivedAttribute(): float
     {
