@@ -7,6 +7,7 @@ use App\Dashboard\Cards\ListCards\SeatFeePendingCard;
 use App\Dashboard\Cards\ListCards\StuckLeadsCard;
 use App\Dashboard\Cards\ListCards\TodayMeetingsCard;
 use App\Dashboard\Cards\ListCards\TodayPaymentsCard;
+use App\Dashboard\Cards\Stat\AdmissionsClosedTodayCard;
 use App\Dashboard\Cards\Stat\LeadsCapturedTodayCard;
 use App\Dashboard\Cards\Stat\MeetingsHeldTodayCard;
 
@@ -48,6 +49,7 @@ class CardRegistry
             new SeatFeePendingCard,
             new MeetingsHeldTodayCard,
             new LeadsCapturedTodayCard,
+            new AdmissionsClosedTodayCard,
             // Other stat cards and stage cards added in later tasks.
         ];
 
