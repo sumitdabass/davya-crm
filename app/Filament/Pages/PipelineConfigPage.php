@@ -156,6 +156,10 @@ class PipelineConfigPage extends Page
         $rule = StageTransitionRule::findOrFail($ruleId);
         $rule->update(['is_active' => ! $rule->is_active]);
         app(PipelineConfig::class)->invalidate();
+        Notification::make()
+            ->title($rule->is_active ? 'Rule activated' : 'Rule deactivated')
+            ->success()
+            ->send();
     }
 
     public function deleteRule(int $ruleId): void

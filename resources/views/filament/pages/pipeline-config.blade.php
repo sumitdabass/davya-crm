@@ -52,11 +52,11 @@
                                     <button
                                         @click="menu = false; $dispatch('open-rename-stage', { stageId: {{ $stage->id }}, currentName: @js($stage->name) })"
                                         class="block w-full text-left px-3 py-2 hover:bg-gray-50">Rename…</button>
-                                    @foreach (['OPEN' => 'Mark as Open', 'CLOSED_WON' => 'Mark as Won', 'CLOSED_LOST' => 'Mark as Lost'] as $targetType => $label)
+                                    @foreach (['OPEN' => ['label' => 'Mark as Open', 'human' => 'Open'], 'CLOSED_WON' => ['label' => 'Mark as Won', 'human' => 'Won'], 'CLOSED_LOST' => ['label' => 'Mark as Lost', 'human' => 'Lost']] as $targetType => $meta)
                                         @if ($stage->stage_type !== $targetType)
                                             <button
-                                                @click="menu = false; $wire.changeStageType({{ $stage->id }}, '{{ $targetType }}')"
-                                                class="block w-full text-left px-3 py-2 hover:bg-gray-50">{{ $label }}</button>
+                                                @click="menu = false; confirm('Change type to {{ $meta['human'] }}? Students currently in this stage will move to the new column on the Kanban.') && $wire.changeStageType({{ $stage->id }}, '{{ $targetType }}')"
+                                                class="block w-full text-left px-3 py-2 hover:bg-gray-50">{{ $meta['label'] }}</button>
                                         @endif
                                     @endforeach
                                 </div>
@@ -88,7 +88,8 @@
                     <button
                         wire:click="toggleRule({{ $rule->id }})"
                         title="Toggle active"
-                        class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $rule->is_active ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
+                        aria-label="{{ $rule->is_active ? 'Deactivate rule' : 'Activate rule' }}"
+                        class="px-2 py-0.5 rounded-full text-[11px] font-semibold cursor-pointer hover:ring-2 hover:ring-offset-1 hover:ring-current {{ $rule->is_active ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }}">
                         {{ $rule->is_active ? 'Active' : 'Inactive' }}
                     </button>
                     <button
@@ -155,11 +156,14 @@
     </div>
 
     {{-- Rule editor modal (Task 19) --}}
-    <div x-data="{ open: false }" x-on:open-rule-editor.window="open = true">
+    <div x-data="{
+            open: false,
+            defaults() { return { name: '', from_stage_id: '', to_stage_id: '', severity: 'HARD', is_active: true, conditions: [{condition_type: 'FIELD_CHECK', field_or_relation: '', operator: 'is_not_empty', value: null}] }; },
+            form: { name: '', from_stage_id: '', to_stage_id: '', severity: 'HARD', is_active: true, conditions: [{condition_type: 'FIELD_CHECK', field_or_relation: '', operator: 'is_not_empty', value: null}] }
+        }"
+        x-on:open-rule-editor.window="form = defaults(); open = true">
         <div x-show="open" x-cloak class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-            <div class="bg-white rounded-lg p-6 w-[520px] shadow-xl" @click.outside="open = false" x-data="{
-                form: { name: '', from_stage_id: '', to_stage_id: '', severity: 'HARD', is_active: true, conditions: [{condition_type: 'FIELD_CHECK', field_or_relation: '', operator: 'is_not_empty', value: null}] }
-            }">
+            <div class="bg-white rounded-lg p-6 w-[520px] shadow-xl" @click.outside="open = false">
                 <h3 class="font-semibold mb-3">New Rule</h3>
                 <input x-model="form.name" placeholder="Rule name" class="w-full border rounded px-3 py-2 text-sm mb-2">
                 <div class="grid grid-cols-2 gap-2 mb-2">
