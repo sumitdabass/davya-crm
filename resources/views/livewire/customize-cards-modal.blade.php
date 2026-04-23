@@ -1,82 +1,92 @@
 <div>
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js" defer></script>
     @if ($isOpen)
-        <div class="fixed inset-0 z-40 bg-black/40" wire:click="close"></div>
-        <div class="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white dark:bg-gray-900 shadow-xl flex flex-col">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <h2 class="font-semibold">Customize {{ ucfirst($surface) }}</h2>
-                <button wire:click="close" aria-label="Close" class="text-gray-500 hover:text-red-500">&#x2715;</button>
+        <div
+            style="position: fixed; inset: 0; z-index: 9998; background: rgba(0,0,0,0.45);"
+            wire:click="close"
+        ></div>
+        <div
+            style="position: fixed; top: 0; right: 0; bottom: 0; z-index: 9999; width: 100%; max-width: 28rem; background: white; box-shadow: -4px 0 12px rgba(0,0,0,0.1); display: flex; flex-direction: column;"
+            class="dark:!bg-gray-900"
+        >
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #e5e7eb;">
+                <h2 style="font-weight: 600; font-size: 16px; margin: 0;">Customize {{ ucfirst($surface) }}</h2>
+                <button
+                    type="button"
+                    wire:click="close"
+                    aria-label="Close"
+                    style="background: transparent; border: none; font-size: 20px; cursor: pointer; color: #6b7280;"
+                >&#x2715;</button>
             </div>
 
-            <p class="px-4 py-2 text-xs text-gray-500 dark:text-gray-400">
-                Drag to reorder. Uncheck to hide.
+            <p style="padding: 10px 16px 6px; font-size: 12px; color: #6b7280; margin: 0;">
+                Use the up/down arrows to reorder. Hide/Show to toggle.
             </p>
 
-            <div class="flex-1 overflow-auto px-4" id="customize-sortable-{{ $surface }}">
-                @foreach ($enabledItems as $item)
-                    <div
-                        class="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800 cursor-grab sortable-item"
-                        data-id="{{ $item['id'] }}"
-                    >
-                        <span class="text-gray-400 select-none">&#x2837;</span>
-                        <input
-                            type="checkbox"
-                            checked
+            <div style="padding: 4px 16px 4px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #6b7280;">
+                Shown on this page
+            </div>
+            <div style="flex: 1; overflow-y: auto;">
+                @foreach ($enabledItems as $i => $item)
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #f3f4f6;">
+                        <button
+                            type="button"
+                            wire:click="moveUp('{{ $item['id'] }}')"
+                            title="Move up"
+                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === 0 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
+                            {{ $i === 0 ? 'disabled' : '' }}
+                        >&#x25B2;</button>
+                        <button
+                            type="button"
+                            wire:click="moveDown('{{ $item['id'] }}')"
+                            title="Move down"
+                            style="width: 28px; height: 28px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer; font-size: 14px; line-height: 1; {{ $i === count($enabledItems) - 1 ? 'opacity: 0.3; cursor: not-allowed;' : '' }}"
+                            {{ $i === count($enabledItems) - 1 ? 'disabled' : '' }}
+                        >&#x25BC;</button>
+                        <span style="flex: 1; font-size: 14px; color: #111827;">{{ $item['label'] }}</span>
+                        <button
+                            type="button"
                             wire:click="toggle('{{ $item['id'] }}')"
-                            class="rounded"
-                        />
-                        <span>{{ $item['label'] }}</span>
+                            style="padding: 4px 10px; font-size: 12px; border: 1px solid #fca5a5; color: #b91c1c; background: white; border-radius: 4px; cursor: pointer;"
+                        >Hide</button>
                     </div>
                 @endforeach
 
+                @if (count($disabledItems) > 0)
+                    <div style="padding: 12px 16px 4px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #6b7280;">
+                        Available to add
+                    </div>
+                @endif
                 @foreach ($disabledItems as $item)
-                    <div class="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800">
-                        <span class="text-gray-400 select-none">&#x2837;</span>
-                        <input
-                            type="checkbox"
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #f3f4f6; background: #fafafa;">
+                        <span style="flex: 1; font-size: 14px; color: #4b5563;">{{ $item['label'] }}</span>
+                        <button
+                            type="button"
                             wire:click="toggle('{{ $item['id'] }}')"
-                            class="rounded"
-                        />
-                        <span>{{ $item['label'] }}</span>
+                            style="padding: 4px 10px; font-size: 12px; border: none; color: white; background: #059669; border-radius: 4px; cursor: pointer;"
+                        >Show</button>
                     </div>
                 @endforeach
             </div>
 
-            <div class="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <button wire:click="resetToDefaults" class="text-sm text-gray-600 hover:underline">
-                    Reset to defaults
-                </button>
-                <div class="flex items-center gap-2">
-                    <button wire:click="close" class="px-3 py-1.5 text-sm">Cancel</button>
-                    <button wire:click="save" class="rounded bg-primary-600 px-3 py-1.5 text-sm text-white">Save</button>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid #e5e7eb; background: white;">
+                <button
+                    type="button"
+                    wire:click="resetToDefaults"
+                    style="font-size: 13px; color: #6b7280; background: transparent; border: none; cursor: pointer; text-decoration: underline;"
+                >Reset to defaults</button>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <button
+                        type="button"
+                        wire:click="close"
+                        style="padding: 6px 12px; font-size: 13px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;"
+                    >Cancel</button>
+                    <button
+                        type="button"
+                        wire:click="save"
+                        style="padding: 6px 14px; font-size: 13px; color: white; background: #2563eb; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;"
+                    >Save</button>
                 </div>
             </div>
         </div>
-    @endif
-
-    @if ($isOpen)
-        @script
-        <script>
-            (function () {
-                const container = document.getElementById('customize-sortable-{{ $surface }}');
-                if (!container || container.dataset.sortableReady) return;
-                container.dataset.sortableReady = 'true';
-
-                const onReady = () => {
-                    if (typeof Sortable === 'undefined') return setTimeout(onReady, 50);
-                    Sortable.create(container, {
-                        animation: 150,
-                        draggable: '.sortable-item',
-                        onEnd: function () {
-                            const ids = Array.from(container.querySelectorAll('.sortable-item'))
-                                .map(el => el.dataset.id);
-                            @this.call('reorder', ids);
-                        },
-                    });
-                };
-                onReady();
-            })();
-        </script>
-        @endscript
     @endif
 </div>

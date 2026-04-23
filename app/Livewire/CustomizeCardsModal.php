@@ -51,6 +51,24 @@ class CustomizeCardsModal extends Component
         ));
     }
 
+    public function moveUp(string $cardId): void
+    {
+        $i = array_search($cardId, $this->enabled, true);
+        if ($i === false || $i === 0) {
+            return;
+        }
+        [$this->enabled[$i - 1], $this->enabled[$i]] = [$this->enabled[$i], $this->enabled[$i - 1]];
+    }
+
+    public function moveDown(string $cardId): void
+    {
+        $i = array_search($cardId, $this->enabled, true);
+        if ($i === false || $i === count($this->enabled) - 1) {
+            return;
+        }
+        [$this->enabled[$i + 1], $this->enabled[$i]] = [$this->enabled[$i], $this->enabled[$i + 1]];
+    }
+
     public function save(): void
     {
         $user = auth()->user();
