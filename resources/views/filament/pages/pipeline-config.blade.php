@@ -72,7 +72,7 @@
                 <div class="flex justify-end gap-2">
                     <button @click="open = false" class="px-3 py-1.5 text-sm">Cancel</button>
                     <button
-                        @click="$wire.createStage(name, type); open = false"
+                        @click="$wire.createStage(name, type).then(() => open = false)"
                         class="px-3 py-1.5 text-sm bg-emerald-600 text-white rounded">Create</button>
                 </div>
             </div>
