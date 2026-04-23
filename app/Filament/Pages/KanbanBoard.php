@@ -10,6 +10,7 @@ use App\Services\StageTransitionValidator;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\Url;
 
 class KanbanBoard extends Page
 {
@@ -25,12 +26,65 @@ class KanbanBoard extends Page
 
     protected static ?string $slug = 'kanban';
 
+    #[Url(as: 'owner')]
+    public ?string $filterOwner = null;
+
+    #[Url(as: 'course')]
+    public ?string $filterCourse = null;
+
+    #[Url(as: 'round')]
+    public ?string $filterRound = null;
+
+    #[Url(as: 'source')]
+    public ?string $filterLeadSource = null;
+
+    #[Url(as: 'pending')]
+    public bool $filterHasPending = false;
+
+    public function resetFilters(): void
+    {
+        $this->filterOwner = null;
+        $this->filterCourse = null;
+        $this->filterRound = null;
+        $this->filterLeadSource = null;
+        $this->filterHasPending = false;
+    }
+
+    /**
+     * Filter dropdown options, scoped to what the viewer is allowed to see.
+     *
+     * @return array{owners: array<int,string>, courses: array<string,string>, rounds: array<string,string>, sources: array<string,string>}
+     */
+    public function getFilterOptions(): array
+    {
+        $base = $this->visibleStudentQuery(auth()->user());
+
+        $ownerIds = (clone $base)->distinct()->pluck('owner_id')->filter()->all();
+        $owners = User::whereIn('id', $ownerIds)->orderBy('name')->pluck('name', 'id')->all();
+
+        $courses = (clone $base)->whereNotNull('course')->where('course', '!=', '')
+            ->distinct()->orderBy('course')->pluck('course')->all();
+
+        $rounds = (clone $base)->whereNotNull('current_round')->where('current_round', '!=', '')
+            ->distinct()->orderBy('current_round')->pluck('current_round')->all();
+
+        $sources = (clone $base)->whereNotNull('lead_source')->where('lead_source', '!=', '')
+            ->distinct()->orderBy('lead_source')->pluck('lead_source')->all();
+
+        return [
+            'owners'  => $owners,
+            'courses' => array_combine($courses, $courses),
+            'rounds'  => array_combine($rounds, $rounds),
+            'sources' => array_combine($sources, $sources),
+        ];
+    }
+
     /**
      * @return array<int, array{stage:string,count:int,deal:float,received:float,pending:float,students:\Illuminate\Support\Collection}>
      */
     public function getBoard(): array
     {
-        $visibleIds = $this->visibleStudentQuery(auth()->user())->pluck('id');
+        $visibleIds = $this->filteredStudentQuery(auth()->user())->pluck('id');
 
         $students = Student::query()
             ->whereIn('id', $visibleIds)
@@ -133,5 +187,28 @@ class KanbanBoard extends Page
     {
         // Single source of truth — stays in lockstep with list/edit scope + policy.
         return Student::query()->visibleTo($user);
+    }
+
+    private function filteredStudentQuery(User $user): Builder
+    {
+        $q = $this->visibleStudentQuery($user);
+
+        if (filled($this->filterOwner)) {
+            $q->where('owner_id', (int) $this->filterOwner);
+        }
+        if (filled($this->filterCourse)) {
+            $q->where('course', $this->filterCourse);
+        }
+        if (filled($this->filterRound)) {
+            $q->where('current_round', $this->filterRound);
+        }
+        if (filled($this->filterLeadSource)) {
+            $q->where('lead_source', $this->filterLeadSource);
+        }
+        if ($this->filterHasPending) {
+            $q->whereRaw('COALESCE(deal_amount, 0) > COALESCE((SELECT SUM(amount) FROM payments WHERE payments.student_id = students.id), 0)');
+        }
+
+        return $q;
     }
 }

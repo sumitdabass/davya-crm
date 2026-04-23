@@ -38,8 +38,15 @@ class UserResource extends Resource
 
     public static function canDelete($record): bool
     {
-        return (auth()->user()?->hasRole('admin') ?? false)
-            && auth()->id() !== $record->id;
+        // Hard-delete disabled: users are referenced by students.owner_id,
+        // payments.recorded_by_user_id, meetings.owner_id (all ON DELETE RESTRICT).
+        // Deactivate via the is_active toggle instead — User::canAccessPanel blocks login.
+        return false;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return false;
     }
 
     public static function form(Form $form): Form
@@ -134,11 +141,6 @@ class UserResource extends Resource
                             ->persistent()
                             ->send();
                     }),
-            ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
             ]);
     }
 

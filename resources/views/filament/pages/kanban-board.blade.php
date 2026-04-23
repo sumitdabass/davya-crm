@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    @php($opts = $this->getFilterOptions())
     @php($board = $this->getBoard())
     @php($stageAccent = [
         'Lead Captured'           => 'bg-slate-400',
@@ -12,6 +13,62 @@
         'Admission Confirmed'     => 'bg-green-600',
         'Closed'                  => 'bg-gray-500',
     ])
+    @php($selectClass = 'block rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500')
+    @php($activeFilters = filled($this->filterOwner) || filled($this->filterCourse) || filled($this->filterRound) || filled($this->filterLeadSource) || $this->filterHasPending)
+
+    <div class="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm">
+        <div class="flex flex-col gap-1">
+            <label for="kanban-filter-owner" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Owner</label>
+            <select id="kanban-filter-owner" wire:model.live="filterOwner" class="{{ $selectClass }}">
+                <option value="">All owners</option>
+                @foreach ($opts['owners'] as $id => $name)
+                    <option value="{{ $id }}">{{ $name }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="kanban-filter-course" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Course</label>
+            <select id="kanban-filter-course" wire:model.live="filterCourse" class="{{ $selectClass }}">
+                <option value="">All courses</option>
+                @foreach ($opts['courses'] as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="kanban-filter-round" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Round</label>
+            <select id="kanban-filter-round" wire:model.live="filterRound" class="{{ $selectClass }}">
+                <option value="">All rounds</option>
+                @foreach ($opts['rounds'] as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="kanban-filter-source" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Lead source</label>
+            <select id="kanban-filter-source" wire:model.live="filterLeadSource" class="{{ $selectClass }}">
+                <option value="">All sources</option>
+                @foreach ($opts['sources'] as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
+                @endforeach
+            </select>
+        </div>
+
+        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 self-center pb-[2px]">
+            <input type="checkbox" wire:model.live="filterHasPending" class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+            Has pending amount
+        </label>
+
+        @if ($activeFilters)
+            <button type="button" wire:click="resetFilters"
+                    class="ml-auto text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 underline underline-offset-2">
+                Clear filters
+            </button>
+        @endif
+    </div>
 
     <div class="fi-kanban-scroll overflow-x-auto pb-4" style="min-height: 70vh;"
          x-data
@@ -93,11 +150,9 @@
                                         <span class="tabular-nums font-medium text-gray-700 dark:text-gray-300">
                                             ₹{{ number_format($s['deal'], 0, '.', ',') }}
                                         </span>
-                                        @if ($s['pending'] > 0)
-                                            <span class="tabular-nums text-amber-600 dark:text-amber-400">
-                                                ₹{{ number_format($s['pending'], 0, '.', ',') }} pending
-                                            </span>
-                                        @endif
+                                        <span class="tabular-nums text-emerald-600 dark:text-emerald-400 font-medium">
+                                            ₹{{ number_format($s['received'], 0, '.', ',') }} received
+                                        </span>
                                     </div>
                                 @endif
 
