@@ -6,7 +6,8 @@ use App\Models\Payment;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\PipelineSummary;
-use App\Services\StageTransitionValidator;
+use App\Services\Pipeline\PipelineConfig;
+use App\Services\Pipeline\StageTransitionEngine;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
@@ -137,28 +138,32 @@ class KanbanBoard extends Page
         if (! $student) {
             return $this->kanbanResponse(false, 'Not allowed.');
         }
-        if (! in_array($newStage, \App\Enums\PipelineStage::values(), true)) {
-            return $this->kanbanResponse(false, 'Unknown stage.');
+
+        $config = app(PipelineConfig::class);
+        $target = $config->stageByName($newStage);
+        if (! $target) {
+            return $this->kanbanResponse(false, "Unknown stage: $newStage");
         }
         if ($student->stage === $newStage) {
             return $this->kanbanResponse(true, 'No change.');
         }
 
-        $original = $student->stage;
-        $student->stage = $newStage;
-
-        $out = (new StageTransitionValidator)->forStageChange($student, $newStage);
+        // Evaluate the engine BEFORE mutating stage_id — the engine reads
+        // $student->stage_id to determine the "from" stage for rule matching.
+        $out = app(StageTransitionEngine::class)->forStageChange($student, $target->id);
 
         if (! empty($out['hard'])) {
-            $student->stage = $original;
             Notification::make()
                 ->title('Stage move blocked')
                 ->body(implode("\n", $out['hard']))
                 ->danger()
                 ->send();
-            return $this->kanbanResponse(false, implode(' ', $out['hard']));
+
+            return $this->kanbanResponse(false, implode(' ', $out['hard']), $out['hard']);
         }
 
+        $student->stage = $newStage;
+        $student->stage_id = $target->id;
         $student->save();
 
         if (! empty($out['soft'])) {
@@ -177,10 +182,13 @@ class KanbanBoard extends Page
         return $this->kanbanResponse(true, 'ok');
     }
 
-    /** @return array{ok:bool,message:string} */
-    private function kanbanResponse(bool $ok, string $message): array
+    /**
+     * @param  string[]  $errors
+     * @return array{ok:bool,message:string,errors:string[]}
+     */
+    private function kanbanResponse(bool $ok, string $message, array $errors = []): array
     {
-        return ['ok' => $ok, 'message' => $message];
+        return ['ok' => $ok, 'message' => $message, 'errors' => $errors];
     }
 
     private function visibleStudentQuery(User $user): Builder

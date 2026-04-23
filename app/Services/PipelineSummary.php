@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\PipelineStage;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\Pipeline\PipelineConfig;
 
 class PipelineSummary
 {
@@ -16,7 +16,7 @@ class PipelineSummary
     /** @return string[] */
     public static function stages(): array
     {
-        return PipelineStage::values();
+        return app(PipelineConfig::class)->stageNames();
     }
 
     /**

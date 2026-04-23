@@ -14,6 +14,17 @@ class StageTransitionEngine
         private readonly PipelineConfig $config,
     ) {}
 
+    /**
+     * Back-compat shim for MeetingObserver and any other legacy callers —
+     * round-change soft warnings are not yet modeled as DB rules.
+     *
+     * @return string[]
+     */
+    public function forRoundChange(Student $student, string $newRound): array
+    {
+        return [];
+    }
+
     /** @return array{hard: string[], soft: string[]} */
     public function forStageChange(Student $student, int $toStageId): array
     {

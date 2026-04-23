@@ -2,14 +2,14 @@
 
 namespace App\Filament\Resources;
 
-use App\Enums\PipelineStage;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\MeetingsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
-use App\Services\StageTransitionValidator;
+use App\Services\Pipeline\PipelineConfig;
+use App\Services\Pipeline\StageTransitionEngine;
 use Filament\Notifications\Notification;
 use App\Models\Student;
 use App\Models\User;
@@ -59,7 +59,14 @@ class StudentResource extends Resource
         return self::getEloquentQuery();
     }
 
-    // Canonical list lives in App\Enums\PipelineStage. Use PipelineStage::options().
+    // Canonical list lives in the pipelines/stages DB tables. Use PipelineConfig::stageNames().
+    /** @return array<string,string> name => name (for Filament Select options). */
+    private static function stageOptions(): array
+    {
+        return collect(app(PipelineConfig::class)->stageNames())
+            ->mapWithKeys(fn (string $n) => [$n => $n])
+            ->all();
+    }
 
     public static function form(Form $form): Form
     {
@@ -97,18 +104,26 @@ class StudentResource extends Resource
                                 ->searchable(),
                             TextInput::make('referrer_name')->label('Referrer name')->maxLength(120),
 
-                            Select::make('stage')->options(PipelineStage::options())->required()->default(PipelineStage::LeadCaptured->value)
+                            Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
                                 ->live()
                                 ->afterStateUpdated(function ($state, $record, $set) {
                                     if (! $record) {
                                         return;
                                     }
-                                    $out = (new StageTransitionValidator)->forStageChange($record, $state);
+                                    $target = app(PipelineConfig::class)->stageByName($state);
+                                    if (! $target) {
+                                        Notification::make()->danger()->title('Stage change blocked')->body("Unknown stage: $state")->send();
+                                        $set('stage', $record->getOriginal('stage'));
+                                        return;
+                                    }
+                                    // Engine reads $record->stage_id as the "from" stage — don't mutate until after hard-check.
+                                    $out = app(StageTransitionEngine::class)->forStageChange($record, $target->id);
                                     foreach ($out['hard'] as $err) {
                                         Notification::make()->danger()->title('Stage change blocked')->body($err)->send();
                                         $set('stage', $record->getOriginal('stage'));
                                         return;
                                     }
+                                    $record->stage_id = $target->id;
                                     foreach ($out['soft'] as $warn) {
                                         Notification::make()->warning()->title('Stage changed — incomplete')->body($warn)->send();
                                     }
@@ -217,7 +232,7 @@ class StudentResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
-                SelectFilter::make('stage')->options(PipelineStage::options()),
+                SelectFilter::make('stage')->options(fn () => self::stageOptions()),
                 SelectFilter::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
             ])
             ->actions([Tables\Actions\EditAction::make()])

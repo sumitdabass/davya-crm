@@ -5,13 +5,15 @@ namespace App\Observers;
 use App\Models\Meeting;
 use App\Models\Student;
 use App\Services\ActivityDescriber;
-use App\Services\StageTransitionValidator;
+use App\Services\Pipeline\PipelineConfig;
+use App\Services\Pipeline\StageTransitionEngine;
 use Illuminate\Support\Facades\Log;
 
 class MeetingObserver
 {
     public function __construct(
-        private readonly StageTransitionValidator $validator,
+        private readonly StageTransitionEngine $engine,
+        private readonly PipelineConfig $config,
         private readonly ActivityDescriber $describer,
     ) {
     }
@@ -76,7 +78,17 @@ class MeetingObserver
 
     private function advanceStage(Student $student, string $newStage): void
     {
-        $out = $this->validator->forStageChange($student, $newStage);
+        $target = $this->config->stageByName($newStage);
+        if (! $target) {
+            Log::warning('MeetingObserver: unknown target stage', [
+                'student_id' => $student->id,
+                'from' => $student->stage,
+                'to' => $newStage,
+            ]);
+            return;
+        }
+
+        $out = $this->engine->forStageChange($student, $target->id);
         if (! empty($out['hard'])) {
             Log::warning('MeetingObserver: stage auto-advance blocked', [
                 'student_id' => $student->id,
@@ -88,7 +100,7 @@ class MeetingObserver
         }
         // Soft warnings are not logged from the observer — observer runs on infra events,
         // not user actions. Only user-facing entry points (Kanban drag, form save) show soft warnings.
-        Student::withoutEvents(fn () => $student->update(['stage' => $newStage]));
+        Student::withoutEvents(fn () => $student->update(['stage' => $newStage, 'stage_id' => $target->id]));
     }
 
     private function syncMeetingDateCache(Student $student): void

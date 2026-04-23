@@ -44,7 +44,7 @@ class KanbanBoardTest extends TestCase
         $page = new KanbanBoard;
         $board = $page->getBoard();
 
-        $this->assertCount(12, $board);
+        $this->assertCount(13, $board);
         $byStage = collect($board)->keyBy('stage');
 
         $this->assertSame(2, $byStage['Lead Captured']['count']);
