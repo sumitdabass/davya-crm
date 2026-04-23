@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Enums\PipelineStage;
+use App\Support\RoundNameToStage;
 use App\Models\Meeting;
 use App\Models\Payment;
 use App\Models\RoundHistory;
@@ -84,7 +84,7 @@ class ActivityDescriber
 
     public function roundEntered(RoundHistory $r): void
     {
-        $stage = PipelineStage::fromRoundName($r->round_name)?->value ?? $r->round_name;
+        $stage = RoundNameToStage::stageName($r->round_name) ?? $r->round_name;
         $this->log($r->student, 'round_entered', "Round entered: {$stage} ({$r->round_name})");
     }
 

@@ -28,9 +28,11 @@ class PipelineStageModelTest extends TestCase
         Stage::create(['pipeline_id' => $p->id, 'name' => 'A', 'stage_type' => 'OPEN', 'display_order' => 1]);
         Stage::create(['pipeline_id' => $p->id, 'name' => 'B', 'stage_type' => 'CLOSED_WON', 'display_order' => 2]);
         Stage::create(['pipeline_id' => $p->id, 'name' => 'C', 'stage_type' => 'CLOSED_LOST', 'display_order' => 3]);
-        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_OPEN)->count());
-        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_WON)->count());
-        $this->assertSame(1, $p->stages()->where('stage_type', Stage::TYPE_LOST)->count());
+        // Exercise the actual scopes on the relation query builder so the
+        // test still validates scopeOpenStages/scopeWonStages/scopeLostStages.
+        $this->assertSame(1, $p->stages()->openStages()->count());
+        $this->assertSame(1, $p->stages()->wonStages()->count());
+        $this->assertSame(1, $p->stages()->lostStages()->count());
     }
 
     public function test_rule_has_conditions_and_from_to_relations(): void

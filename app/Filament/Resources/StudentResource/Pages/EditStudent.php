@@ -42,6 +42,7 @@ class EditStudent extends EditRecord
         }
 
         $data['stage_id'] = $target->id;
+        $data['stage']    = $target->name;  // Dual-write: keep the legacy VARCHAR cache in sync.
 
         return $data;
     }
