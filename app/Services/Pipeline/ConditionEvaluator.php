@@ -24,16 +24,24 @@ class ConditionEvaluator
         return match ($cond->operator) {
             'is_empty'     => $value === null || $value === '',
             'is_not_empty' => $value !== null && $value !== '',
-            '='            => $value == $rhs,
-            '!='           => $value != $rhs,
-            '>'            => $value !== null && $value >  $rhs,
-            '<'            => $value !== null && $value <  $rhs,
-            '>=', '≥'      => $value !== null && $value >= $rhs,
-            '<=', '≤'      => $value !== null && $value <= $rhs,
+            '='            => $value !== null && $rhs !== null && $value == $rhs,
+            '!='           => $value !== null && $rhs !== null && $value != $rhs,
+            '>'            => $value !== null && $rhs !== null && $value >  $rhs,
+            '<'            => $value !== null && $rhs !== null && $value <  $rhs,
+            '>=', '≥'      => $value !== null && $rhs !== null && $value >= $rhs,
+            '<=', '≤'      => $value !== null && $rhs !== null && $value <= $rhs,
             default        => false,
         };
     }
 
+    /**
+     * Filter-key convention in $cond->value (JSON):
+     *   "<col>"        → where(col, '=', val)
+     *   "<col>_gte"    → where(col, '>=', val)   — val === 'now' resolves to now()
+     *   "<col>_lte"    → where(col, '<=', val)   — val === 'now' resolves to now()
+     *   "<col>_like"   → where(col, 'like', val)
+     *   "count_min"    → reserved; passes if count() >= count_min (default 1)
+     */
     private function checkRelation(StageTransitionCondition $cond, Student $student): bool
     {
         $relation = $cond->field_or_relation;
