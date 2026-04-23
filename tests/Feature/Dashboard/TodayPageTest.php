@@ -54,4 +54,28 @@ class TodayPageTest extends TestCase
         $this->assertNotFalse($meetingsPos);
         $this->assertLessThan($meetingsPos, $leadsPos, 'Leads Captured should render before Today Meetings');
     }
+
+    public function test_empty_prefs_array_renders_empty_state_then_auto_append_hydrates_default_cards(): void
+    {
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        $admin->dashboard_prefs = ['today' => ['enabled' => []]];
+        $admin->save();
+
+        $response = $this->actingAs($admin)->get('/admin/today');
+        $response->assertOk();
+        // Resolver auto-appends defaults, so cards should be visible — no empty state.
+        $response->assertSee('Today Meetings');
+    }
+
+    public function test_saved_array_with_only_unknown_ids_auto_appends_defaults(): void
+    {
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        $admin->dashboard_prefs = ['today' => ['enabled' => ['_unknown_id_']]];
+        $admin->save();
+
+        $response = $this->actingAs($admin)->get('/admin/today');
+        $response->assertOk();
+        // Unknown id dropped, defaults auto-append.
+        $response->assertSee('Today Meetings');
+    }
 }
