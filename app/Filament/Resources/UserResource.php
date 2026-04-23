@@ -3,6 +3,9 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\Meeting;
+use App\Models\Payment;
+use App\Models\Student;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Role;
@@ -38,15 +42,28 @@ class UserResource extends Resource
 
     public static function canDelete($record): bool
     {
-        // Hard-delete disabled: users are referenced by students.owner_id,
-        // payments.recorded_by_user_id, meetings.owner_id (all ON DELETE RESTRICT).
-        // Deactivate via the is_active toggle instead — User::canAccessPanel blocks login.
+        // Filament's built-in delete stays off — it would hit an FK RESTRICT on
+        // students.owner_id / payments.recorded_by_user_id / meetings.owner_id etc.
+        // Admins use the custom "Delete" row action below, which reassigns first.
         return false;
     }
 
     public static function canDeleteAny(): bool
     {
         return false;
+    }
+
+    /** @return array<string,int> */
+    protected static function ownedRecordCounts(User $user): array
+    {
+        return [
+            'students_owned'    => Student::where('owner_id', $user->id)->count(),
+            'students_referred' => Student::where('referrer_id', $user->id)->count(),
+            'payments'          => Payment::where('recorded_by_user_id', $user->id)->count(),
+            'meetings_owned'    => Meeting::where('owner_id', $user->id)->count(),
+            'meetings_created'  => Meeting::where('created_by_id', $user->id)->count(),
+            'notes'             => DB::table('student_notes')->where('author_id', $user->id)->count(),
+        ];
     }
 
     public static function form(Form $form): Form
@@ -139,6 +156,74 @@ class UserResource extends Resource
                             ->body("Password: $temp — copy now; it won't be shown again. Shown only to you.")
                             ->success()
                             ->persistent()
+                            ->send();
+                    }),
+                Action::make('delete_user')
+                    ->label('Delete')
+                    ->icon('heroicon-m-trash')
+                    ->color('danger')
+                    ->visible(fn (User $record) => (auth()->user()?->hasRole('admin') ?? false) && auth()->id() !== $record->id)
+                    ->modalHeading(fn (User $record) => "Delete {$record->name}?")
+                    ->modalDescription(function (User $record) {
+                        $c = static::ownedRecordCounts($record);
+                        $total = array_sum($c);
+                        if ($total === 0) {
+                            return "{$record->name} owns no students, payments, meetings, or notes. Safe to delete.";
+                        }
+                        return sprintf(
+                            "%s owns: %d students (as owner), %d students (as referrer), %d payments, %d meetings (as owner), %d meetings (as creator), %d notes. Pick a replacement user below — all of these will be reassigned in a single transaction, then the account will be deleted.",
+                            $record->name,
+                            $c['students_owned'],
+                            $c['students_referred'],
+                            $c['payments'],
+                            $c['meetings_owned'],
+                            $c['meetings_created'],
+                            $c['notes'],
+                        );
+                    })
+                    ->form(function (User $record) {
+                        if (array_sum(static::ownedRecordCounts($record)) === 0) {
+                            return [];
+                        }
+                        return [
+                            Forms\Components\Select::make('reassign_to')
+                                ->label('Reassign all records to')
+                                ->options(fn () => User::where('id', '!=', $record->id)
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id'))
+                                ->searchable()
+                                ->required(),
+                        ];
+                    })
+                    ->requiresConfirmation()
+                    ->modalSubmitActionLabel('Delete user')
+                    ->action(function (User $record, array $data) {
+                        $targetId = isset($data['reassign_to']) ? (int) $data['reassign_to'] : null;
+
+                        DB::transaction(function () use ($record, $targetId) {
+                            if ($targetId !== null) {
+                                DB::table('students')->where('owner_id', $record->id)->update(['owner_id' => $targetId]);
+                                DB::table('students')->where('referrer_id', $record->id)->update(['referrer_id' => $targetId]);
+                                DB::table('payments')->where('recorded_by_user_id', $record->id)->update(['recorded_by_user_id' => $targetId]);
+                                DB::table('student_notes')->where('author_id', $record->id)->update(['author_id' => $targetId]);
+                                DB::table('meetings')->where('owner_id', $record->id)->update(['owner_id' => $targetId]);
+                                DB::table('meetings')->where('created_by_id', $record->id)->update(['created_by_id' => $targetId]);
+                            }
+                            $record->delete();
+                        });
+
+                        Log::info('admin.delete_user', [
+                            'admin_id' => auth()->id(),
+                            'deleted_user_id' => $record->id,
+                            'deleted_user_name' => $record->name,
+                            'reassigned_to' => $targetId,
+                        ]);
+
+                        Notification::make()
+                            ->title("User {$record->name} deleted")
+                            ->body($targetId ? 'Owned records reassigned before deletion.' : 'No records to reassign.')
+                            ->success()
                             ->send();
                     }),
             ]);
