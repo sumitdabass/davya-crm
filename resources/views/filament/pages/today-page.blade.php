@@ -30,5 +30,6 @@
         </div>
     @endif
 
-    {{-- Modals mounted in T12 (StudentSlideOver) and T15 (CustomizeCardsModal) --}}
+    @livewire(\App\Livewire\StudentSlideOver::class)
+    {{-- CustomizeCardsModal mounted in T15 --}}
 </x-filament-panels::page>
