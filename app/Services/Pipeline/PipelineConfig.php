@@ -37,7 +37,7 @@ class PipelineConfig
         return $this->stages()->firstWhere('id', $id);
     }
 
-    /** @return string[] Stage names in display order — drop-in replacement for PipelineStage::values() */
+    /** @return string[] Stage names in display order. */
     public function stageNames(): array
     {
         return $this->stages()->pluck('name')->all();

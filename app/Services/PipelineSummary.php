@@ -8,9 +8,9 @@ use App\Services\Pipeline\PipelineConfig;
 
 class PipelineSummary
 {
-    public const STAGE_LEAD_CAPTURED = 'Lead Captured';  // Mirrors PipelineStage::LeadCaptured->value
-    public const STAGE_CLOSED = 'Closed';                // Mirrors PipelineStage::Closed->value
-    public const STAGE_SEAT_ALLOTTED = 'Seat Allotted';  // Mirrors PipelineStage::SeatAllotted->value
+    public const STAGE_LEAD_CAPTURED = 'Lead Captured';
+    public const STAGE_CLOSED = 'Closed';
+    public const STAGE_SEAT_ALLOTTED = 'Seat Allotted';
     public const CLOSE_REASON_COMPLETED = 'Completed';
 
     /** @return string[] */

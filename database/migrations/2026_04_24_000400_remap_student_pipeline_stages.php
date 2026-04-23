@@ -1,6 +1,6 @@
 <?php
 
-use App\Enums\PipelineStage;
+use App\Support\RoundNameToStage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -71,6 +71,6 @@ return new class extends Migration
         if ($latest === null) {
             return null;
         }
-        return PipelineStage::fromRoundName($latest)?->value;
+        return RoundNameToStage::stageName($latest);
     }
 };
