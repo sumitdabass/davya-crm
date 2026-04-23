@@ -32,4 +32,26 @@
 
     @livewire(\App\Livewire\StudentSlideOver::class)
     @livewire(\App\Livewire\CustomizeCardsModal::class)
+
+    <div
+        x-data="{ toast: null }"
+        x-on:card-removed.window="
+            toast = $event.detail;
+            setTimeout(() => { if (toast === $event.detail) toast = null }, 8000);
+        "
+        class="fixed bottom-4 right-4 z-50"
+    >
+        <template x-if="toast">
+            <div class="bg-gray-900 text-white px-4 py-2 rounded shadow flex items-center gap-3">
+                <span>Removed <span x-text="toast.cardId"></span>.</span>
+                <button
+                    class="underline"
+                    x-on:click="
+                        $wire.dispatch('undo-remove', { surface: toast.surface, cardId: toast.cardId, position: toast.position });
+                        toast = null;
+                    "
+                >Undo</button>
+            </div>
+        </template>
+    </div>
 </x-filament-panels::page>

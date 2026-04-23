@@ -78,6 +78,52 @@ class CustomizeCardsModal extends Component
         );
     }
 
+    #[On('remove-card')]
+    public function removeCardFromSurface(string $surface, string $cardId): void
+    {
+        $user = auth()->user();
+        $prefs = $user->dashboard_prefs ?? [];
+        $enabled = $prefs[$surface]['enabled'] ?? null;
+
+        if ($enabled === null) {
+            // Materialise defaults so we can remove from them.
+            $resolver = app(UserPrefsResolver::class);
+            $enabled = array_map(fn (Card $c) => $c->id(), $resolver->resolve($user, $surface));
+        }
+
+        $position = array_search($cardId, $enabled, true);
+        if ($position === false) {
+            return;
+        }
+        $enabled = array_values(array_filter($enabled, fn ($id) => $id !== $cardId));
+        $prefs[$surface] = ['enabled' => $enabled];
+        $user->dashboard_prefs = $prefs;
+        $user->save();
+
+        $this->dispatch('card-removed', cardId: $cardId, surface: $surface, position: $position);
+    }
+
+    public function undoRemove(string $surface, string $cardId, int $position): void
+    {
+        $user = auth()->user();
+        $prefs = $user->dashboard_prefs ?? [];
+        $enabled = $prefs[$surface]['enabled'] ?? [];
+
+        if (in_array($cardId, $enabled, true)) {
+            return;
+        }
+        array_splice($enabled, min($position, count($enabled)), 0, [$cardId]);
+        $prefs[$surface] = ['enabled' => $enabled];
+        $user->dashboard_prefs = $prefs;
+        $user->save();
+    }
+
+    #[On('undo-remove')]
+    public function onUndoRemove(string $surface, string $cardId, int $position): void
+    {
+        $this->undoRemove($surface, $cardId, $position);
+    }
+
     public function render()
     {
         $enabledSet = array_flip($this->enabled);

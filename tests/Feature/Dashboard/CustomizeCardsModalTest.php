@@ -113,4 +113,38 @@ class CustomizeCardsModalTest extends TestCase
         $this->assertSame($reversed, $cmp->get('enabled'));
         $this->assertNotSame($originalFirst, $cmp->get('enabled')[0]);
     }
+
+    public function test_remove_card_event_persists_removal_and_emits_undo_data(): void
+    {
+        $admin = $this->admin();
+        $admin->dashboard_prefs = ['today' => ['enabled' => ['today_meetings', 'today_payments']]];
+        $admin->save();
+
+        Livewire::actingAs($admin)
+            ->test(CustomizeCardsModal::class)
+            ->dispatch('remove-card', surface: 'today', cardId: 'today_payments')
+            ->assertDispatched('card-removed', cardId: 'today_payments', surface: 'today');
+
+        $admin->refresh();
+        $this->assertNotContains('today_payments', $admin->dashboard_prefs['today']['enabled']);
+    }
+
+    public function test_undo_restores_removed_card_at_original_position(): void
+    {
+        $admin = $this->admin();
+        $admin->dashboard_prefs = ['today' => ['enabled' => ['today_meetings', 'today_payments', 'meetings_held_today']]];
+        $admin->save();
+
+        $cmp = Livewire::actingAs($admin)
+            ->test(CustomizeCardsModal::class)
+            ->dispatch('remove-card', surface: 'today', cardId: 'today_payments');
+
+        $cmp->call('undoRemove', surface: 'today', cardId: 'today_payments', position: 1);
+
+        $admin->refresh();
+        $this->assertSame(
+            ['today_meetings', 'today_payments', 'meetings_held_today'],
+            $admin->dashboard_prefs['today']['enabled'],
+        );
+    }
 }
