@@ -48,7 +48,7 @@ class MeetingsHeldTodayCard implements Card
     {
         return Meeting::query()
             ->where('status', 'held')
-            ->whereDate('held_at', today())
+            ->whereBetween('held_at', [now()->startOfDay(), now()->endOfDay()])
             ->whereHas('student', fn ($q) => $q->visibleTo($viewer));
     }
 }
