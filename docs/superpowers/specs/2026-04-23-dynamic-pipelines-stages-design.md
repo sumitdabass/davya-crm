@@ -104,6 +104,9 @@ stage_transition_conditions
 students (modification)
 ├── + stage_id      FK → stages nullable (populated by backfill, then made NOT NULL)
 ├── stage (existing ENUM → altered to VARCHAR(80))  -- enum must widen to allow admin-added stages;
+-- NOTE: an earlier (already-shipped) migration `2026_04_24_000000_alter_students_stage_to_varchar.php`
+-- narrows this back to VARCHAR(60) on fresh installs. Prod state after SP#1 = 80; fresh dev = 60.
+-- Both are sufficient for realistic stage names (longest seeded = 25 chars).
 -- KEPT as denormalized read-cache for 1 release;
                                              --  MeetingObserver-style sync on stage_id change;
                                              --  dropped in post-SP#1 hygiene migration
