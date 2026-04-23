@@ -103,7 +103,8 @@ stage_transition_conditions
 
 students (modification)
 ├── + stage_id      FK → stages nullable (populated by backfill, then made NOT NULL)
-├── stage (existing VARCHAR)                 -- KEPT as denormalized read-cache for 1 release;
+├── stage (existing ENUM → altered to VARCHAR(80))  -- enum must widen to allow admin-added stages;
+-- KEPT as denormalized read-cache for 1 release;
                                              --  MeetingObserver-style sync on stage_id change;
                                              --  dropped in post-SP#1 hygiene migration
 ```
@@ -158,7 +159,7 @@ Two tabs, same page. Admin-only via Filament page authorization + Spatie `admin`
 
 Single deploy-time migration + a data seeder. Zero-downtime.
 
-1. **Schema migration** — create `pipelines`, `stages`, `stage_transition_rules`, `stage_transition_conditions` tables; add nullable `students.stage_id` FK.
+1. **Schema migration** — create `pipelines`, `stages`, `stage_transition_rules`, `stage_transition_conditions` tables; add nullable `students.stage_id` FK; **alter `students.stage` from ENUM to VARCHAR(80)** so admin-added stage names can be stored in the cache column during the 1-release deprecation window (MySQL-only `ALTER`; SQLite already stores enums as text so it's a no-op there).
 2. **Seed migration** —
    - Insert 1 `pipeline` row: `name='IPU Admission'`, `is_default=true`, `record_label='Student'`
    - Insert 13 stages in order:
