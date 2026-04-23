@@ -73,15 +73,13 @@
     <div class="fi-kanban-scroll overflow-x-auto pb-4" style="min-height: 70vh;"
          x-data
          x-init="
+            // SortableJS loaded globally via AdminPanelProvider HEAD_END.
+            // Defer attribute means we may run before it's parsed; poll briefly.
             (function init(){
-                if (!window.Sortable) {
-                    const s = document.createElement('script');
-                    s.src = 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js';
-                    s.onload = () => wireKanban($el, $wire);
-                    document.head.appendChild(s);
-                } else {
-                    wireKanban($el, $wire);
-                }
+                if (window.Sortable) { wireKanban($el, $wire); return; }
+                const t = setInterval(() => {
+                    if (window.Sortable) { clearInterval(t); wireKanban($el, $wire); }
+                }, 30);
             })();
          ">
         <div class="flex gap-4 items-start" style="min-width: max-content;">

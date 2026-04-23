@@ -1,7 +1,5 @@
 {{-- resources/views/filament/pages/pipeline-config.blade.php --}}
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-@endpush
+{{-- SortableJS loaded globally via AdminPanelProvider HEAD_END render hook. --}}
 <x-filament-panels::page>
     <div class="flex gap-2 border-b border-gray-200 mb-6">
         <button wire:click="$set('activeTab', 'stages')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'stages' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Stages</button>

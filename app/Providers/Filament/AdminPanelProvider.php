@@ -45,6 +45,8 @@ class AdminPanelProvider extends PanelProvider
                 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
                 <meta name="apple-mobile-web-app-title" content="Davya">
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+                {{-- SortableJS: single global include for pipeline-config + kanban (+ future pages). --}}
+                <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
                 <style>
                     /* Narrow the login/challenge card so the giant "Sign in" block feels right-sized. */
                     .fi-simple-main { max-width: 24rem; }
