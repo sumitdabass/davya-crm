@@ -3,6 +3,7 @@ namespace App\Filament\Pages;
 
 use App\Models\StudentField;
 use App\Models\StudentFieldSection;
+use App\Models\StudentFieldValue;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -165,6 +166,33 @@ class StudentFieldsConfigPage extends Page
             return;
         }
         $field->update(['archived_at' => now()]);
+    }
+
+    public function restoreField(int $id): void
+    {
+        $field = StudentField::findOrFail($id);
+        if ($field->section_id && !StudentFieldSection::find($field->section_id)) {
+            $field->section_id = StudentFieldSection::orderBy('position')->value('id');
+        }
+        $field->archived_at = null;
+        $field->save();
+    }
+
+    public function hardDeleteField(int $id, string $confirm): void
+    {
+        $field = StudentField::findOrFail($id);
+        if ($field->is_built_in) {
+            $this->addError('archive', 'Built-in fields cannot be deleted.');
+            return;
+        }
+        if ($confirm !== 'DELETE') {
+            $this->addError('confirm', 'Type DELETE to confirm.');
+            return;
+        }
+        DB::transaction(function () use ($field) {
+            StudentFieldValue::where('student_field_id', $field->id)->delete();
+            $field->delete();
+        });
     }
 
     private function generateUniqueKey(string $label): string
