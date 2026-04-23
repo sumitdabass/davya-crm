@@ -19,7 +19,12 @@
                     placeholder="Search name or phone"
                     class="flex-1 rounded border-gray-300 dark:bg-gray-800"
                 />
-                {{-- CSV link added in T13 --}}
+                <a
+                    href="{{ route('admin.dashboard.drill-csv', ['cardId' => $cardId, 'search' => $search]) }}"
+                    class="inline-flex items-center gap-1 rounded-md bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-sm"
+                >
+                    ↓ CSV
+                </a>
             </div>
 
             <div class="flex-1 overflow-auto">

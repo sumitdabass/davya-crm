@@ -63,4 +63,26 @@ class StudentSlideOverTest extends TestCase
             ->dispatch('open-slide-over', cardId: 'nonexistent')
             ->assertSet('isOpen', false);
     }
+
+    public function test_csv_download_returns_expected_headers_and_rows(): void
+    {
+        $admin = $this->admin();
+        $stage = \App\Models\Stage::first();
+
+        \App\Models\Student::create([
+            'phone' => '9555000001', 'name' => 'CSV Row', 'owner_id' => $admin->id,
+            'lead_source' => 'Website', 'stage' => $stage->name,
+            'stage_id' => $stage->id,
+        ]);
+
+        $response = $this->actingAs($admin)
+            ->get(route('admin.dashboard.drill-csv', ['cardId' => 'stage.'.$stage->id]));
+
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/csv; charset=UTF-8');
+        $body = $response->streamedContent();
+        $this->assertStringContainsString('Name,Phone,Owner,Course', $body);
+        $this->assertStringContainsString('Days in stage', $body);
+        $this->assertStringContainsString('CSV Row', $body);
+    }
 }
