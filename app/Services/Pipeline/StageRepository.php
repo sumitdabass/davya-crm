@@ -98,7 +98,12 @@ class StageRepository
             if ($transferToStageId === $stage->id) {
                 throw ValidationException::withMessages(['transfer_to_stage_id' => 'Cannot transfer to the same stage.']);
             }
-            $target = $stage->pipeline->stages()->where('id', $transferToStageId)->firstOrFail();
+            $target = $stage->pipeline->stages()->where('id', $transferToStageId)->first();
+            if (! $target) {
+                throw ValidationException::withMessages([
+                    'transfer_to_stage_id' => 'Target stage not found in this pipeline.',
+                ]);
+            }
 
             DB::transaction(function () use ($stage, $target) {
                 Student::where('stage_id', $stage->id)->update([

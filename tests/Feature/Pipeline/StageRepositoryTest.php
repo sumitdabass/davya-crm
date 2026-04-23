@@ -123,4 +123,29 @@ class StageRepositoryTest extends TestCase
         $repo->changeType($s, Stage::TYPE_WON);
         $this->assertSame(Stage::TYPE_WON, $s->fresh()->stage_type);
     }
+
+    public function test_delete_rejects_target_from_different_pipeline(): void
+    {
+        $repo = app(StageRepository::class);
+        $p1 = Pipeline::default();
+
+        // Create a second pipeline with its own stage.
+        $p2 = Pipeline::create(['name' => 'Other Pipeline', 'is_default' => false]);
+        $otherStage = Stage::create([
+            'pipeline_id' => $p2->id, 'name' => 'Other Stage', 'stage_type' => 'OPEN', 'display_order' => 1,
+        ]);
+
+        // Try to delete a student-holding stage from p1, with transfer target in p2.
+        $from = $p1->stages()->where('name', 'Meeting Scheduled')->firstOrFail();
+        $ownerId = \App\Models\User::factory()->create()->id;
+        \DB::table('students')->insert([
+            'name' => 'CrossTest', 'phone' => '9333333333', 'owner_id' => $ownerId, 'referrer_id' => $ownerId,
+            'lead_source' => 't', 'stage' => 'Meeting Scheduled', 'stage_id' => $from->id,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->expectException(ValidationException::class);
+        $this->expectExceptionMessageMatches('/not found in this pipeline/i');
+        $repo->delete($from, $otherStage->id);
+    }
 }
