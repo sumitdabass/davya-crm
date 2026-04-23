@@ -47,11 +47,17 @@ class StudentFieldTest extends TestCase
 
     public function test_built_in_scope(): void
     {
-        $section = StudentFieldSection::create(['name' => 'X', 'position' => 0]);
-        StudentField::create(['section_id' => $section->id, 'key' => 'phone', 'label' => 'Phone', 'type' => 'text', 'is_required' => true, 'is_built_in' => true, 'built_in_column' => 'phone', 'position' => 0]);
+        // The seed migration (T4) already inserts 8 built-ins. Add one more
+        // built-in + one custom and assert deltas, not absolute counts.
+        $builtInBefore = StudentField::builtIn()->count();
+        $customBefore = StudentField::custom()->count();
+
+        $section = StudentFieldSection::create(['name' => 'X', 'position' => 999]);
+        StudentField::create(['section_id' => $section->id, 'key' => 'phone_extra', 'label' => 'Phone Extra', 'type' => 'text', 'is_required' => false, 'is_built_in' => true, 'built_in_column' => 'phone_extra', 'position' => 0]);
         StudentField::create(['section_id' => $section->id, 'key' => 'dob', 'label' => 'DOB', 'type' => 'date', 'is_required' => false, 'is_built_in' => false, 'position' => 1]);
-        $this->assertSame(1, StudentField::builtIn()->count());
-        $this->assertSame(1, StudentField::custom()->count());
+
+        $this->assertSame($builtInBefore + 1, StudentField::builtIn()->count());
+        $this->assertSame($customBefore + 1, StudentField::custom()->count());
     }
 
     public function test_options_cast_as_array(): void
