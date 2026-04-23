@@ -84,9 +84,10 @@ stage_transition_rules
 ├── id              bigIncrements
 ├── pipeline_id     FK → pipelines
 ├── name            string(120)              -- human description
-├── from_stage_id   FK → stages nullable     -- NULL = any open stage
-├── to_stage_id     FK → stages              -- required
+├── from_stage_id   FK → stages nullable     -- NULL = any stage (wildcard)
+├── to_stage_id     FK → stages nullable     -- NULL = any stage other than from_stage_id
 ├── severity        enum('HARD','SOFT')
+-- CHECK: NOT (from_stage_id IS NULL AND to_stage_id IS NULL)  -- at least one side specified
 ├── is_active       bool default true
 ├── created_at, updated_at
 -- INDEX(pipeline_id, to_stage_id, is_active)
@@ -114,7 +115,7 @@ Audit trail reuses Spatie ActivityLog on the Student model (already in place). N
 On every stage change (kanban drag / form save / bulk import / API webhook):
 
 1. Caller invokes `StageTransitionEngine::forStageChange($student, $toStageId)`.
-2. Engine loads rules from cache: `WHERE pipeline_id = :p AND (from_stage_id IS NULL OR from_stage_id = :current) AND to_stage_id = :target AND is_active = true`.
+2. Engine loads rules from cache: `WHERE pipeline_id = :p AND (from_stage_id IS NULL OR from_stage_id = :current) AND (to_stage_id IS NULL OR to_stage_id = :target) AND is_active = true`. (NULL on either side = wildcard, per schema.)
 3. For each rule: evaluate conditions (all ANDed) via `ConditionEvaluator`.
 4. Any failed `HARD` rule → pushed to `hard[]`. Any failed `SOFT` rule → pushed to `soft[]`.
 5. Caller decides: non-empty `hard[]` blocks (HTTP 422 / Filament validation error); `soft[]` shows warnings the admin can acknowledge (checkbox "continue anyway").
@@ -175,10 +176,10 @@ Single deploy-time migration + a data seeder. Zero-downtime.
      12. **Complete Payment Received** (CLOSED_WON, new)
      13. Closed (CLOSED_LOST)
    - Seed 4 rules:
-     - `Any → Closed` / HARD / `field close_reason is_not_empty`
-     - `Closed → Any` (represented as multiple rows or a special marker — implementation detail) / HARD / `field re_entry_reason is_not_empty`
-     - `Any → Meeting Scheduled` / SOFT / `has_relation meetings where status='scheduled' AND scheduled_at >= now() count >= 1`
-     - `Any → Sliding` / SOFT / `has_relation round_history where outcome like 'Allotted%' count >= 1`
+     - `from=NULL, to=Closed` / HARD / `field close_reason is_not_empty`
+     - `from=Closed, to=NULL` / HARD / `field re_entry_reason is_not_empty` (fires on any move out of Closed)
+     - `from=NULL, to=Meeting Scheduled` / SOFT / `has_relation meetings where status='scheduled' AND scheduled_at >= now() count >= 1`
+     - `from=NULL, to=Sliding` / SOFT / `has_relation round_history where outcome like 'Allotted%' count >= 1`
 3. **Backfill** — `UPDATE students SET stage_id = (SELECT id FROM stages WHERE name = students.stage AND pipeline_id = 1)` — wrapped in tx, failure mode logged but non-blocking (any unmatched rows land in "Lead Captured" with an ActivityLog note).
 4. **Post-deploy** — keep `students.stage` as a read-mirror maintained by an observer; drop column in a follow-up hygiene migration one release later (same pattern used for `students.meeting_date` after the Today Tab SP).
 
