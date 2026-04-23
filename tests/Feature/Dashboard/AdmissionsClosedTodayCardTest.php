@@ -19,28 +19,42 @@ class AdmissionsClosedTodayCardTest extends TestCase
         $this->seed();
     }
 
-    public function test_counts_students_moved_to_admission_confirmed_today(): void
+    public function test_counts_students_closed_with_completed_today(): void
     {
         $admin = User::where('email', 'sumit@davya.local')->first();
-        // Use "Closed" stage (which is where "Admission Confirmed" was remapped to)
         $closedStageId = Stage::where('name', 'Closed')->value('id');
         $this->assertNotNull($closedStageId, 'Closed stage must exist in seed.');
 
+        // Today: closed + completed (should count)
         Student::create([
             'phone' => '9222000001',
             'name' => 'Admitted Today',
             'owner_id' => $admin->id,
             'lead_source' => 'Website',
-            'stage' => 'Admission Confirmed',
+            'stage' => 'Closed',
+            'close_reason' => 'Completed',
             'stage_id' => $closedStageId,
         ]);
 
-        $old = Student::create([
+        // Today: closed but with other close_reason (should NOT count)
+        Student::create([
             'phone' => '9222000002',
+            'name' => 'Backed Out Today',
+            'owner_id' => $admin->id,
+            'lead_source' => 'Website',
+            'stage' => 'Closed',
+            'close_reason' => 'Not Interested',
+            'stage_id' => $closedStageId,
+        ]);
+
+        // Yesterday: closed + completed (should NOT count — not today)
+        $old = Student::create([
+            'phone' => '9222000003',
             'name' => 'Admitted Yesterday',
             'owner_id' => $admin->id,
             'lead_source' => 'Website',
-            'stage' => 'Admission Confirmed',
+            'stage' => 'Closed',
+            'close_reason' => 'Completed',
             'stage_id' => $closedStageId,
         ]);
         $old->updated_at = now()->subDay();

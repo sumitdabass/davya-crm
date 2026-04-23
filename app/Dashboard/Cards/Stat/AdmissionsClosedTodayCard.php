@@ -48,7 +48,8 @@ class AdmissionsClosedTodayCard implements Card
     private function baseQuery(User $viewer)
     {
         return Student::query()
-            ->where('stage', 'Admission Confirmed')
+            ->where('stage', 'Closed')
+            ->where('close_reason', 'Completed')
             ->whereBetween('updated_at', [now()->startOfDay(), now()->endOfDay()])
             ->visibleTo($viewer);
     }
