@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Pipeline;
 use App\Models\Stage;
+use App\Models\StageTransitionRule;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageRepository;
 use Filament\Notifications\Notification;
@@ -104,5 +105,64 @@ class PipelineConfigPage extends Page
     public function getTransitionRules(): \Illuminate\Support\Collection
     {
         return $this->getPipeline()->transitionRules()->with(['fromStage','toStage','conditions'])->orderBy('id')->get();
+    }
+
+    public function saveRule(array $data, ?int $ruleId = null): void
+    {
+        if (! static::canAccess()) abort(403);
+
+        // Reject rules with both sides NULL — the condition would apply to every transition
+        // and is never what the admin intended.
+        if (empty($data['from_stage_id']) && empty($data['to_stage_id'])) {
+            Notification::make()
+                ->title('Rule must specify at least one side (from or to stage).')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $rule = $ruleId
+            ? StageTransitionRule::findOrFail($ruleId)
+            : new StageTransitionRule(['pipeline_id' => $this->getPipeline()->id]);
+
+        $rule->fill([
+            'name'          => $data['name'],
+            'from_stage_id' => $data['from_stage_id'] ?: null,
+            'to_stage_id'   => $data['to_stage_id'] ?: null,
+            'severity'      => $data['severity'] ?? 'HARD',
+            'is_active'     => (bool) ($data['is_active'] ?? true),
+        ]);
+        $rule->save();
+
+        // Replace conditions
+        $rule->conditions()->delete();
+        foreach ($data['conditions'] ?? [] as $i => $c) {
+            $rule->conditions()->create([
+                'condition_type'    => $c['condition_type'],
+                'field_or_relation' => $c['field_or_relation'],
+                'operator'          => $c['operator'],
+                'value'             => $c['value'] ?? null,
+                'display_order'     => $i,
+            ]);
+        }
+
+        app(PipelineConfig::class)->invalidate();
+        Notification::make()->title('Rule saved')->success()->send();
+    }
+
+    public function toggleRule(int $ruleId): void
+    {
+        if (! static::canAccess()) abort(403);
+        $rule = StageTransitionRule::findOrFail($ruleId);
+        $rule->update(['is_active' => ! $rule->is_active]);
+        app(PipelineConfig::class)->invalidate();
+    }
+
+    public function deleteRule(int $ruleId): void
+    {
+        if (! static::canAccess()) abort(403);
+        StageTransitionRule::findOrFail($ruleId)->delete();
+        app(PipelineConfig::class)->invalidate();
+        Notification::make()->title('Rule deleted')->success()->send();
     }
 }

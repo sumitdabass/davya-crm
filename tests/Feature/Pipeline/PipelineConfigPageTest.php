@@ -134,4 +134,61 @@ class PipelineConfigPageTest extends TestCase
             ->assertSeeText('Meeting Scheduled needs a future meeting')
             ->assertSeeText('Sliding needs prior allotment');
     }
+
+    public function test_admin_can_create_rule(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email','sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        $cpr = \App\Models\Pipeline::default()->stages()->where('name','Complete Payment Received')->value('id');
+
+        Livewire::test(PipelineConfigPage::class)
+            ->call('saveRule', [
+                'name' => 'Custom — payment required',
+                'from_stage_id' => null, 'to_stage_id' => $cpr,
+                'severity' => 'HARD', 'is_active' => true,
+                'conditions' => [[
+                    'condition_type' => 'FIELD_CHECK',
+                    'field_or_relation' => 'deal_amount',
+                    'operator' => '>=',
+                    'value' => ['rhs' => 1000],
+                ]],
+            ])
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('stage_transition_rules', ['name' => 'Custom — payment required']);
+    }
+
+    public function test_admin_can_toggle_rule_active(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email','sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        $ruleId = \App\Models\Pipeline::default()->transitionRules()->first()->id;
+        Livewire::test(PipelineConfigPage::class)->call('toggleRule', $ruleId);
+        $this->assertDatabaseHas('stage_transition_rules', ['id' => $ruleId, 'is_active' => false]);
+    }
+
+    public function test_rule_requires_at_least_one_side(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email','sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        $ruleCount = \App\Models\StageTransitionRule::count();
+
+        Livewire::test(PipelineConfigPage::class)
+            ->call('saveRule', [
+                'name' => 'Bad rule — no stages',
+                'from_stage_id' => null, 'to_stage_id' => null,
+                'severity' => 'HARD', 'is_active' => true,
+                'conditions' => [],
+            ]);
+
+        // Must not persist a rule with both sides NULL
+        $this->assertSame($ruleCount, \App\Models\StageTransitionRule::count());
+        $this->assertDatabaseMissing('stage_transition_rules', ['name' => 'Bad rule — no stages']);
+    }
 }
