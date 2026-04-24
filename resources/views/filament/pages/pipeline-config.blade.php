@@ -42,19 +42,42 @@
                     data-stage-section="{{ $key }}"
                 >
                     @foreach ($buckets[$key] as $stage)
-                        <div data-stage-id="{{ $stage->id }}" class="flex items-center gap-3 px-3 py-2 border border-gray-200 rounded mb-1.5" wire:key="stage-{{ $stage->id }}">
-                            <span class="grip text-gray-300 text-sm tracking-widest select-none cursor-grab">⋮⋮</span>
-                            <span class="flex-1 text-sm font-medium text-gray-800">{{ $stage->name }}</span>
-                            @if ($stage->stage_type === 'CLOSED_WON') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">Won</span> @endif
-                            @if ($stage->stage_type === 'CLOSED_LOST') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800">Lost</span> @endif
-                            <button type="button"
-                                @click="$dispatch('open-rename-stage', { stageId: {{ $stage->id }}, currentName: @js($stage->name) })"
-                                class="px-2 py-1 text-xs font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded border border-gray-200">Rename</button>
-                            <button type="button"
-                                @click="$dispatch('open-delete-stage', { stageId: {{ $stage->id }}, stageName: @js($stage->name), studentCount: {{ (int) ($stageCounts[$stage->id] ?? 0) }} })"
-                                class="px-2 py-1 text-xs font-medium rounded"
-                                style="background-color: #fff; color: #dc2626; border: 1px solid #fecaca;">Delete</button>
-                        </div>
+                        @if (config('davyas.visual_v2'))
+                            <div data-stage-id="{{ $stage->id }}" class="davya-card-row @if($stage->stage_type === 'CLOSED_WON') davya-card-row--custom @elseif($stage->stage_type === 'CLOSED_LOST') davya-card-row--required @endif flex items-center gap-3 px-3 py-2 border border-gray-200 rounded mb-1.5" wire:key="stage-{{ $stage->id }}">
+                                <span class="grip text-gray-300 text-sm tracking-widest select-none cursor-grab">⋮⋮</span>
+                                <span class="flex-1 text-sm font-medium text-gray-800">{{ $stage->name }}</span>
+                                @if ($stage->stage_type === 'CLOSED_WON')
+                                    <span class="inline-flex items-center gap-1" style="color: var(--brand-600);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M2 20h2V9H2v11zM22 10c0-1.1-.9-2-2-2h-6.3l1-4.3v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6c-.4.4-.6.9-.6 1.4v10c0 1.1.9 2 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7c.1-.2.2-.5.2-.8v-2z"/></svg>
+                                    </span>
+                                @elseif ($stage->stage_type === 'CLOSED_LOST')
+                                    <span class="inline-flex items-center gap-1" style="color: var(--danger);">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M22 4h-2v11h2V4zM2 14c0 1.1.9 2 2 2h6.3l-1 4.3v.3c0 .4.2.8.4 1.1L10.8 23l6.6-6.6c.4-.4.6-.9.6-1.4V5c0-1.1-.9-2-2-2H7c-.8 0-1.5.5-1.8 1.2l-3 7c-.1.2-.2.5-.2.8v2z"/></svg>
+                                    </span>
+                                @endif
+                                <button type="button"
+                                    @click="$dispatch('open-rename-stage', { stageId: {{ $stage->id }}, currentName: @js($stage->name) })"
+                                    class="px-2 py-1 text-xs font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded border border-gray-200">Rename</button>
+                                <button type="button"
+                                    @click="$dispatch('open-delete-stage', { stageId: {{ $stage->id }}, stageName: @js($stage->name), studentCount: {{ (int) ($stageCounts[$stage->id] ?? 0) }} })"
+                                    class="px-2 py-1 text-xs font-medium rounded"
+                                    style="background-color: #fff; color: #dc2626; border: 1px solid #fecaca;">Delete</button>
+                            </div>
+                        @else
+                            <div data-stage-id="{{ $stage->id }}" class="flex items-center gap-3 px-3 py-2 border border-gray-200 rounded mb-1.5" wire:key="stage-{{ $stage->id }}">
+                                <span class="grip text-gray-300 text-sm tracking-widest select-none cursor-grab">⋮⋮</span>
+                                <span class="flex-1 text-sm font-medium text-gray-800">{{ $stage->name }}</span>
+                                @if ($stage->stage_type === 'CLOSED_WON') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800">Won</span> @endif
+                                @if ($stage->stage_type === 'CLOSED_LOST') <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800">Lost</span> @endif
+                                <button type="button"
+                                    @click="$dispatch('open-rename-stage', { stageId: {{ $stage->id }}, currentName: @js($stage->name) })"
+                                    class="px-2 py-1 text-xs font-medium text-gray-600 hover:text-emerald-700 hover:bg-emerald-50 rounded border border-gray-200">Rename</button>
+                                <button type="button"
+                                    @click="$dispatch('open-delete-stage', { stageId: {{ $stage->id }}, stageName: @js($stage->name), studentCount: {{ (int) ($stageCounts[$stage->id] ?? 0) }} })"
+                                    class="px-2 py-1 text-xs font-medium rounded"
+                                    style="background-color: #fff; color: #dc2626; border: 1px solid #fecaca;">Delete</button>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
                 @php($capHit = $total >= 20)
