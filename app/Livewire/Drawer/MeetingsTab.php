@@ -3,12 +3,9 @@
 namespace App\Livewire\Drawer;
 
 use App\Models\Meeting;
-use Livewire\Component;
 
-class MeetingsTab extends Component
+class MeetingsTab extends DrawerTab
 {
-    public int $studentId;
-
     public function render()
     {
         $meetings = Meeting::where('student_id', $this->studentId)

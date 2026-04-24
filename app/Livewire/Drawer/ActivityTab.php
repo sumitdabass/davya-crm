@@ -3,13 +3,10 @@
 namespace App\Livewire\Drawer;
 
 use App\Models\Student;
-use Livewire\Component;
 use Spatie\Activitylog\Models\Activity;
 
-class ActivityTab extends Component
+class ActivityTab extends DrawerTab
 {
-    public int $studentId;
-
     public function render()
     {
         $activities = Activity::where('subject_type', Student::class)

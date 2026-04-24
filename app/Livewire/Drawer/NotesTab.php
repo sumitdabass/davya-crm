@@ -3,11 +3,9 @@
 namespace App\Livewire\Drawer;
 
 use App\Models\StudentNote;
-use Livewire\Component;
 
-class NotesTab extends Component
+class NotesTab extends DrawerTab
 {
-    public int $studentId;
     public string $body = '';
 
     public function save(): void

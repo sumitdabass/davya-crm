@@ -47,7 +47,9 @@ class StudentPeekDrawer extends Component
         if ($this->studentId === null) {
             return null;
         }
-        return Student::with(['owner'])->find($this->studentId);
+        return Student::with(['owner'])
+            ->visibleTo(auth()->user())
+            ->find($this->studentId);
     }
 
     public function render()

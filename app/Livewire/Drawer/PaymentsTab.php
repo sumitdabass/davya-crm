@@ -3,12 +3,9 @@
 namespace App\Livewire\Drawer;
 
 use App\Models\Payment;
-use Livewire\Component;
 
-class PaymentsTab extends Component
+class PaymentsTab extends DrawerTab
 {
-    public int $studentId;
-
     public function render()
     {
         $payments = Payment::where('student_id', $this->studentId)->orderByDesc('created_at')->get();
