@@ -35,6 +35,7 @@ class CommandPaletteTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(CommandPalette::class)
+            ->dispatch('open-command-palette')
             ->set('query', 'chait')
             ->assertSee('Chaitanya Rao')
             ->assertDontSee('Khushbu Sharma');
@@ -56,6 +57,7 @@ class CommandPaletteTest extends TestCase
 
         Livewire::actingAs($head2)
             ->test(CommandPalette::class)
+            ->dispatch('open-command-palette')
             ->set('query', 'Across')
             ->assertDontSee('Across Team');
     }
@@ -66,6 +68,7 @@ class CommandPaletteTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(CommandPalette::class)
+            ->dispatch('open-command-palette')
             ->set('query', '')
             ->assertSee('Pipeline')
             ->assertSee('Today')
@@ -78,6 +81,7 @@ class CommandPaletteTest extends TestCase
 
         Livewire::actingAs($admin)
             ->test(CommandPalette::class)
+            ->dispatch('open-command-palette')
             ->set('query', 'field')
             ->assertSee('Fields')
             ->assertDontSee('Dashboard');

@@ -1,14 +1,4 @@
 <div wire:key="command-palette">
-    {{-- Data index: always rendered (hidden) so Livewire test assertions can assertSee/assertDontSee. --}}
-    <div style="display: none;" aria-hidden="true" id="command-palette-data-index">
-        @foreach ($students as $s)
-            <span>{{ $s['name'] }}</span>
-        @endforeach
-        @foreach ($pages as $p)
-            <span>{{ $p['label'] }}</span>
-        @endforeach
-    </div>
-
     @if ($isOpen)
         <div style="position: fixed; inset: 0; background: rgba(17,24,39,.3); z-index: 60; display: flex; align-items: flex-start; justify-content: center; padding-top: 12vh;"
              wire:click="close">
