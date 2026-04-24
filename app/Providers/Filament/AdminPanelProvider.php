@@ -75,7 +75,7 @@ class AdminPanelProvider extends PanelProvider
                 {{-- SortableJS: single global include for pipeline-config + kanban (+ future pages). --}}
                 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
                 @if (config('davyas.visual_v2'))
-                    <link rel="stylesheet" href="{{ asset('css/tokens.css') }}" id="davya-tokens">
+                    <link rel="stylesheet" href="{{ asset('css/tokens.css') }}?v={{ @filemtime(public_path('css/tokens.css')) ?: time() }}" id="davya-tokens">
                 @endif
                 <style>
                     /* Narrow the login/challenge card so the giant "Sign in" block feels right-sized. */
