@@ -156,7 +156,7 @@ class StudentResource extends Resource
                             TextInput::make('phone_2')->tel()->label('Alternate phone'),
                             TextInput::make('email')->email()->maxLength(120)->columnSpan(3),
                             TextInput::make('exam_appeared'),
-                            TextInput::make('twelfth_marks'),
+                            TextInput::make('twelfth_marks')->label('12th Marks'),
                             TextInput::make('rank')->maxLength(40),
                             Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi','Outside'])),
                             TextInput::make('state')->maxLength(40),
@@ -176,10 +176,10 @@ class StudentResource extends Resource
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
                             Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online','Offline','All'])),
-                            Toggle::make('is_ipu_registered'),
-                            TextInput::make('ipu_user_id'),
+                            Toggle::make('is_ipu_registered')->label('IPU Registered'),
+                            TextInput::make('ipu_user_id')->label('IPU User ID'),
                             TextInput::make('ipu_login_code')
-                                ->label('IPU login code')
+                                ->label('IPU Login Code')
                                 ->maxLength(60)
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),

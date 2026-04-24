@@ -323,7 +323,7 @@
         'final_course' => 'Final course',
         'admission_date' => 'Admission date (YYYY-MM-DD)',
         'is_ipu_registered' => 'IPU registered (1 or 0)',
-        'ipu_login_code' => 'IPU login code',
+        'ipu_login_code' => 'IPU Login Code',
         'father_name' => "Father's name",
         'twelfth_marks' => '12th marks',
         'exam_appeared' => 'Exam appeared',
