@@ -1,10 +1,25 @@
 {{-- resources/views/filament/pages/pipeline-config.blade.php --}}
 {{-- SortableJS loaded globally via AdminPanelProvider HEAD_END render hook. --}}
 <x-filament-panels::page>
-    <div class="flex gap-2 border-b border-gray-200 mb-6">
-        <button wire:click="$set('activeTab', 'stages')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'stages' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Stages</button>
-        <button wire:click="$set('activeTab', 'rules')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'rules' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Transition Rules</button>
-    </div>
+    @if (config('davyas.visual_v2'))
+        <div style="display:flex; gap:4px; background: var(--border-muted); padding:3px; border-radius: var(--r-md); width:fit-content; margin-bottom: var(--s-4);">
+            <button wire:click="$set('activeTab', 'stages')"
+                    style="padding:6px 14px; border-radius: var(--r-sm); font-size: var(--fs-12); font-weight:600; border:0; cursor:pointer;
+                           {{ $activeTab === 'stages' ? 'background: var(--surface); color: var(--text); box-shadow: var(--elev-1);' : 'background: transparent; color: var(--text-sub);' }}">
+                Stages
+            </button>
+            <button wire:click="$set('activeTab', 'rules')"
+                    style="padding:6px 14px; border-radius: var(--r-sm); font-size: var(--fs-12); font-weight:600; border:0; cursor:pointer;
+                           {{ $activeTab === 'rules' ? 'background: var(--surface); color: var(--text); box-shadow: var(--elev-1);' : 'background: transparent; color: var(--text-sub);' }}">
+                Transition Rules
+            </button>
+        </div>
+    @else
+        <div class="flex gap-2 border-b border-gray-200 mb-6">
+            <button wire:click="$set('activeTab', 'stages')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'stages' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Stages</button>
+            <button wire:click="$set('activeTab', 'rules')" class="px-4 py-2 text-sm font-medium {{ $activeTab === 'rules' ? 'text-emerald-600 border-b-2 border-emerald-600' : 'text-gray-500' }}">Transition Rules</button>
+        </div>
+    @endif
 
     @php($buckets = $this->getStagesByType())
     @php($total = $buckets['open']->count() + $buckets['won']->count() + $buckets['lost']->count())
@@ -89,6 +104,79 @@
                     + Stage
                 </button>
             @endforeach
+        </div>
+    @elseif (config('davyas.visual_v2'))
+        <div class="davya-section-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: var(--s-3);">
+                <div>
+                    <div class="davya-section-card-title" style="margin-bottom:2px;">Transition rules</div>
+                    <div style="font-size: var(--fs-11); color: var(--text-sub);">Guard stage moves — block or warn when a student is missing required data.</div>
+                </div>
+                <button wire:click="$dispatch('open-rule-editor', { ruleId: null })"
+                        style="background: var(--brand-600); color:white; padding:7px 14px; border-radius: var(--r-md); font-size: var(--fs-12); font-weight:600; border:0; cursor:pointer;">+ Add Rule</button>
+            </div>
+
+            @forelse ($this->getTransitionRules() as $rule)
+                <div style="background: var(--surface); border:1px solid var(--border); border-radius: var(--r-md); padding: var(--s-3); margin-bottom:6px; position:relative;"
+                     wire:key="rule-{{ $rule->id }}">
+                    @if ($rule->severity === 'HARD')
+                        <span style="position:absolute; left:0; top:var(--s-3); bottom:var(--s-3); width:3px; background: var(--danger); border-radius:0 3px 3px 0;"></span>
+                    @else
+                        <span style="position:absolute; left:0; top:var(--s-3); bottom:var(--s-3); width:3px; background: var(--warning); border-radius:0 3px 3px 0;"></span>
+                    @endif
+
+                    <div style="display:flex; align-items:center; gap: var(--s-2); padding-left:6px; margin-bottom: var(--s-2);">
+                        <span style="flex:1; font-weight:600; font-size: var(--fs-13); color: var(--text);">{{ $rule->name }}</span>
+                        <span style="padding:2px 10px; border-radius: var(--r-pill); font-size: var(--fs-10); font-weight:600;
+                                     {{ $rule->severity === 'HARD' ? 'background:#FEE2E2; color:#991B1B;' : 'background:#FEF3C7; color:#92400E;' }}">
+                            {{ $rule->severity === 'HARD' ? 'Hard · Blocks' : 'Soft · Warns' }}
+                        </span>
+                        <button wire:click="toggleRule({{ $rule->id }})"
+                                title="Toggle active"
+                                aria-label="{{ $rule->is_active ? 'Deactivate rule' : 'Activate rule' }}"
+                                style="padding:2px 10px; border-radius: var(--r-pill); font-size: var(--fs-10); font-weight:600; cursor:pointer; border:0;
+                                       {{ $rule->is_active ? 'background: var(--brand-50); color: var(--brand-700);' : 'background: var(--border-muted); color: var(--text-sub);' }}">
+                            {{ $rule->is_active ? 'Active' : 'Inactive' }}
+                        </button>
+                        <button wire:click="deleteRule({{ $rule->id }})"
+                                wire:confirm="Delete this rule? This cannot be undone."
+                                title="Delete rule"
+                                style="color: var(--danger); background:transparent; border:0; padding:2px 6px; font-size: var(--fs-13); cursor:pointer;">✕</button>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap: var(--s-2); padding-left:6px; font-size: var(--fs-12); color: var(--text-sub); margin-bottom: var(--s-2);">
+                        <span style="padding:3px 10px; border-radius: var(--r-md); font-weight:500;
+                                     {{ $rule->from_stage_id ? 'background: var(--border-muted); color: var(--text);' : 'background:#EEF2FF; color:#3730A3; font-style:italic;' }}">
+                            {{ $rule->fromStage?->name ?? 'Any stage' }}
+                        </span>
+                        <span style="color: var(--text-muted);">→</span>
+                        <span style="padding:3px 10px; border-radius: var(--r-md); font-weight:500;
+                                     {{ $rule->to_stage_id ? 'background: var(--border-muted); color: var(--text);' : 'background:#EEF2FF; color:#3730A3; font-style:italic;' }}">
+                            {{ $rule->toStage?->name ?? 'Any stage' }}
+                        </span>
+                    </div>
+
+                    @foreach ($rule->conditions as $cond)
+                        <div style="padding-left:6px; font-size: var(--fs-11); color: var(--text-sub); border-top:1px dashed var(--border); padding-top:6px; margin-top:6px;">
+                            <span style="font-weight:700; color: var(--text);">IF</span>
+                            @if ($cond->condition_type === 'FIELD_CHECK')
+                                field <code style="background: var(--border-muted); padding:1px 6px; border-radius:3px; font-family: ui-monospace, monospace; font-size: var(--fs-10);">{{ $cond->field_or_relation }}</code>
+                                <span style="color: var(--text);">{{ $cond->operator }}</span>
+                                @if (is_array($cond->value) && isset($cond->value['rhs']))
+                                    <code style="background: var(--border-muted); padding:1px 6px; border-radius:3px; font-family: ui-monospace, monospace; font-size: var(--fs-10);">{{ $cond->value['rhs'] }}</code>
+                                @endif
+                            @else
+                                record has ≥{{ $cond->value['count_min'] ?? 1 }}
+                                <code style="background: var(--border-muted); padding:1px 6px; border-radius:3px; font-family: ui-monospace, monospace; font-size: var(--fs-10);">{{ $cond->field_or_relation }}</code>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @empty
+                <div style="padding: var(--s-6); text-align:center; color: var(--text-sub); font-size: var(--fs-12);">
+                    No transition rules yet. Add a rule to block or warn when moving students between stages with incomplete data.
+                </div>
+            @endforelse
         </div>
     @else
         <div class="flex justify-end mb-4">
