@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_START,
                 fn (): string => config('davyas.visual_v2')
                     ? '<script>document.body.classList.add("davya-v2")</script>'
-                        . Blade::render('@livewire("top-bar") @livewire("command-palette")')
+                        . Blade::render('@livewire("top-bar") @livewire("command-palette") @livewire("student-peek-drawer")')
                         . <<<'HTML'
                         <script>
                             document.addEventListener('keydown', (e) => {
