@@ -14,7 +14,7 @@
         'Closed'                  => 'bg-gray-500',
     ])
     @php($selectClass = 'block rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500')
-    @php($activeFilters = filled($this->filterOwner) || filled($this->filterCourse) || filled($this->filterRound) || filled($this->filterLeadSource) || $this->filterHasPending)
+    @php($activeFilters = filled($this->filterOwner) || filled($this->filterCourse) || filled($this->filterRound) || filled($this->filterLeadSource) || $this->filterHasPending || filled($this->filterPlan) || filled($this->filterCategory) || filled($this->filterResponse) || $this->filterStuck || $this->filterSeatFeePending || $this->filterReEntry)
 
     @if (config('davyas.visual_v2'))
         {{-- v2 sub-toolbar: interactive compact dropdowns + view switcher. Replaces the legacy filter bar. --}}
@@ -54,6 +54,30 @@
                 @endforeach
             </select>
 
+            <select wire:model.live="filterPlan" aria-label="Filter by plan"
+                    style="{{ filled($this->filterPlan) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Plan · All</option>
+                @foreach ($opts['plans'] as $value => $label)
+                    <option value="{{ $value }}">Plan: {{ $label }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="filterCategory" aria-label="Filter by category"
+                    style="{{ filled($this->filterCategory) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Category · All</option>
+                @foreach ($opts['categories'] as $value => $label)
+                    <option value="{{ $value }}">Category: {{ $label }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="filterResponse" aria-label="Filter by student response"
+                    style="{{ filled($this->filterResponse) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Response · All</option>
+                @foreach ($opts['responses'] as $value => $label)
+                    <option value="{{ $value }}">Response: {{ $label }}</option>
+                @endforeach
+            </select>
+
             <label style="display:flex; align-items:center; gap:6px; font-size: var(--fs-11); color: var(--text); cursor:pointer;
                           {{ $this->filterHasPending ? 'background: var(--brand-50); color: var(--brand-700); font-weight:600;' : '' }}
                           padding: 4px 10px; border-radius: var(--r-pill); border:1px solid {{ $this->filterHasPending ? 'var(--brand-100)' : 'var(--border)' }};">
@@ -61,6 +85,21 @@
                        style="accent-color: var(--brand-600); margin:0;">
                 Pending amount
             </label>
+
+            <button type="button" wire:click="$toggle('filterStuck')"
+                    style="font-size: var(--fs-11); font-weight: {{ $this->filterStuck ? '600' : '500' }}; padding: 4px 10px; border-radius: var(--r-pill); border: 1px solid {{ $this->filterStuck ? 'var(--brand-100)' : 'var(--border)' }}; background: {{ $this->filterStuck ? 'var(--brand-50)' : 'var(--surface)' }}; color: {{ $this->filterStuck ? 'var(--brand-700)' : 'var(--text)' }}; cursor: pointer;">
+                Stuck 14+d
+            </button>
+
+            <button type="button" wire:click="$toggle('filterSeatFeePending')"
+                    style="font-size: var(--fs-11); font-weight: {{ $this->filterSeatFeePending ? '600' : '500' }}; padding: 4px 10px; border-radius: var(--r-pill); border: 1px solid {{ $this->filterSeatFeePending ? 'var(--brand-100)' : 'var(--border)' }}; background: {{ $this->filterSeatFeePending ? 'var(--brand-50)' : 'var(--surface)' }}; color: {{ $this->filterSeatFeePending ? 'var(--brand-700)' : 'var(--text)' }}; cursor: pointer;">
+                Seat fee pending
+            </button>
+
+            <button type="button" wire:click="$toggle('filterReEntry')"
+                    style="font-size: var(--fs-11); font-weight: {{ $this->filterReEntry ? '600' : '500' }}; padding: 4px 10px; border-radius: var(--r-pill); border: 1px solid {{ $this->filterReEntry ? 'var(--brand-100)' : 'var(--border)' }}; background: {{ $this->filterReEntry ? 'var(--brand-50)' : 'var(--surface)' }}; color: {{ $this->filterReEntry ? 'var(--brand-700)' : 'var(--text)' }}; cursor: pointer;">
+                Re-entry
+            </button>
 
             @if ($activeFilters)
                 <button type="button" wire:click="resetFilters"

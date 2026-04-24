@@ -302,7 +302,23 @@ class StudentResource extends Resource
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
                 SelectFilter::make('stage')->options(fn () => self::stageOptions()),
-                SelectFilter::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
+                SelectFilter::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
+                SelectFilter::make('course')
+                    ->options(fn () => Student::query()->whereNotNull('course')->where('course', '!=', '')
+                        ->distinct()->orderBy('course')->pluck('course', 'course')->all()),
+                SelectFilter::make('current_round')->label('Round')
+                    ->options(fn () => Student::query()->whereNotNull('current_round')->where('current_round', '!=', '')
+                        ->distinct()->orderBy('current_round')->pluck('current_round', 'current_round')->all()),
+                SelectFilter::make('lead_source')->label('Lead source')
+                    ->options(fn () => Student::query()->whereNotNull('lead_source')->where('lead_source', '!=', '')
+                        ->distinct()->orderBy('lead_source')->pluck('lead_source', 'lead_source')->all()),
+                SelectFilter::make('category')
+                    ->options(fn () => self::optionsFor('category', ['Delhi', 'Outside'])),
+                SelectFilter::make('student_response')->label('Response')
+                    ->options(fn () => self::optionsFor('student_response', ['Ready', 'Not Interested', 'Needs Time'])),
+                Tables\Filters\Filter::make('has_pending')
+                    ->label('Has pending amount')
+                    ->query(fn ($query) => $query->whereRaw('deal_amount > COALESCE((SELECT SUM(amount) FROM payments WHERE student_id = students.id), 0)')),
                 Tables\Filters\Filter::make('stuck')
                     ->label('Stuck leads (14+ days)')
                     ->query(fn ($query) => $query

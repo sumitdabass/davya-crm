@@ -3,8 +3,10 @@
 namespace App\Filament\Pages;
 
 use App\Models\Payment;
+use App\Models\RoundHistory;
 use App\Models\Stage;
 use App\Models\Student;
+use App\Models\StudentField;
 use App\Models\User;
 use App\Services\PipelineSummary;
 use App\Services\Pipeline\PipelineConfig;
@@ -44,6 +46,24 @@ class KanbanBoard extends Page
     #[Url(as: 'pending')]
     public bool $filterHasPending = false;
 
+    #[Url(as: 'plan')]
+    public ?string $filterPlan = null;
+
+    #[Url(as: 'category')]
+    public ?string $filterCategory = null;
+
+    #[Url(as: 'response')]
+    public ?string $filterResponse = null;
+
+    #[Url(as: 'stuck')]
+    public bool $filterStuck = false;
+
+    #[Url(as: 'seat_fee')]
+    public bool $filterSeatFeePending = false;
+
+    #[Url(as: 're_entry')]
+    public bool $filterReEntry = false;
+
     public function resetFilters(): void
     {
         $this->filterOwner = null;
@@ -51,12 +71,18 @@ class KanbanBoard extends Page
         $this->filterRound = null;
         $this->filterLeadSource = null;
         $this->filterHasPending = false;
+        $this->filterPlan = null;
+        $this->filterCategory = null;
+        $this->filterResponse = null;
+        $this->filterStuck = false;
+        $this->filterSeatFeePending = false;
+        $this->filterReEntry = false;
     }
 
     /**
      * Filter dropdown options, scoped to what the viewer is allowed to see.
      *
-     * @return array{owners: array<int,string>, courses: array<string,string>, rounds: array<string,string>, sources: array<string,string>}
+     * @return array{owners: array<int,string>, courses: array<string,string>, rounds: array<string,string>, sources: array<string,string>, plans: array<string,string>, categories: array<string,string>, responses: array<string,string>}
      */
     public function getFilterOptions(): array
     {
@@ -74,12 +100,44 @@ class KanbanBoard extends Page
         $sources = (clone $base)->whereNotNull('lead_source')->where('lead_source', '!=', '')
             ->distinct()->orderBy('lead_source')->pluck('lead_source')->all();
 
+        // Plan: read from StudentField options, fall back to static defaults.
+        $plans = $this->optionsFromField('plan', ['Online', 'Offline', 'All']);
+
+        // Category: read from StudentField options, fall back to static defaults.
+        $categories = $this->optionsFromField('category', ['Delhi', 'Outside']);
+
+        // Response: hardcoded constants (free-text field may have inconsistent casing in DB).
+        $responses = ['Ready' => 'Ready', 'Not Interested' => 'Not Interested', 'Needs Time' => 'Needs Time'];
+
         return [
-            'owners'  => $owners,
-            'courses' => array_combine($courses, $courses),
-            'rounds'  => array_combine($rounds, $rounds),
-            'sources' => array_combine($sources, $sources),
+            'owners'     => $owners,
+            'courses'    => array_combine($courses, $courses),
+            'rounds'     => array_combine($rounds, $rounds),
+            'sources'    => array_combine($sources, $sources),
+            'plans'      => $plans,
+            'categories' => $categories,
+            'responses'  => $responses,
         ];
+    }
+
+    /**
+     * Read Select options for a StudentField record by key.
+     * Falls back to the provided defaults if the record is missing or has no options.
+     *
+     * @param  array<int,string>  $fallback
+     * @return array<string,string>
+     */
+    private function optionsFromField(string $key, array $fallback): array
+    {
+        $saved = StudentField::where('key', $key)->value('options');
+        $list = (is_array($saved) && ! empty($saved)) ? $saved : $fallback;
+
+        return collect($list)->mapWithKeys(function ($v) {
+            if (is_array($v) && isset($v['value'])) {
+                return [$v['value'] => $v['label'] ?? $v['value']];
+            }
+            return [$v => $v];
+        })->all();
     }
 
     /**
@@ -287,6 +345,27 @@ class KanbanBoard extends Page
         }
         if ($this->filterHasPending) {
             $q->whereRaw('COALESCE(deal_amount, 0) > COALESCE((SELECT SUM(amount) FROM payments WHERE payments.student_id = students.id), 0)');
+        }
+        if (filled($this->filterPlan)) {
+            $q->where('plan', $this->filterPlan);
+        }
+        if (filled($this->filterCategory)) {
+            $q->where('category', $this->filterCategory);
+        }
+        if (filled($this->filterResponse)) {
+            $q->where('student_response', $this->filterResponse);
+        }
+        if ($this->filterStuck) {
+            $q->where('updated_at', '<', now()->subDays(14))
+              ->whereNotIn('stage', ['Admission Confirmed', 'Closed']);
+        }
+        if ($this->filterSeatFeePending) {
+            $q->whereHas('roundHistory', fn ($rq) => $rq
+                ->where('outcome', 'Allotted — Fee Pending')
+                ->where('seat_fee_paid', false));
+        }
+        if ($this->filterReEntry) {
+            $q->whereIn('id', RoundHistory::reEntryCandidates()->pluck('student_id'));
         }
 
         return $q;
