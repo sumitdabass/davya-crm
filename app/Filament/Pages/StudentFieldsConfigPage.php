@@ -21,6 +21,154 @@ class StudentFieldsConfigPage extends Page
     public string $activeTab = 'live'; // 'live' | 'archived'
     public ?int $selectedSectionId = null;
 
+    // Inline add-form state
+    public string $newSectionName = '';
+    public ?int $newFieldSectionId = null;
+    public string $newFieldLabel = '';
+    public string $newFieldType = 'text';
+    public bool $newFieldRequired = false;
+    public bool $newFieldShowInTable = false;
+    public bool $newFieldShowInKanban = false;
+    public bool $newFieldShowInImport = false;
+    public string $newFieldOptionsText = ''; // one option per line, dropdown/multiselect only
+
+    public function toggleFieldRequired(int $fieldId): void
+    {
+        $field = StudentField::findOrFail($fieldId);
+        if ($field->key === 'phone') {
+            $this->addError('required_'.$fieldId, 'Phone is always required.');
+            return;
+        }
+        $field->update(['is_required' => !$field->is_required]);
+    }
+
+    // Inline edit state
+    public ?int $editingFieldId = null;
+    public string $editFieldLabel = '';
+    public string $editFieldOptionsText = '';
+
+    public function startEdit(int $fieldId): void
+    {
+        $field = StudentField::findOrFail($fieldId);
+        $this->editingFieldId = $fieldId;
+        $this->editFieldLabel = $field->label;
+        $opts = is_array($field->options) ? $field->options : [];
+        $flat = array_map(fn ($o) => is_array($o) ? ($o['label'] ?? $o['value'] ?? '') : $o, $opts);
+        $this->editFieldOptionsText = implode("\n", $flat);
+        $this->resetErrorBag();
+    }
+
+    public function cancelEdit(): void
+    {
+        $this->editingFieldId = null;
+        $this->editFieldLabel = '';
+        $this->editFieldOptionsText = '';
+    }
+
+    public function saveEdit(): void
+    {
+        if (!$this->editingFieldId) return;
+        $field = StudentField::findOrFail($this->editingFieldId);
+        $data = [];
+        $label = trim($this->editFieldLabel);
+        if ($label === '') {
+            $this->addError('editFieldLabel', 'Label required');
+            return;
+        }
+        $data['label'] = $label;
+        if (in_array($field->type, ['dropdown','multiselect'], true)) {
+            $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $this->editFieldOptionsText))));
+            if (empty($lines)) {
+                $this->addError('editFieldOptionsText', 'At least one option required');
+                return;
+            }
+            $data['options'] = array_map(fn ($v) => ['value' => $v, 'label' => $v], $lines);
+        }
+        $this->updateField($this->editingFieldId, $data);
+        if ($this->getErrorBag()->isEmpty()) {
+            $this->cancelEdit();
+        }
+    }
+
+    public function moveFieldUp(int $fieldId): void
+    {
+        $field = StudentField::findOrFail($fieldId);
+        $above = StudentField::where('section_id', $field->section_id)
+            ->where('position', '<', $field->position)
+            ->orderBy('position', 'desc')
+            ->first();
+        if (!$above) return;
+        DB::transaction(function () use ($field, $above) {
+            $fp = $field->position; $ap = $above->position;
+            $field->update(['position' => $ap]);
+            $above->update(['position' => $fp]);
+        });
+    }
+
+    public function moveFieldDown(int $fieldId): void
+    {
+        $field = StudentField::findOrFail($fieldId);
+        $below = StudentField::where('section_id', $field->section_id)
+            ->where('position', '>', $field->position)
+            ->orderBy('position', 'asc')
+            ->first();
+        if (!$below) return;
+        DB::transaction(function () use ($field, $below) {
+            $fp = $field->position; $bp = $below->position;
+            $field->update(['position' => $bp]);
+            $below->update(['position' => $fp]);
+        });
+    }
+
+    public function submitNewSection(): void
+    {
+        $name = trim($this->newSectionName);
+        if ($name === '') {
+            $this->addError('newSectionName', 'Name required');
+            return;
+        }
+        $this->createSection($name);
+        $this->newSectionName = '';
+        $this->selectedSectionId = StudentFieldSection::orderBy('position', 'desc')->value('id');
+    }
+
+    public function submitNewField(): void
+    {
+        $targetSectionId = $this->newFieldSectionId ?: $this->selectedSectionId;
+        if (!$targetSectionId) {
+            $this->addError('newFieldSectionId', 'Pick a section');
+            return;
+        }
+        $options = null;
+        if (in_array($this->newFieldType, ['dropdown','multiselect'], true)) {
+            $lines = array_values(array_filter(array_map('trim', preg_split('/\r?\n/', $this->newFieldOptionsText))));
+            if (empty($lines)) {
+                $this->addError('newFieldOptionsText', 'At least one option required');
+                return;
+            }
+            $options = array_map(fn ($v) => ['value' => $v, 'label' => $v], $lines);
+        }
+        $this->createField([
+            'label' => $this->newFieldLabel,
+            'type' => $this->newFieldType,
+            'section_id' => $targetSectionId,
+            'is_required' => $this->newFieldRequired,
+            'options' => $options ?? [],
+            'show_in_table' => $this->newFieldShowInTable,
+            'show_in_kanban' => $this->newFieldShowInKanban,
+            'show_in_import' => $this->newFieldShowInImport,
+        ]);
+        if (!$this->getErrorBag()->isEmpty()) return;
+        $this->newFieldSectionId = null;
+        $this->newFieldLabel = '';
+        $this->newFieldType = 'text';
+        $this->newFieldRequired = false;
+        $this->newFieldShowInTable = false;
+        $this->newFieldShowInKanban = false;
+        $this->newFieldShowInImport = false;
+        $this->newFieldOptionsText = '';
+    }
+
     public static function canAccess(): bool
     {
         return auth()->check() && auth()->user()->hasRole('admin');
@@ -143,7 +291,7 @@ class StudentFieldsConfigPage extends Page
         foreach (['show_in_table','show_in_kanban','show_in_import'] as $f) {
             if (array_key_exists($f, $data)) $update[$f] = (bool) $data[$f];
         }
-        if (!$field->is_built_in && isset($data['options']) && in_array($field->type, ['dropdown','multiselect'], true)) {
+        if (isset($data['options']) && in_array($field->type, ['dropdown','multiselect'], true)) {
             $update['options'] = $data['options'];
         }
         $field->update($update);

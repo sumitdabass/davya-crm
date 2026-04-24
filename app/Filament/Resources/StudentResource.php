@@ -73,6 +73,25 @@ class StudentResource extends Resource
             ->all();
     }
 
+    /**
+     * Read Select options for a built-in field from its StudentField record.
+     * Falls back to the provided defaults if the record is missing or has no options.
+     *
+     * @param  array<int,string>  $fallback
+     * @return array<string,string>
+     */
+    private static function optionsFor(string $key, array $fallback): array
+    {
+        $saved = StudentField::where('key', $key)->value('options');
+        $list = (is_array($saved) && !empty($saved)) ? $saved : $fallback;
+        return collect($list)->mapWithKeys(function ($v) {
+            if (is_array($v) && isset($v['value'])) {
+                return [$v['value'] => $v['label'] ?? $v['value']];
+            }
+            return [$v => $v];
+        })->all();
+    }
+
     public static function form(Form $form): Form
     {
         $baseSchema = [
@@ -81,13 +100,13 @@ class StudentResource extends Resource
                 ->tabs([
                     Tabs\Tab::make('Identity')
                         ->icon('heroicon-o-identification')
-                        ->schema([
+                        ->schema(array_merge([
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
                             TextInput::make('name'),
                             TextInput::make('father_name'),
                             TextInput::make('phone_2')->tel()->label('Alternate phone'),
                             TextInput::make('email')->email()->maxLength(120),
-                        ])->columns(2),
+                        ], self::customFieldsForSection('Identity')))->columns(2),
 
                     Tabs\Tab::make('Source & Stage')
                         ->icon('heroicon-o-user-group')
@@ -133,11 +152,8 @@ class StudentResource extends Resource
                                         Notification::make()->warning()->title('Stage changed — incomplete')->body($warn)->send();
                                     }
                                 }),
-                            Select::make('student_response')->options([
-                                'Ready' => 'Ready',
-                                'Not Interested' => 'Not Interested',
-                                'Needs Time' => 'Needs Time',
-                            ]),
+                            Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready','Not Interested','Needs Time'])),
+                            ...self::customFieldsForSection('Source & Stage'),
                         ])->columns(2),
 
                     Tabs\Tab::make('Academic')
@@ -146,24 +162,25 @@ class StudentResource extends Resource
                             TextInput::make('exam_appeared'),
                             TextInput::make('twelfth_marks'),
                             TextInput::make('rank')->maxLength(40),
-                            Select::make('category')->options(['Delhi' => 'Delhi', 'Outside' => 'Outside']),
+                            Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi','Outside'])),
                             TextInput::make('state')->maxLength(40),
                             TextInput::make('course')->columnSpan(3),
                             TextInput::make('preference_r1')->label('1st choice')->required()->maxLength(120),
                             TextInput::make('preference_r2')->label('2nd choice (optional)')->maxLength(120),
                             TextInput::make('preference_r3')->label('3rd choice (optional)')->maxLength(120),
+                            ...self::customFieldsForSection('Academic'),
                         ])->columns(3),
 
                     Tabs\Tab::make('Deal')
                         ->icon('heroicon-o-banknotes')
-                        ->schema([
+                        ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
-                            Select::make('plan')->options(['Online' => 'Online', 'Offline' => 'Offline', 'All' => 'All']),
-                        ])->columns(2),
+                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online','Offline','All'])),
+                        ], self::customFieldsForSection('Deal')))->columns(2),
 
                     Tabs\Tab::make('Counselling')
                         ->icon('heroicon-o-key')
-                        ->schema([
+                        ->schema(array_merge([
                             Toggle::make('is_ipu_registered'),
                             TextInput::make('ipu_user_id'),
                             TextInput::make('ipu_login_code')
@@ -172,33 +189,27 @@ class StudentResource extends Resource
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
                             Toggle::make('seat_fee_due')->disabled(),
-                        ])->columns(2),
+                        ], self::customFieldsForSection('Counselling')))->columns(2),
 
                     Tabs\Tab::make('History')
                         ->icon('heroicon-o-clock')
-                        ->schema([
+                        ->schema(array_merge([
                             \Filament\Forms\Components\Placeholder::make('activity_hint')
                                 ->content('Notes and activity are shown in the tabs below the form.')
                                 ->label(''),
-                        ]),
+                        ], self::customFieldsForSection('History'))),
 
                     Tabs\Tab::make('Closure')
                         ->icon('heroicon-o-x-circle')
                         ->badge(fn ($record) => $record?->stage === 'Closed' ? 'Closed' : null)
                         ->badgeColor('danger')
-                        ->schema([
-                            Select::make('close_reason')->options([
-                                'Not Interested' => 'Not Interested',
-                                'Backed Out — Forfeit' => 'Backed Out — Forfeit',
-                                'Backed Out — Partial Refund' => 'Backed Out — Partial Refund',
-                                'Completed' => 'Completed',
-                                'Other' => 'Other',
-                            ]),
+                        ->schema(array_merge([
+                            Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
                             TextInput::make('refund_amount')->numeric()->prefix('₹'),
                             Textarea::make('re_entry_reason')->rows(2),
                             Textarea::make('description')->rows(3)->label('Description / freeform notes'),
                             Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
-                        ])->columns(2),
+                        ], self::customFieldsForSection('Closure')))->columns(2),
                 ])
                 ->persistTabInQueryString(),
         ];
@@ -207,26 +218,43 @@ class StudentResource extends Resource
     }
 
     /**
-     * Build Section components for any custom (non-built-in) StudentFields,
-     * grouped by their StudentFieldSection. Empty sections are skipped.
+     * Custom (non-built-in) fields for a given section name, rendered as form components.
+     * Injected into the matching Tab's schema so custom "Deal" fields land inside the Deal tab.
+     */
+    protected static function customFieldsForSection(string $sectionName): array
+    {
+        $section = StudentFieldSection::where('name', $sectionName)->first();
+        if (!$section) return [];
+        return StudentField::active()->custom()
+            ->where('section_id', $section->id)
+            ->orderBy('position')
+            ->get()
+            ->map(fn ($f) => (new FieldRenderer())->render($f))
+            ->all();
+    }
+
+    /**
+     * Fallback Section components for any custom field whose section name does NOT
+     * match one of the tabs above (e.g. admin created a "Custom Notes" section).
      *
      * @return array<int, \Filament\Forms\Components\Section>
      */
     protected static function dynamicSections(): array
     {
-        return StudentFieldSection::orderBy('position')->get()->map(function ($section) {
-            $fields = StudentField::active()->custom()
-                ->where('section_id', $section->id)
-                ->orderBy('position')
-                ->get();
-            if ($fields->isEmpty()) {
-                return null;
-            }
+        $tabNames = ['Identity','Source & Stage','Academic','Deal','Counselling','History','Closure'];
+        return StudentFieldSection::orderBy('position')->get()
+            ->reject(fn ($s) => in_array($s->name, $tabNames, true))
+            ->map(function ($section) {
+                $fields = StudentField::active()->custom()
+                    ->where('section_id', $section->id)
+                    ->orderBy('position')
+                    ->get();
+                if ($fields->isEmpty()) return null;
 
-            return Section::make($section->name)
-                ->schema($fields->map(fn ($f) => (new FieldRenderer())->render($f))->all())
-                ->collapsed(false);
-        })->filter()->values()->all();
+                return Section::make($section->name)
+                    ->schema($fields->map(fn ($f) => (new FieldRenderer())->render($f))->all())
+                    ->collapsed(false);
+            })->filter()->values()->all();
     }
 
     public static function table(Table $table): Table

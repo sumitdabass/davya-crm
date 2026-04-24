@@ -59,7 +59,7 @@ class StudentFieldsConfigPageTest extends TestCase
             ->test(StudentFieldsConfigPage::class)
             ->call('createField', [
                 'section_id' => $section->id,
-                'label' => 'Email',
+                'label' => 'Work Email',
                 'type' => 'email',
                 'is_required' => false,
                 'options' => null,
@@ -68,7 +68,7 @@ class StudentFieldsConfigPageTest extends TestCase
                 'show_in_import' => true,
             ])
             ->assertHasNoErrors();
-        $this->assertDatabaseHas('student_fields', ['key' => 'email', 'type' => 'email', 'section_id' => $section->id, 'show_in_table' => true]);
+        $this->assertDatabaseHas('student_fields', ['key' => 'work_email', 'type' => 'email', 'section_id' => $section->id, 'show_in_table' => true]);
     }
 
     public function test_create_dropdown_field_persists_options(): void
