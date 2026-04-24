@@ -37,6 +37,12 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::Emerald,
                 'gray'    => Color::Slate,
             ])
+            ->renderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => config('davyas.visual_v2')
+                    ? '<script>document.body.classList.add("davya-v2")</script>' . Blade::render('@livewire("top-bar")')
+                    : ''
+            )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
                 <link rel="manifest" href="/manifest.json">
                 <meta name="theme-color" content="#065f46">

@@ -208,3 +208,11 @@
     font-weight: 500;
 }
 .davya-owner-pill .av { width: 18px; height: 18px; border-radius: 50%; background: var(--brand-500); color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+
+/* Hide the legacy Filament sidebar when the v2 shell is active.
+ * body.davya-v2 class is added by AdminPanelProvider BODY_START when flag is on. */
+@media (min-width: 1024px) {
+    body.davya-v2 .fi-sidebar { display: none; }
+    body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
+    body.davya-v2 .fi-topbar { display: none; }
+}
