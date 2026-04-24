@@ -59,6 +59,11 @@ class AdminPanelProvider extends PanelProvider
                         HTML
                     : ''
             )
+            ->renderHook(
+                PanelsRenderHook::RESOURCE_PAGES_LIST_RECORDS_TABLE_BEFORE,
+                fn (): string => config('davyas.visual_v2') ? view('filament.partials.student-list-pill-filters')->render() : '',
+                scopes: [\App\Filament\Resources\StudentResource\Pages\ListStudents::class],
+            )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
                 <link rel="manifest" href="/manifest.json">
                 <meta name="theme-color" content="#065f46">
