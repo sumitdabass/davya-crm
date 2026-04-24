@@ -1,0 +1,210 @@
+/* davya-tokens — visual refresh v2 (2026-04-24)
+ * Loaded via AdminPanelProvider::HEAD_END when config('davyas.visual_v2') is true.
+ * Spec: docs/superpowers/specs/2026-04-24-visual-refresh-design.md
+ */
+:root {
+    /* Brand — emerald, matches existing logo / PWA theme */
+    --brand-50:  #ECFDF5;
+    --brand-100: #D1FAE5;
+    --brand-500: #10B981;
+    --brand-600: #059669;
+    --brand-700: #047857;
+
+    /* Semantic */
+    --success: #10B981;
+    --warning: #F59E0B;
+    --danger:  #EF4444;
+    --info:    #3B82F6;
+
+    /* Neutrals */
+    --bg:           #F7F8FA;
+    --surface:      #FFFFFF;
+    --border:       #E5E7EB;
+    --border-muted: #F3F4F6;
+    --text:         #111827;
+    --text-sub:     #6B7280;
+    --text-muted:   #9CA3AF;
+
+    /* Stage accents (3 px column top-border) */
+    --stage-new:     #3B82F6;
+    --stage-active:  #F59E0B;
+    --stage-meeting: #8B5CF6;
+    --stage-advance: #10B981;
+    --stage-round:   #06B6D4;
+    --stage-offline: #6366F1;
+    --stage-won:     #059669;
+    --stage-lost:    #EF4444;
+
+    /* Student response (card left strip) */
+    --resp-ready:    #10B981;
+    --resp-hesitant: #F59E0B;
+    --resp-cold:     #EF4444;
+
+    /* Radii */
+    --r-sm: 4px;
+    --r-md: 6px;
+    --r-lg: 8px;
+    --r-xl: 10px;
+    --r-pill: 9999px;
+
+    /* Spacing (4 pt) */
+    --s-1: 4px;  --s-2: 8px;  --s-3: 12px;
+    --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px;
+
+    /* Shadow */
+    --elev-1: 0 1px 2px rgba(0,0,0,.04);
+    --elev-2: 0 4px 12px rgba(0,0,0,.08);
+    --elev-drawer: -12px 0 32px rgba(0,0,0,.12);
+
+    /* Type */
+    --fs-10: 10px; --fs-11: 11px; --fs-12: 12px; --fs-13: 13px;
+    --fs-14: 14px; --fs-16: 16px; --fs-18: 18px; --fs-24: 24px;
+}
+
+/* Section-card — used by forms, settings tiles, drawer panels. */
+.davya-section-card {
+    background: #FAFBFC;
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    margin-bottom: var(--s-3);
+}
+.davya-section-card-title {
+    font-size: var(--fs-11);
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--s-3);
+}
+
+/* Card-row — reusable row for schema editor, stages config, duplicate review. */
+.davya-card-row {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: var(--s-2) var(--s-3);
+    margin-bottom: var(--s-1);
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    position: relative;
+}
+.davya-card-row--custom::before {
+    content: '';
+    position: absolute;
+    left: 0; top: var(--s-2); bottom: var(--s-2);
+    width: 3px;
+    background: var(--brand-500);
+    border-radius: 0 3px 3px 0;
+}
+.davya-card-row--required::before {
+    content: '';
+    position: absolute;
+    left: 0; top: var(--s-2); bottom: var(--s-2);
+    width: 3px;
+    background: var(--danger);
+    border-radius: 0 3px 3px 0;
+}
+
+/* Kanban dense card — used by kanban-board.blade.php. */
+.davya-dense-card {
+    background: var(--surface);
+    border: 1px solid var(--border-muted);
+    border-radius: var(--r-md);
+    padding: 6px 8px 6px 14px;
+    margin-bottom: 4px;
+    font-size: var(--fs-12);
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    position: relative;
+    cursor: pointer;
+}
+.davya-dense-card::before {
+    content: '';
+    position: absolute;
+    left: 3px; top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--border);
+    border-radius: 0 3px 3px 0;
+}
+.davya-dense-card[data-response="ready"]::before    { background: var(--resp-ready); }
+.davya-dense-card[data-response="hesitant"]::before { background: var(--resp-hesitant); }
+.davya-dense-card[data-response="cold"]::before     { background: var(--resp-cold); }
+.davya-dense-card:hover { background: var(--brand-50); }
+.davya-dense-card .n    { font-weight: 600; flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.davya-dense-card .chips{ font-size: var(--fs-10); color: var(--text-sub); white-space: nowrap; }
+.davya-dense-card .amt  { font-weight: 700; color: var(--brand-700); font-size: var(--fs-11); }
+.davya-dense-card .amt[data-zero="true"] { color: var(--text-muted); }
+.davya-dense-card .av   { width: 18px; height: 18px; border-radius: 50%; color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0; }
+
+/* Kanban column. */
+.davya-kanban-col {
+    background: var(--surface);
+    border-radius: var(--r-lg);
+    padding: var(--s-3);
+    min-width: 260px;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--stage-active);
+}
+.davya-kanban-col[data-stage-type="new"]     { border-top-color: var(--stage-new); }
+.davya-kanban-col[data-stage-type="meeting"] { border-top-color: var(--stage-meeting); }
+.davya-kanban-col[data-stage-type="advance"] { border-top-color: var(--stage-advance); }
+.davya-kanban-col[data-stage-type="round"]   { border-top-color: var(--stage-round); }
+.davya-kanban-col[data-stage-type="offline"] { border-top-color: var(--stage-offline); }
+.davya-kanban-col[data-stage-type="won"]     { border-top-color: var(--stage-won); }
+.davya-kanban-col[data-stage-type="lost"]    { border-top-color: var(--stage-lost); }
+.davya-kanban-col-head { display: flex; justify-content: space-between; align-items: center; }
+.davya-kanban-col-head h4 { font-size: var(--fs-12); font-weight: 700; margin: 0; color: var(--text); }
+.davya-kanban-col-count { background: var(--border-muted); color: var(--text-sub); border-radius: var(--r-pill); padding: 1px 8px; font-size: var(--fs-10); font-weight: 700; }
+.davya-kanban-col-agg { font-size: var(--fs-10); color: var(--text-sub); font-weight: 500; margin: 2px 0 var(--s-2); }
+
+/* Required-field red left bar — applied to every Filament form input
+ * whose wrapper contains the built-in `*` marker. Uses :has() for
+ * non-invasive styling; Safari <15.4 will silently skip the bar.
+ */
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-input-wrp,
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-select-input,
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-textarea {
+    position: relative;
+    padding-left: 12px !important;
+}
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-input-wrp::before,
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-select-input::before,
+.fi-fo-field-wrp:has(sup.fi-fo-field-wrp-label-required-mark) .fi-textarea::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 3px;
+    background: var(--danger);
+    border-radius: 0 3px 3px 0;
+}
+/* Hide the asterisk since the red bar replaces it. */
+.fi-fo-field-wrp sup.fi-fo-field-wrp-label-required-mark { display: none; }
+
+/* Section-card wrapper — applied to Filament form tabs/sections
+ * via extraAttributes(['class' => 'davya-section']) on StudentResource.
+ */
+.fi-fo-section.davya-section {
+    background: #FAFBFC;
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    margin-bottom: var(--s-3);
+}
+
+/* Owner pill — used by top bar and form headers. */
+.davya-owner-pill {
+    background: var(--brand-50);
+    border: 1px solid var(--brand-100);
+    border-radius: var(--r-pill);
+    padding: 3px 10px;
+    font-size: var(--fs-11);
+    color: var(--brand-700);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+.davya-owner-pill .av { width: 18px; height: 18px; border-radius: 50%; background: var(--brand-500); color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
