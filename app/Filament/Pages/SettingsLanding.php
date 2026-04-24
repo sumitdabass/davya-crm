@@ -14,6 +14,11 @@ class SettingsLanding extends Page
     protected static ?string $navigationGroup = 'Setup';
     protected static ?int $navigationSort = 100;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('admin') ?? false;
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return config('davyas.visual_v2') === true

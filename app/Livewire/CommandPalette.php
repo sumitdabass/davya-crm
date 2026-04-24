@@ -49,25 +49,35 @@ class CommandPalette extends Component
 
     public function pages(): array
     {
+        $user = auth()->user();
+        $isAdmin = $user?->hasRole('admin') ?? false;
+        $isHead = $user?->hasRole('head') ?? false;
+        $isFinance = $user?->hasRole('finance') ?? false;
+
         $all = [
-            ['label' => 'Pipeline',                     'url' => '/admin/kanban'],
-            ['label' => 'Students',                     'url' => '/admin/students'],
-            ['label' => 'Today',                        'url' => '/admin/today'],
-            ['label' => 'Dashboard',                    'url' => '/admin'],
-            ['label' => 'Reports — Leads',              'url' => '/admin/leads-report'],
-            ['label' => 'Reports — Activity',           'url' => '/admin/activity-audit'],
-            ['label' => 'Reports — Duplicate review',   'url' => '/admin/duplicate-flags'],
-            ['label' => 'Reports — Lead import',        'url' => '/admin/lead-import'],
-            ['label' => 'Settings — Fields',            'url' => '/admin/student-fields'],
-            ['label' => 'Settings — Stages',            'url' => '/admin/pipeline-config'],
-            ['label' => 'Settings',                      'url' => '/admin/settings'],
+            ['label' => 'Pipeline',                     'url' => '/admin/kanban',          'visible' => true],
+            ['label' => 'Students',                     'url' => '/admin/students',        'visible' => true],
+            ['label' => 'Today',                        'url' => '/admin/today',           'visible' => true],
+            ['label' => 'Dashboard',                    'url' => '/admin',                 'visible' => true],
+            ['label' => 'Reports — Leads',              'url' => '/admin/leads-report',    'visible' => $isAdmin],
+            ['label' => 'Reports — Payments',           'url' => '/admin/payment-report',  'visible' => $isAdmin || $isHead],
+            ['label' => 'Reports — Activity',           'url' => '/admin/activity-audit',  'visible' => $isAdmin],
+            ['label' => 'Reports — Duplicate review',   'url' => '/admin/duplicate-flags', 'visible' => $isAdmin],
+            ['label' => 'Reports — Lead import',        'url' => '/admin/lead-import',     'visible' => $isAdmin],
+            ['label' => 'Finance — Expenses',           'url' => '/admin/expenses',        'visible' => $isAdmin || $isFinance],
+            ['label' => 'Finance — Investments',        'url' => '/admin/investments',     'visible' => $isAdmin || $isFinance],
+            ['label' => 'Settings — Fields',            'url' => '/admin/student-fields',  'visible' => $isAdmin],
+            ['label' => 'Settings — Stages',            'url' => '/admin/pipeline-config', 'visible' => $isAdmin],
+            ['label' => 'Settings',                     'url' => '/admin/settings',        'visible' => $isAdmin],
         ];
 
+        $visible = array_values(array_filter($all, fn ($p) => $p['visible']));
+
         if ($this->query === '') {
-            return $all;
+            return $visible;
         }
 
-        return array_values(array_filter($all, fn ($p) => stripos($p['label'], $this->query) !== false));
+        return array_values(array_filter($visible, fn ($p) => stripos($p['label'], $this->query) !== false));
     }
 
     public function render()

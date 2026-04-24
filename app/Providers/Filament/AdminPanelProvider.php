@@ -103,19 +103,12 @@ class AdminPanelProvider extends PanelProvider
                     }
                 </script>
             BLADE))
-            ->userMenuItems([
-                \Filament\Navigation\MenuItem::make()
-                    ->label('Install app')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->url(fn (): string => \App\Filament\Pages\InstallApp::getUrl()),
-            ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
-                \App\Filament\Widgets\InstallAppWidget::class,
                 \App\Filament\Widgets\SeatFeePendingWidget::class,
                 \App\Filament\Widgets\ReEntryCandidatesWidget::class,
                 \App\Filament\Widgets\StuckLeadsWidget::class,
