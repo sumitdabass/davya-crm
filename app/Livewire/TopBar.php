@@ -18,8 +18,6 @@ class TopBar extends Component
 
         if ($user?->hasRole('admin')) {
             $tabs[] = ['key' => 'reports', 'label' => 'Reports', 'url' => '/admin/leads-report', 'match' => '/admin/leads-report'];
-        } elseif ($user?->hasRole('head')) {
-            $tabs[] = ['key' => 'reports', 'label' => 'Reports', 'url' => '/admin/payment-report', 'match' => '/admin/payment-report'];
         }
 
         if ($user?->hasAnyRole(['admin', 'finance'])) {

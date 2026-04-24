@@ -51,31 +51,21 @@ class TopBarTest extends TestCase
             ->assertDontSee('Finance');
     }
 
-    public function test_head_reports_tab_routes_to_payment_report_not_leads_report(): void
+    public function test_reports_tab_is_admin_only(): void
     {
-        // sonam is seeded as pure head (no admin). Before this regression test,
-        // TopBar hardcoded Reports → /admin/leads-report which is admin-only,
-        // so a head clicking Reports got a 403.
-        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first());
+        // Reports tab is admin-only. Heads can still reach Payment Report via
+        // the command palette or direct URL (their policy allows it), but the
+        // top-bar tab would point at either a 403 (leads-report) or create
+        // duplicate-looking navigation, so we drop it for every non-admin.
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first()); // head
+        $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->first()); // member
+        $kapil = $this->unblock(User::where('email', 'kapil@davya.local')->first()); // freelancer
 
-        Livewire::actingAs($sonam)->test(TopBar::class)
-            ->assertSee('Reports')
-            ->assertSee('/admin/payment-report')
-            ->assertDontSee('/admin/leads-report');
-    }
-
-    public function test_member_and_freelancer_have_no_reports_tab(): void
-    {
-        $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->first());
-        $kapil = $this->unblock(User::where('email', 'kapil@davya.local')->first());
-
-        Livewire::actingAs($nisha)->test(TopBar::class)
-            ->assertSee('Pipeline')
-            ->assertDontSee('Reports');
-
-        Livewire::actingAs($kapil)->test(TopBar::class)
-            ->assertSee('Pipeline')
-            ->assertDontSee('Reports');
+        foreach ([$sonam, $nisha, $kapil] as $nonAdmin) {
+            Livewire::actingAs($nonAdmin)->test(TopBar::class)
+                ->assertSee('Pipeline')
+                ->assertDontSee('Reports');
+        }
     }
 
     public function test_settings_gear_hidden_from_non_admins(): void
