@@ -70,6 +70,27 @@
         @endif
     </div>
 
+    @if (config('davyas.visual_v2'))
+        <div class="davya-subtoolbar" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: var(--fs-11);">
+            <span style="background: var(--brand-50); border: 1px solid var(--brand-100); color: var(--brand-700); border-radius: var(--r-pill); padding: 3px 10px; font-weight: 500;">
+                Course: {{ $this->filterCourse ?: 'All' }}
+            </span>
+            <span style="background: var(--border-muted); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px 10px;">
+                Owner: {{ $this->filterOwner ? ($opts['owners'][$this->filterOwner] ?? $this->filterOwner) : 'Anyone' }}
+            </span>
+            <span style="background: var(--border-muted); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px 10px;">
+                Round: {{ $this->filterRound ?: 'Any' }}
+            </span>
+            <span style="color: var(--text-sub); margin-left: 6px;">·</span>
+            <span style="color: var(--text-sub);">Sort: Created ↓</span>
+
+            <div style="margin-left: auto; display: flex; background: var(--border-muted); border-radius: var(--r-md); padding: 2px; gap: 2px;">
+                <a href="/admin/kanban" style="padding: 3px 8px; font-size: var(--fs-11); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-weight: 600; text-decoration: none; box-shadow: var(--elev-1);">Kanban</a>
+                <a href="/admin/students" style="padding: 3px 8px; font-size: var(--fs-11); border-radius: var(--r-sm); color: var(--text-sub); text-decoration: none;">List</a>
+            </div>
+        </div>
+    @endif
+
     <div class="fi-kanban-scroll overflow-x-auto pb-4" style="min-height: 70vh;"
          x-data
          x-init="
