@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Payment;
+use App\Models\Stage;
 use App\Models\Student;
 use App\Models\User;
 use App\Services\PipelineSummary;
@@ -105,14 +106,16 @@ class KanbanBoard extends Page
         $extrasFormatter = new KanbanExtrasFormatter();
 
         $columns = [];
-        foreach (PipelineSummary::stages() as $stage) {
-            $group = $byStage->get($stage, collect());
+        foreach (PipelineSummary::stages() as $stageName) {
+            $stageModel = app(PipelineConfig::class)->stageByName($stageName);
+            $group = $byStage->get($stageName, collect());
             $deal = (float) $group->sum(fn ($s) => (float) ($s->deal_amount ?? 0));
             $received = (float) $group->sum(fn ($s) => (float) ($paymentsByStudent[$s->id] ?? 0));
 
             // visual-v2: received_total / pending_total exposed for kanban column headers
             $columns[] = [
-                'stage'          => $stage,
+                'stage'          => $stageName,
+                'stage_type'     => $stageModel ? $this->stageType($stageModel) : 'active',
                 'count'          => $group->count(),
                 'deal'           => $deal,
                 'received'       => $received,
@@ -120,16 +123,20 @@ class KanbanBoard extends Page
                 'received_total' => $received,
                 'pending_total'  => max(0, $deal - $received),
                 'students' => $group->map(fn ($s) => [
-                    'id'           => $s->id,
-                    'name'         => $s->name,
-                    'phone'        => $s->phone,
-                    'owner'        => $s->owner?->name,
-                    'deal'         => (float) ($s->deal_amount ?? 0),
-                    'received'     => (float) ($paymentsByStudent[$s->id] ?? 0),
-                    'pending'      => max(0, (float) ($s->deal_amount ?? 0) - (float) ($paymentsByStudent[$s->id] ?? 0)),
-                    'current_round' => $s->roundHistory->first()?->round_name,
-                    'days_in_stage' => (int) $s->updated_at->diffInDays(now()),
-                    'extras'       => $extrasFormatter->format($s),
+                    'id'              => $s->id,
+                    'name'            => $s->name,
+                    'phone'           => $s->phone,
+                    'owner'           => $s->owner?->name,
+                    'owner_id'        => $s->owner_id,
+                    'owner_name'      => $s->owner?->name ?? '??',
+                    'course'          => $s->course,
+                    'student_response' => $s->student_response,
+                    'deal'            => (float) ($s->deal_amount ?? 0),
+                    'received'        => (float) ($paymentsByStudent[$s->id] ?? 0),
+                    'pending'         => max(0, (float) ($s->deal_amount ?? 0) - (float) ($paymentsByStudent[$s->id] ?? 0)),
+                    'current_round'   => $s->roundHistory->first()?->round_name,
+                    'days_in_stage'   => (int) $s->updated_at->diffInDays(now()),
+                    'extras'          => $extrasFormatter->format($s),
                 ]),
             ];
         }
@@ -200,6 +207,20 @@ class KanbanBoard extends Page
         }
 
         return $this->kanbanResponse(true, 'ok');
+    }
+
+    private function stageType(Stage $stage): string
+    {
+        $name = mb_strtolower($stage->name);
+        if ($stage->stage_type === 'CLOSED_WON')  { return 'won'; }
+        if ($stage->stage_type === 'CLOSED_LOST') { return 'lost'; }
+        if (str_contains($name, 'new'))     { return 'new'; }
+        if (str_contains($name, 'meeting')) { return 'meeting'; }
+        if (str_contains($name, 'visit'))   { return 'meeting'; }
+        if (str_contains($name, 'advance')) { return 'advance'; }
+        if (str_contains($name, 'round'))   { return 'round'; }
+        if (str_contains($name, 'offline')) { return 'offline'; }
+        return 'active';
     }
 
     /**
