@@ -358,12 +358,19 @@
                 });
             });
 
-            root.addEventListener('click', (e) => {
-                const card = e.target.closest('.fi-kanban-card');
-                if (!card) return;
-                const url = card.dataset.editUrl;
-                if (url) window.location.href = url;
-            });
+            // Legacy v1 behaviour: clicking a card navigates straight to the
+            // edit page. Under v2 the card click opens the peek drawer via
+            // wire:click, and the "Update Information" button inside the
+            // drawer is the only path to the edit page — so skip this
+            // handler entirely when the v2 shell is active.
+            if (!document.body.classList.contains('davya-v2')) {
+                root.addEventListener('click', (e) => {
+                    const card = e.target.closest('.fi-kanban-card');
+                    if (!card) return;
+                    const url = card.dataset.editUrl;
+                    if (url) window.location.href = url;
+                });
+            }
 
             if (window.Livewire) {
                 Livewire.hook('morph.updated', ({ el }) => {

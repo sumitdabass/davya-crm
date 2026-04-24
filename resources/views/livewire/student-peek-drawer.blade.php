@@ -68,10 +68,10 @@
 
                 <div style="position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
                     <a href="/admin/students/{{ $s->id }}/edit"
-                       style="font-size: var(--fs-11); padding: 6px 12px; border-radius: var(--r-md); border: 1px solid var(--brand-600); background: var(--surface); color: var(--brand-700); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
-                       onmouseover="this.style.background='var(--brand-50)'"
-                       onmouseout="this.style.background='var(--surface)'">
-                        More details →
+                       style="font-size: var(--fs-11); padding: 6px 12px; border-radius: var(--r-md); border: 1px solid var(--brand-600); background: var(--brand-600); color: white; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                       onmouseover="this.style.background='var(--brand-700)'; this.style.borderColor='var(--brand-700)';"
+                       onmouseout="this.style.background='var(--brand-600)'; this.style.borderColor='var(--brand-600)';">
+                        Update Information
                     </a>
                     <div style="display: flex; gap: 6px;">
                         <button wire:click="switchTab('notes')" style="font-size: var(--fs-11); padding: 6px 12px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 600; cursor: pointer;">+ Note</button>
