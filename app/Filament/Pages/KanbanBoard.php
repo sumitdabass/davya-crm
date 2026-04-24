@@ -110,12 +110,15 @@ class KanbanBoard extends Page
             $deal = (float) $group->sum(fn ($s) => (float) ($s->deal_amount ?? 0));
             $received = (float) $group->sum(fn ($s) => (float) ($paymentsByStudent[$s->id] ?? 0));
 
+            // visual-v2: received_total / pending_total exposed for kanban column headers
             $columns[] = [
-                'stage'    => $stage,
-                'count'    => $group->count(),
-                'deal'     => $deal,
-                'received' => $received,
-                'pending'  => max(0, $deal - $received),
+                'stage'          => $stage,
+                'count'          => $group->count(),
+                'deal'           => $deal,
+                'received'       => $received,
+                'pending'        => max(0, $deal - $received),
+                'received_total' => $received,
+                'pending_total'  => max(0, $deal - $received),
                 'students' => $group->map(fn ($s) => [
                     'id'           => $s->id,
                     'name'         => $s->name,
