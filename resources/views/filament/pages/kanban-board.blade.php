@@ -16,78 +16,119 @@
     @php($selectClass = 'block rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-100 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500')
     @php($activeFilters = filled($this->filterOwner) || filled($this->filterCourse) || filled($this->filterRound) || filled($this->filterLeadSource) || $this->filterHasPending)
 
-    <div class="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm">
-        <div class="flex flex-col gap-1">
-            <label for="kanban-filter-owner" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Owner</label>
-            <select id="kanban-filter-owner" wire:model.live="filterOwner" class="{{ $selectClass }}">
-                <option value="">All owners</option>
-                @foreach ($opts['owners'] as $id => $name)
-                    <option value="{{ $id }}">{{ $name }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-            <label for="kanban-filter-course" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Course</label>
-            <select id="kanban-filter-course" wire:model.live="filterCourse" class="{{ $selectClass }}">
-                <option value="">All courses</option>
-                @foreach ($opts['courses'] as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-            <label for="kanban-filter-round" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Round</label>
-            <select id="kanban-filter-round" wire:model.live="filterRound" class="{{ $selectClass }}">
-                <option value="">All rounds</option>
-                @foreach ($opts['rounds'] as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-            <label for="kanban-filter-source" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Lead source</label>
-            <select id="kanban-filter-source" wire:model.live="filterLeadSource" class="{{ $selectClass }}">
-                <option value="">All sources</option>
-                @foreach ($opts['sources'] as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-
-        <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 self-center pb-[2px]">
-            <input type="checkbox" wire:model.live="filterHasPending" class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
-            Has pending amount
-        </label>
-
-        @if ($activeFilters)
-            <button type="button" wire:click="resetFilters"
-                    class="ml-auto text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 underline underline-offset-2">
-                Clear filters
-            </button>
-        @endif
-    </div>
-
     @if (config('davyas.visual_v2'))
-        <div class="davya-subtoolbar" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 10px; font-size: var(--fs-11);">
-            <span style="background: var(--brand-50); border: 1px solid var(--brand-100); color: var(--brand-700); border-radius: var(--r-pill); padding: 3px 10px; font-weight: 500;">
-                Course: {{ $this->filterCourse ?: 'All' }}
-            </span>
-            <span style="background: var(--border-muted); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px 10px;">
-                Owner: {{ $this->filterOwner ? ($opts['owners'][$this->filterOwner] ?? $this->filterOwner) : 'Anyone' }}
-            </span>
-            <span style="background: var(--border-muted); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 3px 10px;">
-                Round: {{ $this->filterRound ?: 'Any' }}
-            </span>
-            <span style="color: var(--text-sub); margin-left: 6px;">·</span>
-            <span style="color: var(--text-sub);">Sort: Created ↓</span>
+        {{-- v2 sub-toolbar: interactive compact dropdowns + view switcher. Replaces the legacy filter bar. --}}
+        @php($pillSelect = 'appearance:none; padding: 4px 26px 4px 10px; font-size: var(--fs-11); font-weight:500; border-radius: var(--r-pill); border:1px solid var(--border); background: var(--surface); color: var(--text); cursor:pointer; background-image: linear-gradient(45deg, transparent 50%, var(--text-sub) 50%), linear-gradient(135deg, var(--text-sub) 50%, transparent 50%); background-position: calc(100% - 14px) 50%, calc(100% - 10px) 50%; background-size: 4px 4px, 4px 4px; background-repeat: no-repeat;')
+        @php($pillSelectActive = str_replace('background: var(--surface); color: var(--text);', 'background: var(--brand-50); color: var(--brand-700); border-color: var(--brand-100); font-weight:600;', $pillSelect))
+
+        <div class="davya-subtoolbar" style="background: var(--surface); border:1px solid var(--border); border-radius: var(--r-md); padding: 8px 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: var(--s-3);">
+            <select wire:model.live="filterOwner" aria-label="Filter by owner"
+                    style="{{ filled($this->filterOwner) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Owner · Anyone</option>
+                @foreach ($opts['owners'] as $id => $name)
+                    <option value="{{ $id }}">Owner: {{ $name }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="filterCourse" aria-label="Filter by course"
+                    style="{{ filled($this->filterCourse) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Course · All</option>
+                @foreach ($opts['courses'] as $value => $label)
+                    <option value="{{ $value }}">Course: {{ $label }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="filterRound" aria-label="Filter by round"
+                    style="{{ filled($this->filterRound) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Round · Any</option>
+                @foreach ($opts['rounds'] as $value => $label)
+                    <option value="{{ $value }}">Round: {{ $label }}</option>
+                @endforeach
+            </select>
+
+            <select wire:model.live="filterLeadSource" aria-label="Filter by lead source"
+                    style="{{ filled($this->filterLeadSource) ? $pillSelectActive : $pillSelect }}">
+                <option value="">Source · All</option>
+                @foreach ($opts['sources'] as $value => $label)
+                    <option value="{{ $value }}">Source: {{ $label }}</option>
+                @endforeach
+            </select>
+
+            <label style="display:flex; align-items:center; gap:6px; font-size: var(--fs-11); color: var(--text); cursor:pointer;
+                          {{ $this->filterHasPending ? 'background: var(--brand-50); color: var(--brand-700); font-weight:600;' : '' }}
+                          padding: 4px 10px; border-radius: var(--r-pill); border:1px solid {{ $this->filterHasPending ? 'var(--brand-100)' : 'var(--border)' }};">
+                <input type="checkbox" wire:model.live="filterHasPending"
+                       style="accent-color: var(--brand-600); margin:0;">
+                Pending amount
+            </label>
+
+            @if ($activeFilters)
+                <button type="button" wire:click="resetFilters"
+                        style="font-size: var(--fs-11); color: var(--text-sub); background:transparent; border:0; cursor:pointer; text-decoration:underline;">
+                    Clear filters
+                </button>
+            @endif
 
             <div style="margin-left: auto; display: flex; background: var(--border-muted); border-radius: var(--r-md); padding: 2px; gap: 2px;">
-                <a href="/admin/kanban" style="padding: 3px 8px; font-size: var(--fs-11); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-weight: 600; text-decoration: none; box-shadow: var(--elev-1);">Kanban</a>
-                <a href="/admin/students" style="padding: 3px 8px; font-size: var(--fs-11); border-radius: var(--r-sm); color: var(--text-sub); text-decoration: none;">List</a>
+                <a href="/admin/kanban"
+                   style="padding: 3px 10px; font-size: var(--fs-11); border-radius: var(--r-sm); background: var(--surface); color: var(--text); font-weight: 600; text-decoration: none; box-shadow: var(--elev-1);">Kanban</a>
+                <a href="/admin/students"
+                   style="padding: 3px 10px; font-size: var(--fs-11); border-radius: var(--r-sm); color: var(--text-sub); text-decoration: none;">List</a>
             </div>
+        </div>
+    @else
+        <div class="mb-4 flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3 shadow-sm">
+            <div class="flex flex-col gap-1">
+                <label for="kanban-filter-owner" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Owner</label>
+                <select id="kanban-filter-owner" wire:model.live="filterOwner" class="{{ $selectClass }}">
+                    <option value="">All owners</option>
+                    @foreach ($opts['owners'] as $id => $name)
+                        <option value="{{ $id }}">{{ $name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="kanban-filter-course" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Course</label>
+                <select id="kanban-filter-course" wire:model.live="filterCourse" class="{{ $selectClass }}">
+                    <option value="">All courses</option>
+                    @foreach ($opts['courses'] as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="kanban-filter-round" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Round</label>
+                <select id="kanban-filter-round" wire:model.live="filterRound" class="{{ $selectClass }}">
+                    <option value="">All rounds</option>
+                    @foreach ($opts['rounds'] as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex flex-col gap-1">
+                <label for="kanban-filter-source" class="text-[11px] font-medium text-gray-600 dark:text-gray-400">Lead source</label>
+                <select id="kanban-filter-source" wire:model.live="filterLeadSource" class="{{ $selectClass }}">
+                    <option value="">All sources</option>
+                    @foreach ($opts['sources'] as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <label class="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200 self-center pb-[2px]">
+                <input type="checkbox" wire:model.live="filterHasPending" class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500">
+                Has pending amount
+            </label>
+
+            @if ($activeFilters)
+                <button type="button" wire:click="resetFilters"
+                        class="ml-auto text-xs font-medium text-gray-600 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-emerald-400 underline underline-offset-2">
+                    Clear filters
+                </button>
+            @endif
         </div>
     @endif
 
