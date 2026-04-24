@@ -95,23 +95,6 @@ class StudentResource extends Resource
     public static function form(Form $form): Form
     {
         $baseSchema = [
-            Section::make('Quick notes')
-                ->icon('heroicon-o-pencil-square')
-                ->description('Jot anything down here — visible on every tab. Saved to the student\'s description field.')
-                ->collapsible()
-                ->collapsed(false)
-                ->columnSpanFull()
-                ->schema([
-                    Textarea::make('description')
-                        ->label('')
-                        ->placeholder('Quick notes about this student — goals, blockers, next steps…')
-                        ->rows(3)
-                        ->columnSpanFull(),
-                ])
-                ->extraAttributes([
-                    'class' => config('davyas.visual_v2') ? 'davya-section' : '',
-                ]),
-
             Tabs::make('student_form')
                 ->columnSpanFull()
                 ->tabs([
@@ -232,6 +215,12 @@ class StudentResource extends Resource
                         ]),
                 ])
                 ->persistTabInQueryString(),
+
+            Textarea::make('description')
+                ->label('Quick notes')
+                ->placeholder('Jot anything — visible on every tab, saved with the student.')
+                ->rows(2)
+                ->columnSpanFull(),
         ];
 
         return $form->schema(array_merge($baseSchema, self::dynamicSections()));
