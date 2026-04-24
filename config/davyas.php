@@ -13,5 +13,5 @@ return [
     |
     | Spec: docs/superpowers/specs/2026-04-24-visual-refresh-design.md
     */
-    'visual_v2' => env('DAVYAS_VISUAL_V2', false),
+    'visual_v2' => (bool) env('DAVYAS_VISUAL_V2', false),
 ];
