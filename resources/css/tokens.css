@@ -209,15 +209,15 @@
 }
 .davya-owner-pill .av { width: 18px; height: 18px; border-radius: 50%; background: var(--brand-500); color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
-/* Primary-nav tab buttons. Previously styled inline as plain padded links,
- * which made them look like hover-previewable text rather than clickable
- * controls. A visible border, background, and hover lift make the
- * affordance obvious and match the "button with boundary" pattern used on
- * every other surface of v2. */
+/* Primary-nav tab buttons. Static bordered buttons — default + active only,
+ * no hover or transition (user preference: uniform response across the
+ * whole tab, no mouse-hover restyling). Keep :focus-visible so keyboard
+ * nav stays discoverable. */
 .davya-tab {
     display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
+    justify-content: center;
+    padding: 7px 14px;
     border: 1px solid var(--border);
     border-radius: var(--r-md);
     background: var(--surface);
@@ -225,14 +225,9 @@
     font-size: var(--fs-12);
     font-weight: 500;
     text-decoration: none;
-    line-height: 1.1;
-    transition: background 120ms ease-out, border-color 120ms ease-out, color 120ms ease-out;
+    line-height: 1;
     cursor: pointer;
-}
-.davya-tab:hover {
-    background: var(--border-muted);
-    border-color: var(--brand-300, #6ee7b7);
-    color: var(--brand-700);
+    min-height: 32px;
 }
 .davya-tab:focus-visible {
     outline: 2px solid var(--brand-400, #34d399);

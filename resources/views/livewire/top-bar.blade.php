@@ -4,11 +4,7 @@
     <nav style="display: flex; gap: 6px;">
         @foreach ($tabs as $tab)
             @php $isActive = str_starts_with('/' . $currentPath, $tab['match']); @endphp
-            <a href="{{ $tab['url'] }}"
-               class="davya-tab {{ $isActive ? 'is-active' : '' }}"
-               data-tab="{{ $tab['key'] }}">
-                {{ $tab['label'] }}
-            </a>
+            <a href="{{ $tab['url'] }}" class="davya-tab{{ $isActive ? ' is-active' : '' }}">{{ $tab['label'] }}</a>
         @endforeach
     </nav>
 
