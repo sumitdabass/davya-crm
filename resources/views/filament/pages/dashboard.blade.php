@@ -9,31 +9,65 @@
         >Customize</button>
     </div>
 
-    @if (count($this->cards()) === 0)
-        <div style="text-align: center; padding: 48px 0; color: #6b7280;">
-            You've hidden all cards.
-            <button
-                type="button"
-                wire:click="$dispatch('reset-cards-to-defaults', { surface: 'dashboard' })"
-                style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
-            >Reset to defaults</button>
-            <span style="margin: 0 6px;">·</span>
-            <button
-                type="button"
-                wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
-                style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
-            >Customize &rarr;</button>
-        </div>
+    @if (config('davyas.visual_v2'))
+        @if (count($this->cards()) === 0)
+            <div class="davya-section-card">
+                <div style="text-align: center; padding: 48px 0; color: #6b7280;">
+                    You've hidden all cards.
+                    <button
+                        type="button"
+                        wire:click="$dispatch('reset-cards-to-defaults', { surface: 'dashboard' })"
+                        style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                    >Reset to defaults</button>
+                    <span style="margin: 0 6px;">·</span>
+                    <button
+                        type="button"
+                        wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
+                        style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                    >Customize &rarr;</button>
+                </div>
+            </div>
+        @else
+            <div class="davya-section-card">
+                <div class="davya-section-card-title">Dashboard</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    @foreach ($this->cards() as $card)
+                        <x-dashboard.card-frame
+                            :card="$card"
+                            :viewer="auth()->user()"
+                            :surface="$this->surface()"
+                        />
+                    @endforeach
+                </div>
+            </div>
+        @endif
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            @foreach ($this->cards() as $card)
-                <x-dashboard.card-frame
-                    :card="$card"
-                    :viewer="auth()->user()"
-                    :surface="$this->surface()"
-                />
-            @endforeach
-        </div>
+        @if (count($this->cards()) === 0)
+            <div style="text-align: center; padding: 48px 0; color: #6b7280;">
+                You've hidden all cards.
+                <button
+                    type="button"
+                    wire:click="$dispatch('reset-cards-to-defaults', { surface: 'dashboard' })"
+                    style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                >Reset to defaults</button>
+                <span style="margin: 0 6px;">·</span>
+                <button
+                    type="button"
+                    wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
+                    style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                >Customize &rarr;</button>
+            </div>
+        @else
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @foreach ($this->cards() as $card)
+                    <x-dashboard.card-frame
+                        :card="$card"
+                        :viewer="auth()->user()"
+                        :surface="$this->surface()"
+                    />
+                @endforeach
+            </div>
+        @endif
     @endif
 
     @livewire(\App\Livewire\StudentSlideOver::class)
