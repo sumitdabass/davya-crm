@@ -21,12 +21,12 @@ class StudentFormTabsTest extends TestCase
 
         Livewire::test(CreateStudent::class)
             ->assertSee('Identity')
-            ->assertSee('Source & Stage')
             ->assertSee('Academic')
             ->assertSee('Deal')
             ->assertSee('Counselling')
             ->assertSee('History')
             ->assertSee('Closure')
+            ->assertSee('Quick notes')
             ->assertDontSee('Final allotment')
             ->assertDontSee('Logistics');
     }

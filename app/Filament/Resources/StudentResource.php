@@ -95,25 +95,29 @@ class StudentResource extends Resource
     public static function form(Form $form): Form
     {
         $baseSchema = [
+            Section::make('Quick notes')
+                ->icon('heroicon-o-pencil-square')
+                ->description('Jot anything down here — visible on every tab. Saved to the student\'s description field.')
+                ->collapsible()
+                ->collapsed(false)
+                ->columnSpanFull()
+                ->schema([
+                    Textarea::make('description')
+                        ->label('')
+                        ->placeholder('Quick notes about this student — goals, blockers, next steps…')
+                        ->rows(3)
+                        ->columnSpanFull(),
+                ])
+                ->extraAttributes([
+                    'class' => config('davyas.visual_v2') ? 'davya-section' : '',
+                ]),
+
             Tabs::make('student_form')
                 ->columnSpanFull()
                 ->tabs([
                     Tabs\Tab::make('Identity')
                         ->icon('heroicon-o-identification')
                         ->schema(array_merge([
-                            TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
-                            TextInput::make('name'),
-                            TextInput::make('father_name'),
-                            TextInput::make('phone_2')->tel()->label('Alternate phone'),
-                            TextInput::make('email')->email()->maxLength(120),
-                        ], self::customFieldsForSection('Identity')))->columns(2)
-                        ->extraAttributes([
-                            'class' => config('davyas.visual_v2') ? 'davya-section' : '',
-                        ]),
-
-                    Tabs\Tab::make('Source & Stage')
-                        ->icon('heroicon-o-user-group')
-                        ->schema([
                             Select::make('owner_id')
                                 ->label('Owner')
                                 ->relationship(
@@ -130,7 +134,6 @@ class StudentResource extends Resource
                                 ->required()
                                 ->searchable(),
                             TextInput::make('referrer_name')->label('Referrer name')->maxLength(120),
-
                             Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
                                 ->live()
                                 ->afterStateUpdated(function ($state, $record, $set) {
@@ -156,15 +159,19 @@ class StudentResource extends Resource
                                     }
                                 }),
                             Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready','Not Interested','Needs Time'])),
-                            ...self::customFieldsForSection('Source & Stage'),
-                        ])->columns(2)
+                            TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
+                            TextInput::make('name'),
+                        ], self::customFieldsForSection('Source & Stage')))->columns(2)
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
 
                     Tabs\Tab::make('Academic')
                         ->icon('heroicon-o-academic-cap')
-                        ->schema([
+                        ->schema(array_merge([
+                            TextInput::make('father_name'),
+                            TextInput::make('phone_2')->tel()->label('Alternate phone'),
+                            TextInput::make('email')->email()->maxLength(120)->columnSpan(3),
                             TextInput::make('exam_appeared'),
                             TextInput::make('twelfth_marks'),
                             TextInput::make('rank')->maxLength(40),
@@ -174,25 +181,18 @@ class StudentResource extends Resource
                             TextInput::make('preference_r1')->label('1st choice')->required()->maxLength(120),
                             TextInput::make('preference_r2')->label('2nd choice (optional)')->maxLength(120),
                             TextInput::make('preference_r3')->label('3rd choice (optional)')->maxLength(120),
+                            ...self::customFieldsForSection('Identity'),
                             ...self::customFieldsForSection('Academic'),
-                        ])->columns(3)
+                        ]))->columns(3)
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
 
-                    Tabs\Tab::make('Deal')
+                    Tabs\Tab::make('Deal & Counselling')
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
                             Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online','Offline','All'])),
-                        ], self::customFieldsForSection('Deal')))->columns(2)
-                        ->extraAttributes([
-                            'class' => config('davyas.visual_v2') ? 'davya-section' : '',
-                        ]),
-
-                    Tabs\Tab::make('Counselling')
-                        ->icon('heroicon-o-key')
-                        ->schema(array_merge([
                             Toggle::make('is_ipu_registered'),
                             TextInput::make('ipu_user_id'),
                             TextInput::make('ipu_login_code')
@@ -201,7 +201,7 @@ class StudentResource extends Resource
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
                             Toggle::make('seat_fee_due')->disabled(),
-                        ], self::customFieldsForSection('Counselling')))->columns(2)
+                        ], self::customFieldsForSection('Deal'), self::customFieldsForSection('Counselling')))->columns(2)
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
@@ -225,7 +225,6 @@ class StudentResource extends Resource
                             Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
                             TextInput::make('refund_amount')->numeric()->prefix('₹'),
                             Textarea::make('re_entry_reason')->rows(2),
-                            Textarea::make('description')->rows(3)->label('Description / freeform notes'),
                             Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
                         ], self::customFieldsForSection('Closure')))->columns(2)
                         ->extraAttributes([
