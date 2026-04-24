@@ -40,7 +40,23 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::BODY_START,
                 fn (): string => config('davyas.visual_v2')
-                    ? '<script>document.body.classList.add("davya-v2")</script>' . Blade::render('@livewire("top-bar")')
+                    ? '<script>document.body.classList.add("davya-v2")</script>'
+                        . Blade::render('@livewire("top-bar") @livewire("command-palette")')
+                        . <<<'HTML'
+                        <script>
+                            document.addEventListener('keydown', (e) => {
+                                if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                                    e.preventDefault();
+                                    window.dispatchEvent(new CustomEvent('open-command-palette'));
+                                }
+                            });
+                            window.addEventListener('open-command-palette', () => {
+                                if (window.Livewire) {
+                                    window.Livewire.dispatch('open-command-palette');
+                                }
+                            });
+                        </script>
+                        HTML
                     : ''
             )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
