@@ -1,11 +1,12 @@
 <div class="davya-topbar" style="background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; gap: 14px; font-size: var(--fs-12); position: sticky; top: 0; z-index: 30;">
     <a href="/admin" style="text-decoration: none; color: var(--brand-600); font-weight: 800; font-size: var(--fs-14); letter-spacing: 0.3px;">Davyas</a>
 
-    <nav style="display: flex; gap: 2px;">
+    <nav style="display: flex; gap: 6px;">
         @foreach ($tabs as $tab)
             @php $isActive = str_starts_with('/' . $currentPath, $tab['match']); @endphp
             <a href="{{ $tab['url'] }}"
-               style="padding: 6px 10px; border-radius: var(--r-md); font-weight: {{ $isActive ? 600 : 500 }}; text-decoration: none; {{ $isActive ? 'color: var(--brand-700); background: var(--brand-50);' : 'color: var(--text-sub);' }}">
+               class="davya-tab {{ $isActive ? 'is-active' : '' }}"
+               data-tab="{{ $tab['key'] }}">
                 {{ $tab['label'] }}
             </a>
         @endforeach
