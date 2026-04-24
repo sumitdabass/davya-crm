@@ -209,6 +209,35 @@
 }
 .davya-owner-pill .av { width: 18px; height: 18px; border-radius: 50%; background: var(--brand-500); color: white; font-size: 9px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
 
+/* Filament Table filters rendered AboveContent (set via filtersLayout()
+ * on StudentResource). Restyle as pill-row to match the kanban
+ * sub-toolbar visual language.
+ */
+body.davya-v2 .fi-ta-filters-form {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: 8px 12px !important;
+    gap: 8px !important;
+}
+body.davya-v2 .fi-ta-filters-form .fi-fo-field-wrp-label { display: none; }
+body.davya-v2 .fi-ta-filters-form .fi-input-wrp,
+body.davya-v2 .fi-ta-filters-form .fi-select-input {
+    border-radius: var(--r-pill) !important;
+    min-height: 0 !important;
+    padding: 2px 10px !important;
+    font-size: var(--fs-11) !important;
+    font-weight: 500 !important;
+}
+body.davya-v2 .fi-ta-filters-form .fi-checkbox-input {
+    margin: 0;
+    accent-color: var(--brand-600);
+}
+body.davya-v2 .fi-ta-filters-form-field-wrp {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+}
+
 /* Hide the legacy Filament sidebar when the v2 shell is active.
  * body.davya-v2 class is added by AdminPanelProvider BODY_START when flag is on. */
 @media (min-width: 1024px) {

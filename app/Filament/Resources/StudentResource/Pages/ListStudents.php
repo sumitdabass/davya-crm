@@ -16,6 +16,12 @@ class ListStudents extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('kanban_view')
+                ->label('Kanban')
+                ->icon('heroicon-o-view-columns')
+                ->color('gray')
+                ->url('/admin/kanban')
+                ->visible(fn () => config('davyas.visual_v2')),
             Actions\Action::make('export')
                 ->label('Export CSV')
                 ->icon('heroicon-o-arrow-down-tray')

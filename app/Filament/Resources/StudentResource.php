@@ -298,6 +298,9 @@ class StudentResource extends Resource
 
         return $table
             ->persistFiltersInSession()
+            ->filtersLayout(config('davyas.visual_v2')
+                ? \Filament\Tables\Enums\FiltersLayout::AboveContent
+                : \Filament\Tables\Enums\FiltersLayout::Dropdown)
             ->columns(array_merge($baseColumns, (new DynamicTableColumns())->build()))
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
