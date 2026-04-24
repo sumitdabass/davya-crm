@@ -96,8 +96,8 @@ A single `resources/css/tokens.css` file declares the variables below and is loa
 
 Top bar contents (left to right):
 
-1. Davyas brand mark (emerald wordmark, uses existing `brandLogo`).
-2. Primary nav tabs: **Pipeline · Students · Today · Reports · Finance**. Active tab gets `--brand-50` background and `--brand-700` text. Tabs are `<a>` tags routing to existing Filament pages.
+1. Davyas brand mark (emerald wordmark, uses existing `brandLogo`). Clicking the brand routes to `/admin` (dashboard).
+2. Primary nav tabs: **Pipeline · Students · Today · Reports · Finance**. Active tab gets `--brand-50` background and `--brand-700` text. Tabs are `<a>` tags routing to existing Filament pages. Dashboard is deliberately not a tab — the brand-click and the ⌘K palette both reach it, keeping the top bar focused on work surfaces.
 3. Command search — `<button>` styled as a pill, placeholder "Jump to anything — student, stage, setting…", with a `⌘K` kbd hint on the right. Clicking it or pressing `⌘K` / `Ctrl+K` opens the command palette (section 5).
 4. Primary CTA: green **+ New Student** button. Opens `/admin/students/create` directly.
 5. Notifications bell (keeps Filament's existing dropdown).
@@ -330,9 +330,10 @@ Existing SP#3 customizable cards dashboard. Visual refresh only:
 
 1. **Filament CSS spec fight.** The `:has()` selector for required-field bar could be defeated by a Filament upgrade that renames `.fi-fo-field-wrp`. Mitigation: test on the current Filament 3.x minor version, add a visual regression snapshot on the student create form.
 2. **SortableJS global re-include.** Pass 3 kanban column header changes may need SortableJS to re-init. Mitigation: reuse the existing global `defer`'d include set up in SP#3 — no new include added.
-3. **Command palette performance.** If `students.name` lookup isn't indexed for `LIKE '%X%'`, fuzzy search could stall at 500+ rows. Mitigation: debounce 150 ms; limit result set to 8; verify EXPLAIN plan; index if needed (*index is a schema change — only if needed*, and simple enough to not violate the no-schema-change rule).
+3. **Command palette performance.** See risk 6 below — at 515 rows the debounced `LIKE` query is fine; no index needed inside this spec.
 4. **Mobile sub-toolbar overflow.** The filter pill row can overflow on narrow viewports. Mitigation: horizontal scroll with fade-edge, no wrap.
 5. **Dense card legibility.** At 260 px column width, long names (>18 chars) truncate. Mitigation: `text-overflow: ellipsis` + native `title` tooltip.
+6. **Command palette search speed.** `students.name LIKE '%X%'` on 515 rows is fine without an index; we debounce 150 ms and cap results to 8. If the set grows past ~10 k rows we'll need an index, but that's out of scope for this spec (index adds are schema changes — see non-goals).
 
 ### 14.2 Rollback
 
