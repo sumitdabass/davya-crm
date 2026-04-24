@@ -183,13 +183,13 @@ class StudentResource extends Resource
                                 ->maxLength(60)
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
-                            Toggle::make('seat_fee_due')->disabled(),
+                            Toggle::make('seat_fee_due')->label('Seat Allotment fee')->disabled(),
                         ], self::customFieldsForSection('Deal'), self::customFieldsForSection('Counselling')))->columns(2)
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
 
-                    Tabs\Tab::make('History')
+                    Tabs\Tab::make('Timeline')
                         ->icon('heroicon-o-clock')
                         ->schema(array_merge([
                             \Filament\Forms\Components\Placeholder::make('activity_hint')
@@ -208,7 +208,6 @@ class StudentResource extends Resource
                             Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
                             TextInput::make('refund_amount')->numeric()->prefix('₹'),
                             Textarea::make('re_entry_reason')->rows(2),
-                            Textarea::make('extra_notes')->rows(3)->label('Extra notes'),
                         ], self::customFieldsForSection('Closure')))->columns(2)
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
