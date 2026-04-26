@@ -8,13 +8,7 @@
         @endforeach
     </nav>
 
-    <button type="button"
-            onclick="window.dispatchEvent(new CustomEvent('open-command-palette'))"
-            style="flex: 1; background: var(--border-muted); border: 0; border-radius: var(--r-md); padding: 6px 10px; color: var(--text-muted); font-size: var(--fs-11); display: flex; align-items: center; gap: 8px; cursor: pointer; text-align: left;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-        Jump to anything — student, stage, setting…
-        <span style="margin-left: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 1px 5px; font-family: ui-monospace, monospace; font-size: var(--fs-10); color: var(--text-sub);">⌘K</span>
-    </button>
+    <livewire:student-search />
 
     <a href="/admin/students/create"
        style="background: var(--brand-600); color: white; border-radius: var(--r-md); padding: 6px 10px; font-size: var(--fs-11); font-weight: 600; text-decoration: none;">
