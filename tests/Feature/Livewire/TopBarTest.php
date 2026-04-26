@@ -36,7 +36,7 @@ class TopBarTest extends TestCase
             ->assertSee('Today')
             ->assertSee('Reports')
             ->assertSee('Finance')
-            ->assertSee('Jump to anything');
+            ->assertSee('Search students by name');
     }
 
     public function test_finance_tab_hidden_from_non_finance_role(): void
