@@ -166,7 +166,8 @@ class CustomizeCardsModalTest extends TestCase
         Livewire::actingAs($admin)
             ->test(CustomizeCardsModal::class)
             ->dispatch('remove-card', surface: 'today', cardId: 'today_payments')
-            ->assertDispatched('card-removed', cardId: 'today_payments', surface: 'today');
+            ->assertDispatched('card-removed', cardId: 'today_payments', surface: 'today')
+            ->assertDispatched('dashboard-prefs-saved', surface: 'today');
 
         $admin->refresh();
         $this->assertNotContains('today_payments', $admin->dashboard_prefs['today']['enabled']);
@@ -182,7 +183,8 @@ class CustomizeCardsModalTest extends TestCase
             ->test(CustomizeCardsModal::class)
             ->dispatch('remove-card', surface: 'today', cardId: 'today_payments');
 
-        $cmp->call('undoRemove', surface: 'today', cardId: 'today_payments', position: 1);
+        $cmp->call('undoRemove', surface: 'today', cardId: 'today_payments', position: 1)
+            ->assertDispatched('dashboard-prefs-saved', surface: 'today');
 
         $admin->refresh();
         $this->assertSame(

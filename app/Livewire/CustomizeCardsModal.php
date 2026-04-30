@@ -127,6 +127,8 @@ class CustomizeCardsModal extends Component
         $user->save();
 
         $this->dispatch('card-removed', cardId: $cardId, surface: $surface, position: $position);
+        // DashboardPage / TodayPage listen for dashboard-prefs-saved to re-render.
+        $this->dispatch('dashboard-prefs-saved', surface: $surface);
     }
 
     public function undoRemove(string $surface, string $cardId, int $position): void
@@ -142,6 +144,8 @@ class CustomizeCardsModal extends Component
         $prefs[$surface] = ['enabled' => $enabled];
         $user->dashboard_prefs = $prefs;
         $user->save();
+
+        $this->dispatch('dashboard-prefs-saved', surface: $surface);
     }
 
     #[On('undo-remove')]
