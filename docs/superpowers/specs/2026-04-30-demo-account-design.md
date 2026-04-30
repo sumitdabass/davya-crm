@@ -17,7 +17,7 @@ The pre-brainstorm note enumerated five code-level landmines (ActivityLog leak, 
 
 ## Goals
 
-- A demo at `https://demo.ipu.co.in` that is, from a prospect's perspective, the full Davyas CRM with seeded fake data.
+- A demo at `https://demo.ipu.co.in` that is, from a prospect's perspective, **bit-for-bit identical** to the Davyas CRM in design and function. Every Filament page, every CSS rule, every Livewire component, every kanban card layout, every dashboard tile is the same code as prod. The demo is not a stripped-down or differently-styled "preview" — it is the product, with seeded fake data.
 - Two parallel entry flows (public-funnel email-verified signup + internal HMAC-token invite).
 - Daily auto-reset to a clean seeded state at 03:30 IST.
 - No outbound side-effects from demo writes (Slack, n8n, real student-facing emails) other than the OTP transactional email needed by the public funnel itself.
