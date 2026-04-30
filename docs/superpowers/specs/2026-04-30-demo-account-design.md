@@ -1,5 +1,6 @@
-# Demo account — design
+# Davyas CRM Demo — design
 
+**Project name:** Davyas CRM Demo
 **Date:** 2026-04-30
 **Status:** Approved by Sumit during brainstorming session 2026-04-30
 **Supersedes:** `docs/sessions/2026-04-22-demo-account-prebrainstorm.md` (pre-brainstorm input packet)
