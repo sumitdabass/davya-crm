@@ -54,7 +54,7 @@ class PaymentReport extends Page implements HasForms
                     ->searchable()
                     ->nullable(),
             ])
-            ->columns(3)
+            ->columns(['default' => 1, 'md' => 3])
             ->statePath('data');
     }
 
