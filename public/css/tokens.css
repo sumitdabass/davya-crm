@@ -351,3 +351,9 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
 @media (max-width: 480px) {
     body.davya-v2 .davya-topbar > a:first-child { font-size: var(--fs-12) !important; }
 }
+
+/* Horizontal-scroll wrapper for hand-rolled <table> blocks inside cards */
+.davya-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}

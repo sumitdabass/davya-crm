@@ -5,6 +5,7 @@
         @if(count($this->rows) === 0)
             <div class="text-sm text-gray-400">No payments yet today.</div>
         @else
+            <div class="davya-table-scroll">
             <table class="w-full text-sm">
                 <thead class="text-xs text-gray-500">
                     <tr class="text-left border-b border-gray-200 dark:border-gray-700">
@@ -42,6 +43,7 @@
                     </tr>
                 </tfoot>
             </table>
+            </div>
         @endif
     </x-filament::section>
 </x-filament-widgets::widget>
