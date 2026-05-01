@@ -43,7 +43,7 @@
                     @endif
                 </div>
 
-                <div style="display: flex; gap: 18px; padding: 0 18px; border-bottom: 1px solid var(--border); font-size: var(--fs-12);">
+                <div class="davya-drawer-tabs" style="display: flex; gap: 18px; padding: 0 18px; border-bottom: 1px solid var(--border); font-size: var(--fs-12);">
                     @foreach (['overview','payments','notes','meetings','activity'] as $t)
                         <button wire:click="switchTab('{{ $t }}')"
                                 style="padding: 10px 0; background: 0; border: 0; cursor: pointer; color: {{ $activeTab === $t ? 'var(--brand-700)' : 'var(--text-sub)' }}; font-weight: {{ $activeTab === $t ? 700 : 500 }}; border-bottom: 2px solid {{ $activeTab === $t ? 'var(--brand-600)' : 'transparent' }}; margin-bottom: -1px; text-transform: capitalize;">
@@ -66,7 +66,7 @@
                     @endif
                 </div>
 
-                <div style="position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
+                <div class="davya-drawer-footer" style="position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 10px 18px; display: flex; justify-content: space-between; align-items: center;">
                     <a href="/admin/students/{{ $s->id }}/edit"
                        style="font-size: var(--fs-11); padding: 6px 12px; border-radius: var(--r-md); border: 1px solid var(--brand-600); background: var(--brand-600); color: white; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
                        onmouseover="this.style.background='var(--brand-700)'; this.style.borderColor='var(--brand-700)';"

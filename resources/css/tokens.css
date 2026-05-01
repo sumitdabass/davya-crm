@@ -326,6 +326,25 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
 
     /* Pipeline-config: stack action buttons in stage rows instead of overflowing */
     body.davya-v2 .davya-card-row { flex-wrap: wrap; }
+
+    /* Peek drawer tab strip — horizontal scroll on phones */
+    body.davya-v2 .davya-drawer-tabs {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    body.davya-v2 .davya-drawer-tabs::-webkit-scrollbar { display: none; }
+
+    /* Peek drawer footer — wrap CTAs to full-width row */
+    body.davya-v2 .davya-drawer-footer {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    body.davya-v2 .davya-drawer-footer > div {
+        width: 100%;
+        justify-content: flex-start;
+    }
 }
 
 @media (max-width: 480px) {
