@@ -327,6 +327,15 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
     body.davya-v2 .rank-subnav::-webkit-scrollbar { display: none; }
     body.davya-v2 .rank-subnav .davya-tab { flex-shrink: 0; }
 
+    /* Filament responsive grid array (e.g. ['default'=>1,'md'=>4]) emits
+     * Tailwind-arbitrary classes (grid-cols-[--cols-default]) that don't
+     * always compile in admin pages (memory: Tailwind utilities don't reach
+     * Filament). Read the CSS variables Filament always sets, and force the
+     * grid to honor them on phones. */
+    body.davya-v2 .fi-fo-component-ctn[style*="--cols-default"] {
+        grid-template-columns: var(--cols-default) !important;
+    }
+
     /* Sub-toolbar wraps */
     body.davya-v2 .davya-subtoolbar { flex-wrap: wrap; padding: 6px 10px !important; gap: 6px !important; }
 
