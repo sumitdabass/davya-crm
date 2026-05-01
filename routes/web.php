@@ -2,9 +2,19 @@
 
 use App\Http\Controllers\DashboardDrillDownCsvController;
 use App\Http\Controllers\LeadImportRejectionsController;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/admin');
+
+Route::get('/dev-login', function () {
+    if (! app()->environment('local')) {
+        abort(404);
+    }
+    $user = User::where('email', 'sumit@davya.local')->firstOrFail();
+    auth()->login($user, remember: true);
+    return redirect('/admin');
+});
 
 Route::middleware(['auth', 'signed'])
     ->get('/lead-imports/{batch}/rejections', [LeadImportRejectionsController::class, 'show'])
