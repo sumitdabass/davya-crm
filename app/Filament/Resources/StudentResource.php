@@ -144,7 +144,7 @@ class StudentResource extends Resource
                             Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready','Not Interested','Needs Time'])),
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
                             TextInput::make('name'),
-                        ], self::customFieldsForSection('Source & Stage')))->columns(2)
+                        ], self::customFieldsForSection('Source & Stage')))->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
@@ -166,7 +166,7 @@ class StudentResource extends Resource
                             TextInput::make('preference_r3')->label('3rd choice (optional)')->maxLength(120),
                             ...self::customFieldsForSection('Identity'),
                             ...self::customFieldsForSection('Academic'),
-                        ]))->columns(3)
+                        ]))->columns(['default' => 1, 'md' => 3])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
@@ -184,7 +184,7 @@ class StudentResource extends Resource
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
                             Toggle::make('seat_fee_due')->label('Seat Allotment fee')->disabled(),
-                        ], self::customFieldsForSection('Deal'), self::customFieldsForSection('Counselling')))->columns(2)
+                        ], self::customFieldsForSection('Deal'), self::customFieldsForSection('Counselling')))->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
@@ -208,7 +208,7 @@ class StudentResource extends Resource
                             Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
                             TextInput::make('refund_amount')->numeric()->prefix('₹'),
                             Textarea::make('re_entry_reason')->rows(2),
-                        ], self::customFieldsForSection('Closure')))->columns(2)
+                        ], self::customFieldsForSection('Closure')))->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
