@@ -11,6 +11,7 @@ use App\Models\Rank\Seat;
 use App\Models\Rank\University;
 use App\Services\Rank\BranchFamilies;
 use App\Services\Rank\CollegePreferenceOrder;
+use App\Services\Rank\GeminiCounsellor;
 use App\Services\Rank\RankPredictor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -19,6 +20,7 @@ use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
+use Illuminate\Support\Collection;
 
 class RankLookup extends Page implements HasForms
 {
@@ -39,9 +41,52 @@ class RankLookup extends Page implements HasForms
 
     public bool $showAll = false;
 
+    public array $notes = [];                // institute_id => string|null
+
+    public array $notesGeneratedFor = [];    // institute_ids already attempted (so we don't re-call Gemini for cache misses)
+
     public function showMore(): void
     {
         $this->showAll = true;
+    }
+
+    private function generateMissingNotes(Collection $colleges, int $upTo, int $rank, string $userRegion, int $year): void
+    {
+        if (empty($this->data['aiOn'])) {
+            return;
+        }
+
+        $counsellor = app(GeminiCounsellor::class);
+        $branchFilterHash = md5(json_encode($this->data['branch_families'] ?? []));
+
+        foreach ($colleges->take($upTo) as $col) {
+            $instId = $col['branches'][0]['institute_id'] ?? null;
+            if (! $instId || in_array($instId, $this->notesGeneratedFor, true)) {
+                continue;
+            }
+
+            $note = $counsellor->note([
+                'institute_name' => $col['institute'],
+                'rank' => $rank,
+                'region' => $userRegion,
+                'year' => $year,
+                'branch_filter_hash' => $branchFilterHash,
+                'branches' => array_map(fn ($b) => [
+                    'branch_name' => $b['branch'],
+                    'shift' => $b['shift'],
+                    'bucket' => $b['bucket'],
+                    'cushion_pct' => $b['cushion_pct'],
+                    'prediction_max' => $b['prediction_max'],
+                    'sliding_max' => $b['rounds']['sliding']['max'] ?? null,
+                    'r3_max' => $b['rounds']['3']['max'] ?? null,
+                    'yoy_delta_pct' => null, // YoY computation deferred until 2025 data lands
+                    'seat_count' => $b['seat_count'],
+                ], $col['branches']),
+            ]);
+
+            $this->notes[$instId] = $note;
+            $this->notesGeneratedFor[] = $instId;
+        }
     }
 
     public function mount(): void
@@ -207,6 +252,14 @@ class RankLookup extends Page implements HasForms
             ->sort(fn ($a, $b) => $a['priority'] <=> $b['priority'] ?: strcasecmp($a['institute'], $b['institute']))
             ->values();
 
+        $this->generateMissingNotes(
+            $colleges,
+            $this->showAll ? $colleges->count() : min(7, $colleges->count()),
+            $rank,
+            $userRegion,
+            (int) $this->data['year'],
+        );
+
         return [
             'rank' => $rank,
             'prediction_round' => $predictionRound,
@@ -214,6 +267,7 @@ class RankLookup extends Page implements HasForms
             'user_region' => $userRegion,
             'colleges' => $colleges,
             'visible_count' => $this->showAll ? $colleges->count() : min(7, $colleges->count()),
+            'notes' => $this->notes,
         ];
     }
 
