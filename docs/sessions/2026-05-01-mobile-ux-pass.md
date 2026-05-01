@@ -64,6 +64,7 @@ Replace `?` with `OK` or `FAIL [description]` after testing each cell.
 - (Audit item #4) inline-style sprawl in v2 blades — separate spec.
 - (Audit item #3) Filament tailwind utility colors not reaching admin pages — separate spec.
 - Pre-existing pint debt on `StudentResource.php` and `PaymentReport.php` — separate hygiene cleanup, not introduced by this pass.
+- `php artisan test` OOMs at default 128M memory limit — workaround `php -d memory_limit=512M vendor/bin/phpunit` used here. Adding `<ini name="memory_limit" value="512M"/>` to `phpunit.xml` would fix permanently.
 
 ## Deploy
 
