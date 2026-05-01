@@ -24,6 +24,10 @@ class TopBar extends Component
             $tabs[] = ['key' => 'finance', 'label' => 'Finance', 'url' => '/admin/expenses', 'match' => '/admin/expenses'];
         }
 
+        if ($user?->hasAnyRole(['admin', 'rank-admin'])) {
+            $tabs[] = ['key' => 'rank', 'label' => 'Rank', 'url' => '/admin/rank-lookup', 'match' => '/admin/rank'];
+        }
+
         return $tabs;
     }
 

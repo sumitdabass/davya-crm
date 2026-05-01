@@ -48,9 +48,23 @@ PHP=/opt/alt/php84/usr/bin/php
 git pull
 $PHP /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
 $PHP artisan migrate --force
+# Rank module lives on a separate connection — its migrations live in a separate path:
+$PHP artisan migrate --database=ranks --path=database/migrations/ranks --force
+$PHP artisan db:seed --class="Database\\Seeders\\Rank\\RankRoleSeeder" --force
+$PHP artisan db:seed --class="Database\\Seeders\\Rank\\RankReferenceDataSeeder" --force
+$PHP artisan db:seed --class="Database\\Seeders\\Rank\\SumitSuperAdminSeeder" --force
 $PHP artisan config:cache
 $PHP artisan route:cache
 $PHP artisan view:cache
+```
+
+After first prod deploy of the Rank module, also import existing IPU B.Tech 2024+2026 cutoffs (one-time):
+
+```sh
+# Either copy the standalone rank-predictor SQLite up to the server first…
+scp /Users/Sumit/davya-crm/rank/database/database.sqlite ipuc@ipu.co.in:/home/ipuc/rank-predictor.sqlite
+# …then run the importer pointing at it:
+$PHP artisan rank:import-from-predictor --sqlite=/home/ipuc/rank-predictor.sqlite
 ```
 
 Tag the deploy on your laptop afterwards:
@@ -108,6 +122,13 @@ DB_PORT=3306
 DB_DATABASE=ipuc_ipuc_davyapp
 DB_USERNAME=ipuc_ipuc_davyapp
 DB_PASSWORD="<password>"
+
+# Rank Predictor module — separate DB on the same MySQL server.
+RANKS_DB_HOST=127.0.0.1
+RANKS_DB_PORT=3306
+RANKS_DB_DATABASE=ipuc_rank
+RANKS_DB_USERNAME=ipuc_rank
+RANKS_DB_PASSWORD="<rank-db-password>"
 
 SESSION_DRIVER=database
 SESSION_LIFETIME=120
