@@ -11,7 +11,7 @@
 2. **PaymentReport** filter row (From / To / Owner)
 3. **Student peek drawer** — tab strip + footer action bar
 4. **Kanban cards** — internal flex row (₹X received + owner avatar)
-5. **Dashboard list cards** — Today Payments, Today Meetings, Stuck Leads, Re-Entry Candidates, Seat Fee Pending (tables overflow horizontally)
+5. **Dashboard custom-table widgets** — Today Payments, Today Meetings (the only two list cards with hand-rolled `<table>` markup; the other three — Stuck Leads, Re-Entry, Seat Fee Pending — extend Filament's `TableWidget` which already has native horizontal-scroll)
 
 Out of scope: inline-style refactor, Filament tailwind-utility issue, dark-mode mobile bugs, tablet landscape. Each is its own concern and not currently broken in a way users have reported.
 
@@ -105,9 +105,9 @@ body.davya-v2 .davya-drawer-footer > div {
 - `resources/views/filament/pages/kanban-board.blade.php` (TBD)
 - `resources/css/tokens.css`
 
-### 5. Dashboard list-card tables
+### 5. Dashboard custom-table widgets
 
-**Problem:** 5 list-card blades render 5–6 column tables inside a card with no horizontal-scroll wrapper. On phones the table either spills past the card or column contents wrap into ugly multi-line cells.
+**Problem:** `TodayPaymentsWidget` and `TodayMeetingsWidget` extend `Filament\Widgets\Widget` and render hand-rolled `<table>` markup in their custom blades. On phones the 6-column table spills past the card and gets clipped by the surrounding card's `overflow: hidden`.
 
 **Fix:** Wrap each `<table>` in `<div class="davya-table-scroll">…</div>`. Add one tokens.css rule:
 
@@ -120,15 +120,12 @@ body.davya-v2 .davya-drawer-footer > div {
 
 This rule is non-conditional (no @media) — horizontal scroll on a table that fits is a no-op.
 
-**Files:**
-- `resources/views/filament/widgets/today-payments-card.blade.php`
-- `resources/views/filament/widgets/today-meetings-card.blade.php`
-- `resources/views/filament/widgets/stuck-leads-card.blade.php`
-- `resources/views/filament/widgets/re-entry-candidates-card.blade.php`
-- `resources/views/filament/widgets/seat-fee-pending-card.blade.php`
-- `resources/css/tokens.css`
+**Why only these 2 widgets:** `StuckLeadsWidget`, `ReEntryCandidatesWidget`, and `SeatFeePendingWidget` extend Filament's `TableWidget` which uses Filament's built-in `.fi-ta` wrapper that already has horizontal-scroll on narrow viewports. They render fine on mobile already.
 
-(File names are best-guess — actual paths confirmed during implementation.)
+**Files:**
+- `resources/views/filament/widgets/today-payments-widget.blade.php`
+- `resources/views/filament/widgets/today-meetings-widget.blade.php`
+- `resources/css/tokens.css`
 
 ## Breakpoints
 
