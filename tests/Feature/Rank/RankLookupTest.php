@@ -134,10 +134,10 @@ class RankLookupTest extends TestCase
         $this->app->instance(GeminiCounsellor::class, $mock);
 
         $result = Livewire::test(RankLookup::class)
-            ->set('data.user_rank', 138000)
+            ->set('data.aiOn', false)
             ->set('data.region', 'delhi')
             ->set('data.year', 2026)
-            ->set('data.aiOn', false)
+            ->set('data.user_rank', 138000)
             ->instance()->getResultsProperty();
 
         $this->assertNotEmpty($result['colleges']);

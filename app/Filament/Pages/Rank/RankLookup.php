@@ -107,7 +107,7 @@ class RankLookup extends Page implements HasForms
             'user_rank' => null,
             'show_all' => false,
             'branch_families' => [],
-            'aiOn' => false,
+            'aiOn' => true,
         ]);
     }
 
@@ -140,7 +140,7 @@ class RankLookup extends Page implements HasForms
                 ])->default(false),
                 Toggle::make('aiOn')
                     ->label('Generate AI counselling notes')
-                    ->default(false)
+                    ->default(true)
                     ->columnSpan(2),
             ])
             ->columns(4)
