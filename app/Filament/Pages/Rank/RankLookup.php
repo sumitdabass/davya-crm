@@ -252,14 +252,6 @@ class RankLookup extends Page implements HasForms
             ->sort(fn ($a, $b) => $a['priority'] <=> $b['priority'] ?: strcasecmp($a['institute'], $b['institute']))
             ->values();
 
-        $this->generateMissingNotes(
-            $colleges,
-            $this->showAll ? $colleges->count() : min(7, $colleges->count()),
-            $rank,
-            $userRegion,
-            (int) $this->data['year'],
-        );
-
         return [
             'rank' => $rank,
             'prediction_round' => $predictionRound,
@@ -271,8 +263,33 @@ class RankLookup extends Page implements HasForms
         ];
     }
 
+    /**
+     * Lazily generate AI notes for currently visible colleges. Fired by the
+     * blade via x-init after results render, so the initial page paint is fast
+     * (no Gemini calls block the response). Idempotent: skips colleges whose
+     * notes are already cached in `$notesGeneratedFor`.
+     */
+    public function loadNotes(): void
+    {
+        if (empty($this->data['user_rank']) || empty($this->data['university_id']) || empty($this->data['aiOn'])) {
+            return;
+        }
+
+        $result = $this->getResultsProperty();
+        $this->generateMissingNotes(
+            $result['colleges'],
+            $result['visible_count'],
+            $result['rank'],
+            $result['user_region'],
+            (int) $this->data['year'],
+        );
+    }
+
     public function submit(): void
     {
         $this->form->getState();
+        // New search → drop old notes so the loader regenerates them for the new rank/filter.
+        $this->notes = [];
+        $this->notesGeneratedFor = [];
     }
 }

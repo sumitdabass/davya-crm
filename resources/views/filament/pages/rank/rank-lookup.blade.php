@@ -33,7 +33,12 @@
             $visible = $result['visible_count'];
             $hidden = max(0, $colleges->count() - $visible);
             $notes = $result['notes'] ?? [];
+            $notesPending = ($this->data['aiOn'] ?? false) && count($notes) < $visible;
         @endphp
+
+        @if ($notesPending)
+            <div x-data x-init="$nextTick(() => $wire.loadNotes())" wire:key="notes-loader-{{ $result['rank'] }}-{{ $visible }}"></div>
+        @endif
 
         <div class="mb-4">
             <h2 style="font-size:18px; font-weight:bold; margin:0;">Rank Lookup Results</h2>
@@ -78,6 +83,8 @@
                                 <strong style="font-size:14px;">{{ $idx + 1 }}. {{ $col['institute'] }}</strong>
                                 @if ($note)
                                     <div style="margin-top:2px; font-style:italic; font-size:12px; color:#475569;">{{ $note }}</div>
+                                @elseif ($notesPending)
+                                    <div style="margin-top:2px; font-style:italic; font-size:12px; color:#94a3b8;">Generating counselling note…</div>
                                 @endif
                             </td>
                         </tr>
