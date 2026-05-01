@@ -280,14 +280,18 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
     body.davya-v2 .davya-topbar > nav::-webkit-scrollbar { display: none; }
     body.davya-v2 .davya-topbar > nav a { white-space: nowrap; font-size: var(--fs-11); flex-shrink: 0; }
 
-    /* Search pill shrinks to icon only */
-    body.davya-v2 .davya-topbar > button {
+    /* Search pill shrinks to icon only — also targets the button inside the
+     * livewire:student-search wrapper (Livewire renders a div root, so the
+     * button is not a direct child of .davya-topbar). */
+    body.davya-v2 .davya-topbar > button,
+    body.davya-v2 .davya-topbar [wire\:id] button[type="button"] {
         flex: 1 1 auto !important;
         min-width: 0;
         font-size: 0 !important;
         justify-content: center;
     }
-    body.davya-v2 .davya-topbar > button span { display: none !important; }
+    body.davya-v2 .davya-topbar > button span,
+    body.davya-v2 .davya-topbar [wire\:id] button[type="button"] span { display: none !important; }
 
     /* + New Student collapses to just "+" */
     body.davya-v2 .davya-topbar > a[href="/admin/students/create"] {
@@ -301,7 +305,8 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
         font-weight: 700;
     }
 
-    /* Owner pill trims to avatar only */
+    /* Owner pill trims to avatar only — hide the chevron too so it doesn't
+     * dangle next to the standalone avatar circle. */
     body.davya-v2 .davya-topbar .davya-owner-pill {
         font-size: 0 !important;
         padding: 2px !important;
@@ -309,6 +314,18 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
         background: transparent !important;
     }
     body.davya-v2 .davya-topbar .davya-owner-pill .av { width: 26px; height: 26px; font-size: 10px; }
+    body.davya-v2 .davya-topbar .davya-owner-pill svg { display: none !important; }
+
+    /* Rank sub-nav — same horizontal-scroll treatment as primary nav so the
+     * 9 pills don't wrap to 3 rows on phones. */
+    body.davya-v2 .rank-subnav {
+        flex-wrap: nowrap !important;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    body.davya-v2 .rank-subnav::-webkit-scrollbar { display: none; }
+    body.davya-v2 .rank-subnav .davya-tab { flex-shrink: 0; }
 
     /* Sub-toolbar wraps */
     body.davya-v2 .davya-subtoolbar { flex-wrap: wrap; padding: 6px 10px !important; gap: 6px !important; }

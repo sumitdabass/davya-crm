@@ -143,7 +143,7 @@ class RankLookup extends Page implements HasForms
                     ->default(true)
                     ->columnSpan(2),
             ])
-            ->columns(4)
+            ->columns(['default' => 1, 'md' => 4])
             ->statePath('data');
     }
 

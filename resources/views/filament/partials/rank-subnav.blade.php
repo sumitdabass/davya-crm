@@ -13,19 +13,9 @@
     ];
 @endphp
 
-<nav class="rank-subnav no-print" style="display:flex; flex-wrap:wrap; gap:6px; margin:-8px 0 16px 0;">
+<nav class="rank-subnav no-print" style="display:flex; flex-wrap:wrap; gap:6px; margin: 0 0 16px 0;">
     @foreach ($items as $i)
         @php $active = str_starts_with($current, $i['match']); @endphp
-        <a href="{{ $i['url'] }}"
-           style="text-decoration:none;
-                  padding: 5px 10px;
-                  border-radius: 6px;
-                  font-size: 12px;
-                  font-weight: 500;
-                  border: 1px solid {{ $active ? '#059669' : '#e5e7eb' }};
-                  background: {{ $active ? '#059669' : 'transparent' }};
-                  color: {{ $active ? '#fff' : '#374151' }};">
-            {{ $i['label'] }}
-        </a>
+        <a href="{{ $i['url'] }}" class="davya-tab{{ $active ? ' is-active' : '' }}">{{ $i['label'] }}</a>
     @endforeach
 </nav>
