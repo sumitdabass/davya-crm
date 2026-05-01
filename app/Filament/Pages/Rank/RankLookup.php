@@ -10,6 +10,8 @@ use App\Models\Rank\QualifyingExam;
 use App\Models\Rank\Seat;
 use App\Models\Rank\University;
 use App\Services\Rank\BranchFamilies;
+use App\Services\Rank\CollegePreferenceOrder;
+use App\Services\Rank\RankPredictor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -22,37 +24,6 @@ class RankLookup extends Page implements HasForms
 {
     use InteractsWithForms;
     use RestrictsToRankRoles;
-
-    /**
-     * Sumit's preferred institute display order (2026-05-01).
-     * Lower number = appears first. Match by case-insensitive substring on institute name.
-     * Anything not matched gets weight 1000 → falls below the listed colleges, sorted alphabetically.
-     */
-    private const INSTITUTE_PRIORITY = [
-        'maharaja agrasen' => 10,                // MAIT
-        'maharaja surajmal' => 20,               // MSIT
-        'bharati vidyapeeth' => 30,              // BVP
-        'bhagwan parshuram' => 40,               // BPIT
-        'vivekananda institute of professional' => 50, // VIPS
-        'akhilesh das gupta' => 60,              // Dr Akhilesh
-        'guru teg bahadur institute' => 70,      // GTBIT
-        'guru tegh bahadur 4th centenary' => 80, // GTB 4th Centenary
-        'university school of information' => 90, // USICT
-        'university school of automation' => 91,  // USAR
-        'university school of chemical' => 92,    // USCT
-    ];
-
-    private function instituteSortKey(string $name): int
-    {
-        $lc = strtolower($name);
-        foreach (self::INSTITUTE_PRIORITY as $needle => $weight) {
-            if (str_contains($lc, $needle)) {
-                return $weight;
-            }
-        }
-
-        return 1000;
-    }
 
     protected static ?string $navigationGroup = 'Rank Predictor';
 
@@ -134,26 +105,50 @@ class RankLookup extends Page implements HasForms
     public function getResultsProperty(): array
     {
         if (empty($this->data['user_rank']) || empty($this->data['university_id'])) {
-            return ['rows' => collect(), 'rank' => null, 'prediction_round' => null];
+            return [
+                'rank' => null,
+                'prediction_round' => null,
+                'prediction_region' => null,
+                'user_region' => null,
+                'colleges' => collect(),
+                'visible_count' => 0,
+            ];
         }
 
         $rank = (int) $this->data['user_rank'];
         $userRegion = $this->data['region'];
-
-        // Per Sumit (2026-05-01): always use **Delhi-region** cutoffs as prediction source,
-        // but pick a different round depending on where the student belongs:
-        //   Delhi student          → Sliding (R4) Delhi cutoffs
-        //   Outside Delhi student  → R3        Delhi cutoffs
         $predictionRound = $userRegion === 'delhi' ? 'sliding' : '3';
         $predictionRegion = 'delhi';
+        $predictor = new RankPredictor;
 
-        $cutoffs = Cutoff::with(['institute', 'branch'])
+        $branchIds = null;
+        if (! empty($this->data['branch_families'])) {
+            $branchIds = BranchFamilies::expandToBranchIds(
+                $this->data['branch_families'],
+                (int) $this->data['course_id'],
+            );
+            if (empty($branchIds)) {
+                return [
+                    'rank' => $rank,
+                    'prediction_round' => $predictionRound,
+                    'prediction_region' => $predictionRegion,
+                    'user_region' => $userRegion,
+                    'colleges' => collect(),
+                    'visible_count' => 0,
+                ];
+            }
+        }
+
+        $cutoffsQuery = Cutoff::with(['institute', 'branch'])
             ->where('university_id', $this->data['university_id'])
             ->where('course_id', $this->data['course_id'])
             ->where('qualifying_exam_id', $this->data['qualifying_exam_id'])
             ->where('year', $this->data['year'])
-            ->where('region', $predictionRegion)
-            ->get();
+            ->where('region', $predictionRegion);
+        if ($branchIds !== null) {
+            $cutoffsQuery->whereIn('branch_id', $branchIds);
+        }
+        $cutoffs = $cutoffsQuery->get();
 
         $byKey = [];
         foreach ($cutoffs as $c) {
@@ -172,47 +167,53 @@ class RankLookup extends Page implements HasForms
             $byKey[$key]['rounds'][$c->round] = ['min' => $c->min_rank, 'max' => $c->max_rank];
         }
 
+        // Drop rows whose prediction-round cell isn't eligible (missing, out-of-band, or cushion > 50%).
+        $byKey = array_filter($byKey, function ($row) use ($rank, $predictionRound, $predictor) {
+            $cell = $row['rounds'][$predictionRound] ?? null;
+
+            return $cell && $predictor->isEligible($rank, $cell);
+        });
+
         if (! empty($byKey)) {
             $instIds = array_unique(array_column($byKey, 'institute_id'));
-            $branchIds = array_unique(array_column($byKey, 'branch_id'));
+            $branchIdsAll = array_unique(array_column($byKey, 'branch_id'));
             $seats = Seat::where('university_id', $this->data['university_id'])
                 ->where('course_id', $this->data['course_id'])
                 ->where('year', $this->data['year'])
                 ->whereIn('institute_id', $instIds)
-                ->whereIn('branch_id', $branchIds)
+                ->whereIn('branch_id', $branchIdsAll)
                 ->get()
                 ->keyBy(fn ($s) => $s->institute_id.'|'.$s->branch_id);
-            foreach ($byKey as $k => &$row) {
-                $seatRow = $seats->get($row['institute_id'].'|'.$row['branch_id']);
-                $row['seat_count'] = $seatRow?->seat_count;
-                $predCell = $row['rounds'][$predictionRound] ?? null;
-                $row['fits_prediction'] = $predCell
-                    && $predCell['min'] <= $rank
-                    && $rank <= $predCell['max'];
-                $row['pred_max'] = $predCell['max'] ?? PHP_INT_MAX;
+
+            foreach ($byKey as $key => &$row) {
+                $cell = $row['rounds'][$predictionRound];
+                $seat = $seats->get($row['institute_id'].'|'.$row['branch_id']);
+                $row['seat_count'] = $seat?->seat_count;
+                $row['prediction_max'] = $cell['max'];
+                $row['cushion_pct'] = $predictor->cushionPct($rank, $cell['max']);
+                $row['bucket'] = $predictor->bucket($rank, $cell['max']);
             }
             unset($row);
         }
 
-        $rows = collect($byKey);
-        if (empty($this->data['show_all'])) {
-            $rows = $rows->filter(fn ($r) => $r['fits_prediction']);
-        }
-        // Group by college (Sumit's preferred order: MAIT, MSIT, BVP, BPIT, VIPS, Dr Akhilesh,
-        // GTBIT, GTB 4th Centenary, then USICT/USAR/USCT, then alphabetical), with branches
-        // inside each college sorted low → high by the prediction round's max rank.
-        $rows = $rows->sortBy([
-            fn ($a, $b) => $this->instituteSortKey($a['institute']) <=> $this->instituteSortKey($b['institute']),
-            fn ($a, $b) => strcasecmp($a['institute'], $b['institute']),
-            fn ($a, $b) => $a['pred_max'] <=> $b['pred_max'],
-        ])->values();
+        // Group rows by college; sort branches inside each college by prediction_max ASC; sort colleges by demand priority.
+        $colleges = collect($byKey)
+            ->groupBy('institute')
+            ->map(fn ($branches, $institute) => [
+                'institute' => $institute,
+                'priority' => CollegePreferenceOrder::sortKey($institute),
+                'branches' => $branches->sortBy('prediction_max')->values()->all(),
+            ])
+            ->sort(fn ($a, $b) => $a['priority'] <=> $b['priority'] ?: strcasecmp($a['institute'], $b['institute']))
+            ->values();
 
         return [
-            'rows' => $rows,
             'rank' => $rank,
             'prediction_round' => $predictionRound,
             'prediction_region' => $predictionRegion,
             'user_region' => $userRegion,
+            'colleges' => $colleges,
+            'visible_count' => $this->showAll ? $colleges->count() : min(7, $colleges->count()),
         ];
     }
 
