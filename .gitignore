@@ -33,3 +33,6 @@ yarn-error.log
 # Superpowers brainstorm artifacts (per-session HTML mockups)
 /.superpowers/
 .superpowers/
+
+# Nested rank-predictor sub-project (own repo)
+/rank/

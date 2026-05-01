@@ -62,6 +62,23 @@ return [
             ]) : [],
         ],
 
+        'ranks' => [
+            'driver' => 'mysql',
+            'url' => env('RANKS_DB_URL'),
+            'host' => env('RANKS_DB_HOST', '127.0.0.1'),
+            'port' => env('RANKS_DB_PORT', '3306'),
+            'database' => env('RANKS_DB_DATABASE', 'davyas_ranks_dev'),
+            'username' => env('RANKS_DB_USERNAME', env('DB_USERNAME', 'root')),
+            'password' => env('RANKS_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('RANKS_DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
