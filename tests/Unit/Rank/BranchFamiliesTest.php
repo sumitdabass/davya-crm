@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\Rank;
 
-use App\Filament\Pages\Rank\BranchFamilies;
 use App\Models\Rank\Branch;
 use App\Models\Rank\Course;
+use App\Services\Rank\BranchFamilies;
 use Tests\TestCase;
 
 class BranchFamiliesTest extends TestCase
@@ -38,6 +38,7 @@ class BranchFamiliesTest extends TestCase
             'Mechatronics' => 'mechanical',
             'Automation & Robotics' => 'mechanical',
             'Civil Engineering' => 'civil_arch',
+            'Civil Engineering with Computer Applications' => 'cs_it', // documents priority — cs_it wins over civil_arch
             'B.Tech. (Architecture & interior Decoration)' => 'civil_arch',
             'Chemical Engineering' => 'chem_energy',
             'B. Tech. (Energy)' => 'chem_energy',

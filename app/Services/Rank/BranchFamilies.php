@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Pages\Rank;
+namespace App\Services\Rank;
 
 use App\Models\Rank\Branch;
 
@@ -49,6 +49,11 @@ class BranchFamilies
         return self::FAMILIES;
     }
 
+    /**
+     * Returns the first family whose substrings match the (lowercased) branch name.
+     * Iteration order follows self::SUBSTRINGS, so earlier families take priority
+     * over later ones when a name contains substrings from multiple families.
+     */
     public static function familyFor(string $branchName): ?string
     {
         $lc = strtolower($branchName);
