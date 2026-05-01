@@ -316,8 +316,9 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
     /* Kanban columns narrower on phones so a column + peek drawer both fit */
     .davya-kanban-col { min-width: 240px; }
 
-    /* Peek drawer full-width on phones */
+    /* Peek drawer + command palette full-width on phones */
     body.davya-v2 aside[style*="width: 560px"] { width: 100vw !important; max-width: 100vw !important; }
+    body.davya-v2 [wire\:key="command-palette"] [style*="width: 600px"] { width: calc(100vw - 24px) !important; }
 
     /* Student-fields + settings-landing: single-column on phones */
     body.davya-v2 .davya-fields-shell > div[style*="grid-template-columns"] {
