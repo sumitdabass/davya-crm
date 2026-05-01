@@ -329,11 +329,12 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
 
     /* Filament responsive grid array (e.g. ['default'=>1,'md'=>4]) emits
      * Tailwind-arbitrary classes (grid-cols-[--cols-default]) that don't
-     * always compile in admin pages (memory: Tailwind utilities don't reach
-     * Filament). Read the CSS variables Filament always sets, and force the
-     * grid to honor them on phones. */
-    body.davya-v2 .fi-fo-component-ctn[style*="--cols-default"] {
-        grid-template-columns: var(--cols-default) !important;
+     * always compile in admin pages. Force ALL Filament form grids to a
+     * single column on phones, regardless of the schema's columns(N) value. */
+    body.davya-v2 .fi-fo-component-ctn,
+    body.davya-v2 .fi-fo-component-ctn.grid,
+    body.davya-v2 form .grid {
+        grid-template-columns: 1fr !important;
     }
 
     /* Sub-toolbar wraps */
