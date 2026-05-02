@@ -21,10 +21,17 @@ echo "=== migrate --force ==="
 # Both reversible.
 $PHP artisan migrate --force
 
-echo "=== clear caches ==="
-$PHP artisan config:clear
-$PHP artisan route:clear
-$PHP artisan view:clear
+echo "=== clear caches (Laravel + Filament panel-component cache) ==="
+$PHP artisan optimize:clear
+# Filament 3 caches the discovered pages/resources/widgets per panel.
+# If `php artisan filament:cache-components` was run earlier, the new
+# StaffPerformance page won't appear until that cache is purged.
+rm -rf bootstrap/cache/filament 2>/dev/null || true
+echo "(filament panel cache directory removed if it existed)"
+
+echo "=== verify the staff-performance route is registered ==="
+$PHP artisan route:list 2>&1 | grep -iE "staff-performance" | head -3
+echo "(should print at least one row; if empty, the page wasn't discovered)"
 
 echo "=== verify scheduler picked up new entry ==="
 $PHP artisan schedule:list | grep -E "performance:recalculate|backup:database"
