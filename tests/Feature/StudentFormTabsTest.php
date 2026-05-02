@@ -24,7 +24,7 @@ class StudentFormTabsTest extends TestCase
             ->assertSee('Academic')
             ->assertSee('Deal')
             ->assertSee('Counselling')
-            ->assertSee('Timeline')
+            ->assertSee('Account')
             ->assertSee('Closure')
             ->assertSee('Quick notes')
             ->assertDontSee('Final allotment')

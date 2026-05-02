@@ -228,10 +228,46 @@ class StudentResource extends Resource
                         ->badge(fn ($record) => $record?->stage === 'Closed' ? 'Closed' : null)
                         ->badgeColor('danger')
                         ->schema(array_merge([
+                            // Payment + Note quick-add buttons. Both open the same forms used by
+                            // the relation managers below — keeps a single source of truth for
+                            // the Payment form (PaymentFormSchema).
+                            \Filament\Forms\Components\Actions::make([
+                                \Filament\Forms\Components\Actions\Action::make('addPayment')
+                                    ->label('+ New Payment')
+                                    ->color('success')
+                                    ->icon('heroicon-o-banknotes')
+                                    ->visible(fn ($record) => $record !== null)
+                                    ->form(\App\Filament\Resources\Shared\PaymentFormSchema::fields(inlineFirstPayment: false))
+                                    ->action(function (array $data, $record): void {
+                                        $data = \App\Filament\Resources\Shared\PaymentFormSchema::resolveProofUpload($data);
+                                        $data['student_id'] = $record->id;
+                                        $data['recorded_by_user_id'] = auth()->id();
+                                        \App\Models\Payment::create($data);
+                                        Notification::make()->success()->title('Payment recorded')->send();
+                                    })
+                                    ->modalWidth('lg'),
+                                \Filament\Forms\Components\Actions\Action::make('addNote')
+                                    ->label('+ New Note')
+                                    ->color('primary')
+                                    ->icon('heroicon-o-pencil-square')
+                                    ->visible(fn ($record) => $record !== null)
+                                    ->form([
+                                        Textarea::make('body')->label('Note')->rows(4)->required(),
+                                    ])
+                                    ->action(function (array $data, $record): void {
+                                        \App\Models\StudentNote::create([
+                                            'student_id' => $record->id,
+                                            'author_id'  => auth()->id(),
+                                            'body'       => $data['body'],
+                                        ]);
+                                        Notification::make()->success()->title('Note added')->send();
+                                    })
+                                    ->modalWidth('md'),
+                            ])->columnSpanFull(),
+
+                            // Closure — always visible.
                             \Filament\Forms\Components\Section::make('Closure')
                                 ->description('Fill these only when wrapping up the student.')
-                                ->collapsible()
-                                ->collapsed(fn ($record) => $record === null || $record->stage !== 'Closed')
                                 ->schema(array_merge([
                                     Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
                                     TextInput::make('refund_amount')->numeric()->prefix('₹'),
@@ -239,18 +275,12 @@ class StudentResource extends Resource
                                 ], self::customFieldsForSection('Closure')))
                                 ->columns(['default' => 1, 'md' => 2]),
 
-                            \Filament\Forms\Components\Placeholder::make('account_hint')
-                                ->label('')
-                                ->content(new \Illuminate\Support\HtmlString(
-                                    '<div style="font-size: 13px; color: #6b7280; padding: 8px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; line-height: 1.5;">'
-                                    .'Use the panels below the form to manage the rest of this student\'s account:'
-                                    .'<ul style="margin: 6px 0 0 18px; list-style: disc; color: #374151;">'
-                                    .'<li><strong>Payments</strong> — record advance / partial / full / refund. New payment opens the same form used to update part-payments.</li>'
-                                    .'<li><strong>Notes</strong> — running log entries.</li>'
-                                    .'<li><strong>Timeline</strong> — every change to this student, who made it, and when.</li>'
-                                    .'</ul>'
-                                    .'</div>'
-                                )),
+                            // Inline summaries: recent payments, notes, timeline. Read-only —
+                            // operators add via the action buttons above; the panels below the
+                            // form are still there for table view + CSV export.
+                            \Filament\Forms\Components\View::make('filament.forms.account-summary')
+                                ->visible(fn ($record) => $record !== null)
+                                ->columnSpanFull(),
                         ], self::customFieldsForSection('History')))
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
