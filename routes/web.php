@@ -13,7 +13,8 @@ Route::get('/dev-login', function () {
     }
     $user = User::where('email', 'sumit@davya.local')->firstOrFail();
     auth()->login($user, remember: true);
-    return redirect('/admin');
+
+    return redirect(request()->query('to', '/admin'));
 });
 
 Route::middleware(['auth', 'signed'])
