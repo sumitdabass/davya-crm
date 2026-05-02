@@ -31,6 +31,7 @@ class StuckLeadsWidget extends TableWidget
                 ->stuck()
                 ->visibleTo(auth()->user())
                 ->with('owner'))
+            ->recordUrl(fn (Student $record): string => \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 TextColumn::make('name')->searchable(),
                 TextColumn::make('phone'),

@@ -59,6 +59,7 @@ class TodayMeetingsWidget extends Widget implements HasActions, HasForms
                 'is_today' => $i === 0,
                 'meetings' => $slot->map(fn (Meeting $m) => [
                     'id'             => $m->id,
+                    'student_id'     => $m->student_id,
                     'time'           => $m->scheduled_at->setTimezone($tz)->format('H:i'),
                     'student_name'   => $m->student?->name ?? '—',
                     'student_phone'  => $m->student?->phone,

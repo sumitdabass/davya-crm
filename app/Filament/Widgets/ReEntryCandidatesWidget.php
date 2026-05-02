@@ -25,6 +25,9 @@ class ReEntryCandidatesWidget extends TableWidget
     {
         return $table
             ->query(fn (): Builder => self::baseQuery()->with('student.owner'))
+            ->recordUrl(fn (RoundHistory $record): ?string => $record->student_id
+                ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record->student_id])
+                : null)
             ->columns([
                 TextColumn::make('student.name')->label('Student')->searchable(),
                 TextColumn::make('student.phone')->label('Phone'),

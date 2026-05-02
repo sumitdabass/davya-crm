@@ -1,33 +1,44 @@
 <x-filament-panels::page>
     @php($r = $this->getReport())
+    @php($studentsBase = \App\Filament\Resources\StudentResource::getUrl('index'))
+    @php($studentsUrl = function (array $params) use ($studentsBase) {
+        $tableFilters = [];
+        foreach ($params as $k => $v) {
+            $tableFilters[$k] = ['value' => $v];
+        }
+        return $studentsBase . '?' . http_build_query(['tableFilters' => $tableFilters]);
+    })
 
     <p class="text-sm text-gray-600 dark:text-gray-400">
         Counts exclude students still in the <strong>Lead Captured</strong> stage, showing only leads that have progressed past initial capture.
     </p>
 
     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+        <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
+            class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
             <div class="text-xs text-gray-500 dark:text-gray-400">Total leads past Lead Captured</div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['past_capture'] }}
             </div>
-        </div>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+        </a>
+        <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
+            class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
             <div class="text-xs text-gray-500 dark:text-gray-400">Owners with activity</div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['owners_counted'] }}
             </div>
-        </div>
-        <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+        </a>
+        <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
+            class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
             <div class="text-xs text-gray-500 dark:text-gray-400">Referrers with activity</div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['referrers_counted'] }}
             </div>
-        </div>
+        </a>
     </div>
 
     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        @foreach ([['By owner', $r['byOwner']], ['By referrer', $r['byReferrer']]] as [$heading, $rows])
+        @foreach ([['By owner', $r['byOwner'], 'owner_id'], ['By referrer', $r['byReferrer'], 'referrer_id']] as [$heading, $rows, $userKey])
             <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
                 <header class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold text-sm">{{ $heading }}</header>
                 <table class="w-full text-sm">
@@ -41,13 +52,24 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse ($rows as $row)
+                        @forelse ($rows as $uid => $row)
                             <tr class="border-t border-gray-100 dark:border-gray-800">
-                                <td class="px-4 py-2">{{ $row['name'] }}</td>
-                                <td class="text-right px-4 py-2 tabular-nums">{{ $row['active'] }}</td>
-                                <td class="text-right px-4 py-2 tabular-nums text-emerald-600 dark:text-emerald-400">{{ $row['admitted'] }}</td>
-                                <td class="text-right px-4 py-2 tabular-nums text-gray-500">{{ $row['closed'] }}</td>
-                                <td class="text-right px-4 py-2 tabular-nums font-medium">{{ $row['count'] }}</td>
+                                <td class="px-4 py-2">
+                                    <a href="{{ $studentsUrl([$userKey => $uid, 'pipeline_status' => 'past_capture']) }}"
+                                       class="text-primary-600 dark:text-primary-400 hover:underline">{{ $row['name'] }}</a>
+                                </td>
+                                <td class="text-right px-4 py-2 tabular-nums">
+                                    <a href="{{ $studentsUrl([$userKey => $uid, 'pipeline_status' => 'active']) }}" class="hover:underline">{{ $row['active'] }}</a>
+                                </td>
+                                <td class="text-right px-4 py-2 tabular-nums text-emerald-600 dark:text-emerald-400">
+                                    <a href="{{ $studentsUrl([$userKey => $uid, 'pipeline_status' => 'admitted']) }}" class="hover:underline">{{ $row['admitted'] }}</a>
+                                </td>
+                                <td class="text-right px-4 py-2 tabular-nums text-gray-500">
+                                    <a href="{{ $studentsUrl([$userKey => $uid, 'pipeline_status' => 'closed_lost']) }}" class="hover:underline">{{ $row['closed'] }}</a>
+                                </td>
+                                <td class="text-right px-4 py-2 tabular-nums font-medium">
+                                    <a href="{{ $studentsUrl([$userKey => $uid, 'pipeline_status' => 'past_capture']) }}" class="hover:underline">{{ $row['count'] }}</a>
+                                </td>
                             </tr>
                         @empty
                             <tr><td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">No leads past Lead Captured yet.</td></tr>

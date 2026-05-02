@@ -23,7 +23,11 @@
                         @foreach ([['a', $a, $flag->student_a_id], ['b', $b, $flag->student_b_id]] as [$key, $s, $sid])
                             <div class="rounded border border-gray-200 dark:border-gray-700 p-3">
                                 @if ($s)
-                                    <div class="font-medium text-sm">{{ $s->name ?? '(no name)' }}</div>
+                                    <div class="font-medium text-sm">
+                                        <a href="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $s->id]) }}"
+                                           target="_blank" rel="noopener"
+                                           class="text-primary-600 dark:text-primary-400 hover:underline">{{ $s->name ?? '(no name)' }}</a>
+                                    </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
                                         owner <strong>{{ $s->owner?->name ?? '—' }}</strong> · source {{ $s->lead_source ?? '—' }} · stage {{ $s->stage }}
                                     </div>
@@ -53,7 +57,11 @@
                         @foreach ([['a', $a, $flag->student_a_id], ['b', $b, $flag->student_b_id]] as [$key, $s, $sid])
                             <div class="rounded border border-gray-200 dark:border-gray-700 p-3">
                                 @if ($s)
-                                    <div class="font-medium text-sm">{{ $s->name ?? '(no name)' }}</div>
+                                    <div class="font-medium text-sm">
+                                        <a href="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $s->id]) }}"
+                                           target="_blank" rel="noopener"
+                                           class="text-primary-600 dark:text-primary-400 hover:underline">{{ $s->name ?? '(no name)' }}</a>
+                                    </div>
                                     <div class="text-xs text-gray-500 mt-0.5">
                                         owner <strong>{{ $s->owner?->name ?? '—' }}</strong> · source {{ $s->lead_source ?? '—' }} · stage {{ $s->stage }}
                                     </div>
@@ -98,7 +106,14 @@
                     @foreach ($resolved as $flag)
                         <tr class="border-t border-gray-100 dark:border-gray-800">
                             <td class="px-4 py-2">{{ $flag->phone }}</td>
-                            <td class="px-4 py-2">#{{ $flag->kept_student_id ?? '—' }}</td>
+                            <td class="px-4 py-2">
+                                @if($flag->kept_student_id)
+                                    <a href="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $flag->kept_student_id]) }}"
+                                       class="text-primary-600 dark:text-primary-400 hover:underline">#{{ $flag->kept_student_id }}</a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                             <td class="px-4 py-2">{{ $flag->resolvedBy?->name ?? '—' }}</td>
                             <td class="text-right px-4 py-2 text-gray-500">{{ $flag->resolved_at?->diffForHumans() }}</td>
                         </tr>

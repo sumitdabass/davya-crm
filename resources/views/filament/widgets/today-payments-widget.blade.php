@@ -21,7 +21,10 @@
                     @foreach($this->rows as $r)
                         <tr class="border-b border-gray-100 dark:border-gray-800">
                             <td class="py-1 pr-2 font-mono">{{ $r['time'] }}</td>
-                            <td class="py-1 pr-2">{{ $r['student_name'] }}</td>
+                            <td class="py-1 pr-2">
+                                <a href="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $r['student_id']]) }}"
+                                   class="text-primary-600 dark:text-primary-400 hover:underline">{{ $r['student_name'] }}</a>
+                            </td>
                             <td class="py-1 pr-2 text-right font-mono">
                                 ₹{{ number_format($r['amount'], 2, '.', ',') }}
                             </td>

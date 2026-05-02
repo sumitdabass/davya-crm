@@ -21,8 +21,9 @@
                     </div>
 
                     @forelse($day['meetings'] as $m)
-                        <div @class([
-                            'rounded border-l-4 px-2 py-1.5 mb-1.5 text-xs bg-white dark:bg-gray-900',
+                        <a @if($m['student_id']) href="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $m['student_id']]) }}" @endif
+                            @class([
+                            'block rounded border-l-4 px-2 py-1.5 mb-1.5 text-xs bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition',
                             'border-blue-400'                   => $m['status'] === 'scheduled' && ! $m['is_overdue'],
                             'border-amber-400'                  => $m['is_overdue'],
                             'border-emerald-400 opacity-60'     => $m['status'] === 'held',
@@ -37,7 +38,7 @@
                                 {{ $m['course'] ?? '—' }} · {{ $m['mode'] }} · {{ $m['owner_initials'] }}
                                 @if($m['student_phone']) · <span class="font-mono">{{ $m['student_phone'] }}</span> @endif
                             </div>
-                        </div>
+                        </a>
                     @empty
                         <div class="text-xs text-gray-400">—</div>
                     @endforelse

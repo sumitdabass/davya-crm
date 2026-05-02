@@ -40,6 +40,24 @@ class ActivityAudit extends Page implements HasForms, HasTable
     {
         return $table
             ->query(fn (): Builder => Activity::query()->latest())
+            ->recordUrl(function (Activity $record): ?string {
+                if ($record->subject_id === null) {
+                    return null;
+                }
+                if ($record->subject_type === \App\Models\Student::class) {
+                    return \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record->subject_id]);
+                }
+                if ($record->subject_type === \App\Models\User::class) {
+                    return \App\Filament\Resources\UserResource::getUrl('edit', ['record' => $record->subject_id]);
+                }
+                if ($record->subject_type === \App\Models\Payment::class) {
+                    $studentId = \App\Models\Payment::query()->whereKey($record->subject_id)->value('student_id');
+                    return $studentId
+                        ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $studentId])
+                        : null;
+                }
+                return null;
+            })
             ->columns([
                 TextColumn::make('created_at')->label('When')->dateTime('d M Y, H:i:s')->sortable(),
                 TextColumn::make('causer.name')->label('Who')->badge()->color('gray'),

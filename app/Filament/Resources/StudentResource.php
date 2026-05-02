@@ -304,7 +304,51 @@ class StudentResource extends Resource
             ->columns(array_merge($baseColumns, (new DynamicTableColumns())->build()))
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
+                SelectFilter::make('referrer_id')->label('Referrer')->relationship('referrer', 'name'),
                 SelectFilter::make('stage')->options(fn () => self::stageOptions()),
+                SelectFilter::make('pipeline_status')
+                    ->label('Pipeline status')
+                    ->options([
+                        'past_capture' => 'Past Lead Captured',
+                        'active'       => 'Active',
+                        'admitted'     => 'Admitted',
+                        'closed_lost'  => 'Closed (lost)',
+                    ])
+                    ->query(function ($query, array $data) {
+                        $v = $data['value'] ?? null;
+                        if ($v === null || $v === '') {
+                            return $query;
+                        }
+                        if ($v === 'past_capture') {
+                            return $query->where('stage', '!=', \App\Services\PipelineSummary::STAGE_LEAD_CAPTURED);
+                        }
+                        if ($v === 'admitted') {
+                            return $query->where(function ($q) {
+                                $q->where('stage', \App\Services\PipelineSummary::STAGE_SEAT_ALLOTTED)
+                                  ->orWhere(function ($qq) {
+                                      $qq->where('stage', \App\Services\PipelineSummary::STAGE_CLOSED)
+                                         ->where('close_reason', \App\Services\PipelineSummary::CLOSE_REASON_COMPLETED);
+                                  });
+                            });
+                        }
+                        if ($v === 'closed_lost') {
+                            return $query->where('stage', \App\Services\PipelineSummary::STAGE_CLOSED)
+                                ->where(function ($q) {
+                                    $q->whereNull('close_reason')
+                                      ->orWhere('close_reason', '!=', \App\Services\PipelineSummary::CLOSE_REASON_COMPLETED);
+                                });
+                        }
+                        if ($v === 'active') {
+                            return $query
+                                ->where('stage', '!=', \App\Services\PipelineSummary::STAGE_LEAD_CAPTURED)
+                                ->where('stage', '!=', \App\Services\PipelineSummary::STAGE_SEAT_ALLOTTED)
+                                ->where(function ($q) {
+                                    $q->where('stage', '!=', \App\Services\PipelineSummary::STAGE_CLOSED)
+                                      ->orWhereNull('stage');
+                                });
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
                 SelectFilter::make('course')
                     ->options(fn () => Student::query()->whereNotNull('course')->where('course', '!=', '')
