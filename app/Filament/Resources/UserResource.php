@@ -162,7 +162,7 @@ class UserResource extends Resource
                     ->label('Delete')
                     ->icon('heroicon-m-trash')
                     ->color('danger')
-                    ->visible(fn (User $record) => (auth()->user()?->hasRole('admin') ?? false) && auth()->id() !== $record->id)
+                    ->visible(fn (User $record) => (auth()->user()?->isSuperAdmin() ?? false) && auth()->id() !== $record->id)
                     ->modalHeading(fn (User $record) => "Delete {$record->name}?")
                     ->modalDescription(function (User $record) {
                         $c = static::ownedRecordCounts($record);

@@ -29,6 +29,6 @@ class InvestmentPolicy
 
     public function delete(User $user, Investment $investment): bool
     {
-        return $user->hasAnyRole(['admin', 'finance']);
+        return $user->isSuperAdmin();
     }
 }

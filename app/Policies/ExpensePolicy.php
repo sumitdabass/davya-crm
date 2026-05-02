@@ -29,6 +29,6 @@ class ExpensePolicy
 
     public function delete(User $user, Expense $expense): bool
     {
-        return $user->hasAnyRole(['admin', 'finance']);
+        return $user->isSuperAdmin();
     }
 }

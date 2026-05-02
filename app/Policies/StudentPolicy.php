@@ -69,7 +69,7 @@ class StudentPolicy
 
     public function delete(User $user, Student $student): bool
     {
-        return $user->hasRole('admin');
+        return $user->isSuperAdmin();
     }
 
     public function transfer(User $user, Student $student): bool

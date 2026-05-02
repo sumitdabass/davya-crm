@@ -38,12 +38,6 @@ class MeetingPolicy
 
     public function delete(User $user, Meeting $meeting): bool
     {
-        if ($user->hasRole('admin')) {
-            return true;
-        }
-        if ($user->hasRole('head')) {
-            return $this->view($user, $meeting);
-        }
-        return false;
+        return $user->isSuperAdmin();
     }
 }

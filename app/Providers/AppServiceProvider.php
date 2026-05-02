@@ -61,5 +61,14 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\RoundHistory::observe(\App\Observers\RoundHistoryObserver::class);
         \App\Models\StudentNote::observe(\App\Observers\StudentNoteObserver::class);
         \App\Models\StudentFieldValue::observe(\App\Observers\StudentFieldValueObserver::class);
+
+        // Lock every Filament delete action to super_admin. Picks up
+        // DeleteAction / DeleteBulkAction wherever they're used (table
+        // row, bulk dropdown, edit-page header) without touching each
+        // resource individually.
+        $superAdminOnly = fn () => auth()->user()?->isSuperAdmin() ?? false;
+        \Filament\Tables\Actions\DeleteAction::configureUsing(fn ($action) => $action->visible($superAdminOnly));
+        \Filament\Tables\Actions\DeleteBulkAction::configureUsing(fn ($action) => $action->visible($superAdminOnly));
+        \Filament\Actions\DeleteAction::configureUsing(fn ($action) => $action->visible($superAdminOnly));
     }
 }

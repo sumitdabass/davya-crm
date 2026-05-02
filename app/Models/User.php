@@ -29,6 +29,11 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasMany(User::class, 'team_head_id');
     }
 
+    public function isSuperAdmin(): bool
+    {
+        return $this->hasRole('super_admin');
+    }
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, LogsActivity;
 
