@@ -6,6 +6,7 @@ use App\Filament\Pages\StaffPerformance;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 class StaffPerformancePageTest extends TestCase
@@ -27,6 +28,18 @@ class StaffPerformancePageTest extends TestCase
         $this->actingAs($admin);
 
         $this->assertTrue(StaffPerformance::canAccess(), 'admin role should be allowed');
+    }
+
+    public function test_super_admin_only_user_can_access_page(): void
+    {
+        // A user with super_admin role but NOT the admin role must still pass.
+        // Mirrors the SumitSuperAdminSeeder situation on prod.
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $u = User::factory()->create();
+        $u->syncRoles(['super_admin']);
+        $this->actingAs($u);
+
+        $this->assertTrue(StaffPerformance::canAccess(), 'super_admin role should also be allowed');
     }
 
     public function test_non_admin_cannot_access_page(): void

@@ -32,7 +32,11 @@ class StaffPerformance extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('admin') ?? false;
+        // Accept admin OR super_admin. The SumitSuperAdminSeeder + the
+        // 2026_05_02_000300_create_super_admin_role migration grant
+        // super_admin to the canonical Sumit account; without including
+        // it here, that account would silently 404 on this page.
+        return auth()->user()?->hasRole(['admin', 'super_admin']) ?? false;
     }
 
     protected function getHeaderActions(): array

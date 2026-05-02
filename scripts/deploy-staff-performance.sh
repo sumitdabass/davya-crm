@@ -16,6 +16,12 @@ git pull origin main
 echo "=== post-pull head ==="
 git log -1 --oneline
 
+echo "=== regenerate composer autoload (so new classes are loadable) ==="
+# New PHP classes added in this push (Scorer, SignalCollector, etc.)
+# need the autoload classmap to know about them. Without this, even a
+# clean cache won't help — the classes aren't findable.
+composer dump-autoload --optimize --no-dev 2>&1 | tail -3
+
 echo "=== migrate --force ==="
 # Adds: students.rank_prob_first_choice + user_performance_scores table.
 # Both reversible.
@@ -28,6 +34,15 @@ $PHP artisan optimize:clear
 # StaffPerformance page won't appear until that cache is purged.
 rm -rf bootstrap/cache/filament 2>/dev/null || true
 echo "(filament panel cache directory removed if it existed)"
+
+echo "=== reset OPcache (so newly pushed PHP files actually load) ==="
+$PHP artisan tinker --execute='
+if (function_exists("opcache_reset") && opcache_reset()) {
+    echo "opcache reset ok\n";
+} else {
+    echo "opcache not loaded (or reset failed) — files will be picked up on TTL expiry\n";
+}
+'
 
 echo "=== verify the staff-performance route is registered ==="
 $PHP artisan route:list 2>&1 | grep -iE "staff-performance" | head -3
