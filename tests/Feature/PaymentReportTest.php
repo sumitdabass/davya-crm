@@ -50,7 +50,7 @@ class PaymentReportTest extends TestCase
         $page->data = [
             'from' => Carbon::now()->startOfMonth()->toDateString(),
             'to'   => Carbon::now()->endOfMonth()->toDateString(),
-            'owner_id' => null,
+            'owner_ids' => [],
         ];
 
         $r = $page->getReport();
@@ -100,7 +100,7 @@ class PaymentReportTest extends TestCase
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
             'to'   => now()->endOfMonth()->toDateString(),
-            'owner_id' => $nikhil->id,
+            'owner_ids' => [$nikhil->id],
         ];
 
         $r = $page->getReport();
@@ -142,7 +142,7 @@ class PaymentReportTest extends TestCase
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
             'to'   => now()->endOfMonth()->toDateString(),
-            'owner_id' => null,
+            'owner_ids' => [],
         ];
         $r = $page->getReport();
 
@@ -157,7 +157,7 @@ class PaymentReportTest extends TestCase
         $page2->data = [
             'from' => now()->startOfMonth()->toDateString(),
             'to'   => now()->endOfMonth()->toDateString(),
-            'owner_id' => null,
+            'owner_ids' => [],
         ];
         $r2 = $page2->getReport();
         $this->assertEqualsWithDelta(50000.0, $r2['totals']['received'], 0.01, 'Nikhil sees only Nikhil-team totals');
@@ -195,7 +195,7 @@ class PaymentReportTest extends TestCase
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
             'to'   => now()->endOfMonth()->toDateString(),
-            'owner_id' => null,
+            'owner_ids' => [],
         ];
         $r = $page->getReport();
         $this->assertEqualsWithDelta(80000.0, $r['totals']['received'], 0.01, 'admin sees both teams');

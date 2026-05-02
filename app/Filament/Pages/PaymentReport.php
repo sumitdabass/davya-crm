@@ -40,7 +40,7 @@ class PaymentReport extends Page implements HasForms
         $defaults = [
             'from' => now('Asia/Kolkata')->startOfMonth()->toDateString(),
             'to'   => now('Asia/Kolkata')->endOfDay()->toDateString(),
-            'owner_id' => null,
+            'owner_ids' => [],
         ];
         $this->form->fill($defaults);
         $this->applied = $defaults;
@@ -58,10 +58,12 @@ class PaymentReport extends Page implements HasForms
             ->schema([
                 DatePicker::make('from')->label('From')->required()->native(false),
                 DatePicker::make('to')->label('To')->required()->native(false),
-                Select::make('owner_id')->label('Owner (optional)')
+                Select::make('owner_ids')->label('Owners')
                     ->options(fn () => $this->ownerOptions())
+                    ->multiple()
                     ->searchable()
-                    ->nullable(),
+                    ->preload()
+                    ->placeholder('All owners'),
             ])
             ->columns(['default' => 1, 'md' => 3])
             ->statePath('data');
@@ -99,7 +101,7 @@ class PaymentReport extends Page implements HasForms
 
         $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
         $to   = Carbon::parse($filters['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
-        $ownerId = $filters['owner_id'] ?? null;
+        $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
 
         $user = auth()->user();
 
@@ -107,8 +109,8 @@ class PaymentReport extends Page implements HasForms
             ->whereBetween('received_at', [$from, $to])
             ->whereHas('student', fn ($q) => $q->visibleTo($user));
 
-        if ($ownerId) {
-            $base->whereHas('student', fn ($q) => $q->where('owner_id', $ownerId));
+        if (! empty($ownerIds)) {
+            $base->whereHas('student', fn ($q) => $q->whereIn('owner_id', $ownerIds));
         }
 
         $totalReceived = (float) (clone $base)->where('amount', '>', 0)->sum('amount');

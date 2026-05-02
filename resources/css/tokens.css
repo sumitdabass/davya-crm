@@ -329,11 +329,12 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
 
     /* Filament responsive grid array (e.g. ['default'=>1,'md'=>4]) emits
      * Tailwind-arbitrary classes (grid-cols-[--cols-default]) that don't
-     * always compile in admin pages. Force ALL Filament form grids to a
-     * single column on phones, regardless of the schema's columns(N) value. */
+     * always compile in admin pages. Force the Filament form-component
+     * container to a single column on phones, regardless of schema.
+     * Scoped to .fi-fo-component-ctn ONLY — broader selectors like
+     * `form .grid` collapse the date-picker calendar's 7-col day grid. */
     body.davya-v2 .fi-fo-component-ctn,
-    body.davya-v2 .fi-fo-component-ctn.grid,
-    body.davya-v2 form .grid {
+    body.davya-v2 .fi-fo-component-ctn.grid {
         grid-template-columns: 1fr !important;
     }
 
