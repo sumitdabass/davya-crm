@@ -143,7 +143,43 @@ class StudentResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $authUser = auth()->user();
+        $isAdmin = $authUser?->hasRole('admin') ?? false;
+        $isHead = $authUser?->hasRole('head') ?? false;
+
+        $stageField = Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
+            ->live()
+            ->afterStateUpdated(function ($state, $record, $set) {
+                if (! $record) {
+                    return;
+                }
+                $target = app(PipelineConfig::class)->stageByName($state);
+                if (! $target) {
+                    Notification::make()->danger()->title('Stage change blocked')->body("Unknown stage: $state")->send();
+                    $set('stage', $record->getOriginal('stage'));
+                    return;
+                }
+                $out = app(StageTransitionEngine::class)->forStageChange($record, $target->id);
+                foreach ($out['hard'] as $err) {
+                    Notification::make()->danger()->title('Stage change blocked')->body($err)->send();
+                    $set('stage', $record->getOriginal('stage'));
+                    return;
+                }
+                $record->stage_id = $target->id;
+                foreach ($out['soft'] as $warn) {
+                    Notification::make()->warning()->title('Stage changed — incomplete')->body($warn)->send();
+                }
+            });
+
         $baseSchema = [
+            // Stage lives at the top of the form, outside the tabs, so it's
+            // visible (and editable) regardless of which tab the operator is on.
+            Section::make('Stage')
+                ->icon('heroicon-o-flag')
+                ->schema([$stageField])
+                ->columnSpanFull()
+                ->compact(),
+
             Tabs::make('student_form')
                 ->columnSpanFull()
                 ->tabs([
@@ -152,47 +188,46 @@ class StudentResource extends Resource
                         ->schema(array_merge([
                             Select::make('owner_id')
                                 ->label('Owner')
+                                ->helperText($isAdmin ? null : 'Auto-assigned. Only admin can change owner.')
                                 ->relationship(
                                     name: 'owner',
                                     titleAttribute: 'name',
-                                    modifyQueryUsing: fn ($query) =>
-                                        $query->whereHas('roles', fn ($q) => $q->whereIn('name', ['admin', 'head'])),
+                                    modifyQueryUsing: fn ($query) => $query->where('is_active', true)->orderBy('name'),
                                 )
+                                ->default(fn () => auth()->id())
+                                ->disabled(! $isAdmin)
+                                ->dehydrated()
                                 ->required()
                                 ->searchable(),
+                            Select::make('referrer_id')
+                                ->label('Lead Owner')
+                                ->helperText(
+                                    $isAdmin
+                                        ? null
+                                        : ($isHead ? 'Head: editable once. After save, contact admin to change.' : 'Only admin or the head who captured the lead can edit.')
+                                )
+                                ->options(fn () => User::where('is_active', true)->orderBy('name')->pluck('name', 'id'))
+                                ->required()
+                                ->searchable()
+                                ->disabled(function ($record) use ($isAdmin, $isHead) {
+                                    if ($isAdmin) return false;
+                                    if (! $isHead) return true;
+                                    // Head: lock if already saved AND locked_at is set.
+                                    return $record !== null && $record->referrer_id_locked_at !== null;
+                                })
+                                ->dehydrated(),
                             Select::make('lead_source')
                                 ->label('Lead Source')
-                                ->options(fn () => User::where('is_active', true)->orderBy('name')->pluck('name', 'name'))
-                                ->required()
+                                ->options(fn () => self::optionsFor('lead_source', ['FB', 'Insta', 'Cold Calling', 'Google', 'Personal Ref', 'Other']))
                                 ->searchable(),
-                            TextInput::make('referrer_name')->label('Referrer name')->maxLength(120),
-                            Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
-                                ->live()
-                                ->afterStateUpdated(function ($state, $record, $set) {
-                                    if (! $record) {
-                                        return;
-                                    }
-                                    $target = app(PipelineConfig::class)->stageByName($state);
-                                    if (! $target) {
-                                        Notification::make()->danger()->title('Stage change blocked')->body("Unknown stage: $state")->send();
-                                        $set('stage', $record->getOriginal('stage'));
-                                        return;
-                                    }
-                                    // Engine reads $record->stage_id as the "from" stage — don't mutate until after hard-check.
-                                    $out = app(StageTransitionEngine::class)->forStageChange($record, $target->id);
-                                    foreach ($out['hard'] as $err) {
-                                        Notification::make()->danger()->title('Stage change blocked')->body($err)->send();
-                                        $set('stage', $record->getOriginal('stage'));
-                                        return;
-                                    }
-                                    $record->stage_id = $target->id;
-                                    foreach ($out['soft'] as $warn) {
-                                        Notification::make()->warning()->title('Stage changed — incomplete')->body($warn)->send();
-                                    }
-                                }),
                             Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready','Not Interested','Needs Time'])),
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
-                            TextInput::make('name'),
+                            TextInput::make('name')->required(),
+                            TextInput::make('father_name'),
+                            TextInput::make('phone_2')->tel()->label('Alternate phone'),
+                            TextInput::make('email')->email()->maxLength(120)->label('Email 1'),
+                            TextInput::make('email_2')->email()->maxLength(120)->label('Email 2'),
+                            Textarea::make('address')->rows(2)->columnSpanFull(),
                         ], self::customFieldsForSection('Source & Stage')))->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
@@ -201,15 +236,14 @@ class StudentResource extends Resource
                     Tabs\Tab::make('Academic')
                         ->icon('heroicon-o-academic-cap')
                         ->schema(array_merge([
-                            TextInput::make('father_name'),
-                            TextInput::make('phone_2')->tel()->label('Alternate phone'),
-                            TextInput::make('email')->email()->maxLength(120)->columnSpan(3),
+                            TextInput::make('course'),
+                            TextInput::make('university'),
                             TextInput::make('exam_appeared'),
-                            TextInput::make('twelfth_marks')->label('12th Marks'),
                             TextInput::make('rank')->maxLength(40),
+                            TextInput::make('twelfth_marks')->label('12th Marks %'),
                             Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi','Outside'])),
+                            TextInput::make('sub_category')->label('Sub Category')->maxLength(60),
                             TextInput::make('state')->maxLength(40),
-                            TextInput::make('course')->columnSpan(3),
                             Select::make('preference_r1_college')
                                 ->label('1st choice — college')
                                 ->options(fn () => self::collegeOptions())

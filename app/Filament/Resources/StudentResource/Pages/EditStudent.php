@@ -62,6 +62,15 @@ class EditStudent extends EditRecord
         $data['stage_id'] = $target->id;
         $data['stage']    = $target->name;  // Dual-write: keep the legacy VARCHAR cache in sync.
 
+        // Lead Owner lock: once a head saves a referrer_id, lock the field so
+        // only an admin can change it later (admin clears the lock manually).
+        $caller = auth()->user();
+        if ($caller?->hasRole('head') && ! $caller->hasRole('admin')
+            && $this->record->referrer_id_locked_at === null
+            && ! empty($data['referrer_id'])) {
+            $data['referrer_id_locked_at'] = now();
+        }
+
         return $data;
     }
 }
