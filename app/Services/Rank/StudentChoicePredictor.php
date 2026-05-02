@@ -87,7 +87,18 @@ class StudentChoicePredictor
                 ?: strcasecmp($a['institute'], $b['institute']);
         });
 
-        $top = array_slice($eligible, 0, $limit);
+        // Pick the toughest-cutoff branch per college so each Choice slot
+        // surfaces a distinct college. Without this, USICT's CSE/IT/EEE
+        // can fill all 3 slots and the operator never sees the next-best
+        // college.
+        $perCollege = [];
+        foreach ($eligible as $row) {
+            $key = $row['institute'];
+            if (! isset($perCollege[$key])) {
+                $perCollege[$key] = $row;
+            }
+        }
+        $top = array_slice(array_values($perCollege), 0, $limit);
 
         $out = [];
         foreach ($top as $i => $row) {

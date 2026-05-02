@@ -27,10 +27,7 @@
 
                     @php $choices = $this->choicePredictions; @endphp
                     @if (! empty($choices))
-                        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
-                            <div style="font-size: var(--fs-10); color: var(--text-sub); font-weight: 600; letter-spacing: .05em; text-transform: uppercase;">
-                                Admission likelihood · rank {{ number_format((int) $s->rank) }}{{ $s->category ? ' · '.$s->category : '' }}
-                            </div>
+                        <div style="display: flex; gap: 6px; margin-top: 14px;" title="Admission likelihood · rank {{ number_format((int) $s->rank) }}{{ $s->category ? ' · '.$s->category : '' }}">
                             @foreach ($choices as $c)
                                 @php
                                     $barColor = match ($c['bucket']) {
@@ -39,18 +36,10 @@
                                         default    => '#ef4444',
                                     };
                                 @endphp
-                                <div>
-                                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: var(--fs-12);">
-                                        <span style="color: var(--text);">
-                                            <span style="color: var(--text-sub); font-weight: 600;">Choice {{ $c['rank'] }}</span>
-                                            · {{ $c['college'] }}
-                                            <span style="color: var(--text-sub);">— {{ $c['branch'] }}</span>
-                                        </span>
-                                        <span style="font-weight: 700; color: {{ $barColor }}; font-variant-numeric: tabular-nums;">{{ $c['probability_pct'] }}%</span>
-                                    </div>
-                                    <div style="height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px;">
-                                        <div style="height: 100%; background: {{ $barColor }}; width: {{ $c['probability_pct'] }}%;"></div>
-                                    </div>
+                                <div style="flex: 1; height: 18px; border-radius: 4px; background: var(--border); overflow: hidden; position: relative;"
+                                     title="{{ $c['college'] }} · {{ $c['branch'] }} — {{ $c['probability_pct'] }}%">
+                                    <div style="position: absolute; inset: 0; background: {{ $barColor }}; width: {{ $c['probability_pct'] }}%;"></div>
+                                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: var(--fs-10); font-weight: 700; color: white; text-shadow: 0 1px 2px rgba(0,0,0,.3); font-variant-numeric: tabular-nums;">{{ $c['probability_pct'] }}%</div>
                                 </div>
                             @endforeach
                         </div>
