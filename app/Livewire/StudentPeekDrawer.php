@@ -53,10 +53,19 @@ class StudentPeekDrawer extends Component
     }
 
     /**
+     * Allow-list for the admission-likelihood bars. Everyone else sees the
+     * 9-stage progress strip until the feature is rolled out wider.
+     */
+    private const ADMISSION_PREVIEW_EMAILS = ['sumitdabass@gmail.com'];
+
+    /**
      * @return array<int, array{rank:int, college:string, branch:string, probability_pct:int, bucket:string}>
      */
     public function getChoicePredictionsProperty(): array
     {
+        if (! in_array(auth()->user()?->email, self::ADMISSION_PREVIEW_EMAILS, true)) {
+            return [];
+        }
         $student = $this->student;
         if ($student === null) {
             return [];
