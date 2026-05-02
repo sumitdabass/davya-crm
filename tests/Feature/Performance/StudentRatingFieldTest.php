@@ -19,21 +19,27 @@ class StudentRatingFieldTest extends TestCase
         $this->seed();
     }
 
-    public function test_academic_tab_renders_rating_field_after_rank(): void
+    public function test_separate_rating_tab_exists_after_academic_tab(): void
     {
         $body = file_get_contents(app_path('Filament/Resources/StudentResource.php'));
 
-        // Field is wired up
+        // The Rating tab is a top-level Tab — separate from Academic, not inline with rank
+        $this->assertStringContainsString("Tabs\\Tab::make('Rating')", $body);
+
+        // The rating field is on the Rating tab, not the Academic tab
         $this->assertStringContainsString("TextInput::make('rank_prob_first_choice')", $body);
-        $this->assertStringContainsString('Rating (1st choice probability %)', $body);
+        $this->assertStringContainsString('Rating — 1st choice probability', $body);
 
-        // And appears AFTER the rank input (placement matters per Sumit's instruction)
-        $rankPos = strpos($body, "TextInput::make('rank')->maxLength(40)");
-        $ratingPos = strpos($body, "TextInput::make('rank_prob_first_choice')");
+        // And the Rating tab appears AFTER the Academic tab and BEFORE the Deal & Counselling tab
+        $academicPos = strpos($body, "Tabs\\Tab::make('Academic')");
+        $ratingPos = strpos($body, "Tabs\\Tab::make('Rating')");
+        $dealPos = strpos($body, "Tabs\\Tab::make('Deal & Counselling')");
 
-        $this->assertNotFalse($rankPos);
+        $this->assertNotFalse($academicPos);
         $this->assertNotFalse($ratingPos);
-        $this->assertGreaterThan($rankPos, $ratingPos, 'Rating field must appear after the rank field');
+        $this->assertNotFalse($dealPos);
+        $this->assertGreaterThan($academicPos, $ratingPos, 'Rating tab must come after Academic');
+        $this->assertLessThan($dealPos, $ratingPos, 'Rating tab must come before Deal & Counselling');
     }
 
     public function test_manual_rating_override_persists_when_rank_unchanged(): void

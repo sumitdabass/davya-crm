@@ -209,13 +209,6 @@ class StudentResource extends Resource
                             TextInput::make('university'),
                             TextInput::make('exam_appeared'),
                             TextInput::make('rank')->maxLength(40),
-                            TextInput::make('rank_prob_first_choice')
-                                ->label('Rating (1st choice probability %)')
-                                ->numeric()
-                                ->minValue(0)
-                                ->maxValue(100)
-                                ->suffix('%')
-                                ->helperText('Auto-computed from rank, category, and 1st choice. Override manually if needed; the auto-compute will overwrite this when rank / category / 1st choice change.'),
                             TextInput::make('twelfth_marks')->label('12th Marks %'),
                             Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi', 'Outside'])),
                             TextInput::make('sub_category')->label('Sub Category')->maxLength(60),
@@ -226,6 +219,21 @@ class StudentResource extends Resource
                             ...self::customFieldsForSection('Identity'),
                             ...self::customFieldsForSection('Academic'),
                         ]))->columns(['default' => 1, 'md' => 3])
+                        ->extraAttributes([
+                            'class' => config('davyas.visual_v2') ? 'davya-section' : '',
+                        ]),
+
+                    Tabs\Tab::make('Rating')
+                        ->icon('heroicon-o-trophy')
+                        ->schema([
+                            TextInput::make('rank_prob_first_choice')
+                                ->label('Rating — 1st choice probability')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->helperText('Auto-computed from Rank, Category, and 1st choice on save. You can override manually here; the auto-compute will overwrite a manual value when Rank / Category / 1st choice change next.'),
+                        ])->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
