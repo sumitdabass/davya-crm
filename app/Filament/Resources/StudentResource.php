@@ -2,34 +2,43 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\MeetingsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
-use App\Services\Pipeline\PipelineConfig;
-use App\Services\Pipeline\StageTransitionEngine;
-use App\StudentFields\DynamicTableColumns;
-use App\StudentFields\FieldRenderer;
-use Filament\Notifications\Notification;
+use App\Models\Payment;
+use App\Models\RoundHistory;
 use App\Models\Student;
 use App\Models\StudentField;
 use App\Models\StudentFieldSection;
+use App\Models\StudentNote;
 use App\Models\User;
+use App\Services\Pipeline\PipelineConfig;
+use App\Services\Pipeline\StageTransitionEngine;
+use App\Services\PipelineSummary;
+use App\StudentFields\DynamicTableColumns;
+use App\StudentFields\FieldRenderer;
+use Filament\Forms\Components\Actions;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\View;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
 
 class StudentResource extends Resource
 {
@@ -54,7 +63,7 @@ class StudentResource extends Resource
         return [
             'Stage' => $record->stage,
             'Owner' => $record->owner?->name ?? '—',
-            'Deal'  => $record->deal_amount ? '₹'.number_format($record->deal_amount, 0, '.', ',') : '—',
+            'Deal' => $record->deal_amount ? '₹'.number_format($record->deal_amount, 0, '.', ',') : '—',
         ];
     }
 
@@ -83,11 +92,13 @@ class StudentResource extends Resource
     private static function optionsFor(string $key, array $fallback): array
     {
         $saved = StudentField::where('key', $key)->value('options');
-        $list = (is_array($saved) && !empty($saved)) ? $saved : $fallback;
+        $list = (is_array($saved) && ! empty($saved)) ? $saved : $fallback;
+
         return collect($list)->mapWithKeys(function ($v) {
             if (is_array($v) && isset($v['value'])) {
                 return [$v['value'] => $v['label'] ?? $v['value']];
             }
+
             return [$v => $v];
         })->all();
     }
@@ -108,12 +119,14 @@ class StudentResource extends Resource
                 if (! $target) {
                     Notification::make()->danger()->title('Stage change blocked')->body("Unknown stage: $state")->send();
                     $set('stage', $record->getOriginal('stage'));
+
                     return;
                 }
                 $out = app(StageTransitionEngine::class)->forStageChange($record, $target->id);
                 foreach ($out['hard'] as $err) {
                     Notification::make()->danger()->title('Stage change blocked')->body($err)->send();
                     $set('stage', $record->getOriginal('stage'));
+
                     return;
                 }
                 $record->stage_id = $target->id;
@@ -161,8 +174,13 @@ class StudentResource extends Resource
                                 ->required()
                                 ->searchable()
                                 ->disabled(function ($record) use ($isAdmin, $isHead) {
-                                    if ($isAdmin) return false;
-                                    if (! $isHead) return true;
+                                    if ($isAdmin) {
+                                        return false;
+                                    }
+                                    if (! $isHead) {
+                                        return true;
+                                    }
+
                                     // Head: lock if already saved AND locked_at is set.
                                     return $record !== null && $record->referrer_id_locked_at !== null;
                                 })
@@ -171,7 +189,7 @@ class StudentResource extends Resource
                                 ->label('Lead Source')
                                 ->options(fn () => self::optionsFor('lead_source', ['FB', 'Insta', 'Cold Calling', 'Google', 'Personal Ref', 'Other']))
                                 ->searchable(),
-                            Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready','Not Interested','Needs Time'])),
+                            Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready', 'Not Interested', 'Needs Time'])),
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
                             TextInput::make('name')->required(),
                             TextInput::make('father_name'),
@@ -191,8 +209,15 @@ class StudentResource extends Resource
                             TextInput::make('university'),
                             TextInput::make('exam_appeared'),
                             TextInput::make('rank')->maxLength(40),
+                            TextInput::make('rank_prob_first_choice')
+                                ->label('Rating (1st choice probability %)')
+                                ->numeric()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->helperText('Auto-computed from rank, category, and 1st choice. Override manually if needed; the auto-compute will overwrite this when rank / category / 1st choice change.'),
                             TextInput::make('twelfth_marks')->label('12th Marks %'),
-                            Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi','Outside'])),
+                            Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi', 'Outside'])),
                             TextInput::make('sub_category')->label('Sub Category')->maxLength(60),
                             TextInput::make('state')->maxLength(40),
                             TextInput::make('preference_r1')->label('1st choice')->required()->maxLength(120),
@@ -209,22 +234,22 @@ class StudentResource extends Resource
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
-                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online','Offline','All'])),
+                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
                             Select::make('registration_status')
                                 ->label('IPU Registration Status')
                                 ->options([
-                                    'pending'           => 'Registration pending',
+                                    'pending' => 'Registration pending',
                                     'registration_done' => 'Registration done',
-                                    'fee_paid'          => 'Fee payment done',
+                                    'fee_paid' => 'Fee payment done',
                                 ])
                                 ->default('pending')
                                 ->required(),
                             Select::make('counselling_registration_status')
                                 ->label('Counselling Registration Status')
                                 ->options([
-                                    'pending'           => 'Registration pending',
+                                    'pending' => 'Registration pending',
                                     'registration_done' => 'Registration done',
-                                    'fee_paid'          => 'Fee payment done',
+                                    'fee_paid' => 'Fee payment done',
                                 ])
                                 ->default('pending')
                                 ->required(),
@@ -237,10 +262,10 @@ class StudentResource extends Resource
                             Select::make('seat_allotment_fee_status')
                                 ->label('Seat Allotment Fee Status')
                                 ->options([
-                                    'not_allotted'         => 'Seat not allotted till now',
+                                    'not_allotted' => 'Seat not allotted till now',
                                     'allotted_fee_pending' => 'Seat allotted, fee not paid',
-                                    'allotted_fee_paid'    => 'Seat allotted, fee paid',
-                                    'next_round'           => 'Fee paid — processing next round',
+                                    'allotted_fee_paid' => 'Seat allotted, fee paid',
+                                    'next_round' => 'Fee paid — processing next round',
                                 ])
                                 ->default('not_allotted')
                                 ->required(),
@@ -257,22 +282,22 @@ class StudentResource extends Resource
                             // Payment + Note quick-add buttons. Both open the same forms used by
                             // the relation managers below — keeps a single source of truth for
                             // the Payment form (PaymentFormSchema).
-                            \Filament\Forms\Components\Actions::make([
-                                \Filament\Forms\Components\Actions\Action::make('addPayment')
+                            Actions::make([
+                                Action::make('addPayment')
                                     ->label('+ New Payment')
                                     ->color('success')
                                     ->icon('heroicon-o-banknotes')
                                     ->visible(fn ($record) => $record !== null)
-                                    ->form(\App\Filament\Resources\Shared\PaymentFormSchema::fields(inlineFirstPayment: false))
+                                    ->form(PaymentFormSchema::fields(inlineFirstPayment: false))
                                     ->action(function (array $data, $record): void {
-                                        $data = \App\Filament\Resources\Shared\PaymentFormSchema::resolveProofUpload($data);
+                                        $data = PaymentFormSchema::resolveProofUpload($data);
                                         $data['student_id'] = $record->id;
                                         $data['recorded_by_user_id'] = auth()->id();
-                                        \App\Models\Payment::create($data);
+                                        Payment::create($data);
                                         Notification::make()->success()->title('Payment recorded')->send();
                                     })
                                     ->modalWidth('lg'),
-                                \Filament\Forms\Components\Actions\Action::make('addNote')
+                                Action::make('addNote')
                                     ->label('+ New Note')
                                     ->color('primary')
                                     ->icon('heroicon-o-pencil-square')
@@ -281,10 +306,10 @@ class StudentResource extends Resource
                                         Textarea::make('body')->label('Note')->rows(4)->required(),
                                     ])
                                     ->action(function (array $data, $record): void {
-                                        \App\Models\StudentNote::create([
+                                        StudentNote::create([
                                             'student_id' => $record->id,
-                                            'author_id'  => auth()->id(),
-                                            'body'       => $data['body'],
+                                            'author_id' => auth()->id(),
+                                            'body' => $data['body'],
                                         ]);
                                         Notification::make()->success()->title('Note added')->send();
                                     })
@@ -292,10 +317,10 @@ class StudentResource extends Resource
                             ])->columnSpanFull(),
 
                             // Closure — always visible.
-                            \Filament\Forms\Components\Section::make('Closure')
+                            Section::make('Closure')
                                 ->description('Fill these only when wrapping up the student.')
                                 ->schema(array_merge([
-                                    Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
+                                    Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested', 'Backed Out — Forfeit', 'Backed Out — Partial Refund', 'Completed', 'Other'])),
                                     TextInput::make('refund_amount')->numeric()->prefix('₹'),
                                     Textarea::make('re_entry_reason')->rows(2)->columnSpanFull(),
                                 ], self::customFieldsForSection('Closure')))
@@ -304,7 +329,7 @@ class StudentResource extends Resource
                             // Inline summaries: recent payments, notes, timeline. Read-only —
                             // operators add via the action buttons above; the panels below the
                             // form are still there for table view + CSV export.
-                            \Filament\Forms\Components\View::make('filament.forms.account-summary')
+                            View::make('filament.forms.account-summary')
                                 ->visible(fn ($record) => $record !== null)
                                 ->columnSpanFull(),
                         ], self::customFieldsForSection('History')))
@@ -331,12 +356,15 @@ class StudentResource extends Resource
     protected static function customFieldsForSection(string $sectionName): array
     {
         $section = StudentFieldSection::where('name', $sectionName)->first();
-        if (!$section) return [];
+        if (! $section) {
+            return [];
+        }
+
         return StudentField::active()->custom()
             ->where('section_id', $section->id)
             ->orderBy('position')
             ->get()
-            ->map(fn ($f) => (new FieldRenderer())->render($f))
+            ->map(fn ($f) => (new FieldRenderer)->render($f))
             ->all();
     }
 
@@ -344,11 +372,12 @@ class StudentResource extends Resource
      * Fallback Section components for any custom field whose section name does NOT
      * match one of the tabs above (e.g. admin created a "Custom Notes" section).
      *
-     * @return array<int, \Filament\Forms\Components\Section>
+     * @return array<int, Section>
      */
     protected static function dynamicSections(): array
     {
-        $tabNames = ['Identity','Source & Stage','Academic','Deal','Counselling','History','Closure'];
+        $tabNames = ['Identity', 'Source & Stage', 'Academic', 'Deal', 'Counselling', 'History', 'Closure'];
+
         return StudentFieldSection::orderBy('position')->get()
             ->reject(fn ($s) => in_array($s->name, $tabNames, true))
             ->map(function ($section) {
@@ -356,10 +385,12 @@ class StudentResource extends Resource
                     ->where('section_id', $section->id)
                     ->orderBy('position')
                     ->get();
-                if ($fields->isEmpty()) return null;
+                if ($fields->isEmpty()) {
+                    return null;
+                }
 
                 return Section::make($section->name)
-                    ->schema($fields->map(fn ($f) => (new FieldRenderer())->render($f))->all())
+                    ->schema($fields->map(fn ($f) => (new FieldRenderer)->render($f))->all())
                     ->collapsed(false);
             })->filter()->values()->all();
     }
@@ -371,17 +402,17 @@ class StudentResource extends Resource
                 ->description(fn ($record) => $record->phone),
             TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
             TextColumn::make('stage')->badge()->color(fn ($state) => match ($state) {
-                'Lead Captured'           => 'gray',
-                'Meeting Scheduled'       => 'info',
-                'Meeting Done'            => 'info',
-                'Onboarded'               => 'warning',
+                'Lead Captured' => 'gray',
+                'Meeting Scheduled' => 'info',
+                'Meeting Done' => 'info',
+                'Onboarded' => 'warning',
                 'University Registration' => 'warning',
                 'Counselling In Progress' => 'primary',
-                'Seat Allotted'           => 'primary',
-                'Full Payment Received'   => 'success',
-                'Admission Confirmed'     => 'success',
-                'Closed'                  => 'danger',
-                default                   => 'gray',
+                'Seat Allotted' => 'primary',
+                'Full Payment Received' => 'success',
+                'Admission Confirmed' => 'success',
+                'Closed' => 'danger',
+                default => 'gray',
             }),
             TextColumn::make('deal_amount')->money('INR')->sortable()->default(0),
             TextColumn::make('total_received')->money('INR')->label('Received')
@@ -398,9 +429,9 @@ class StudentResource extends Resource
         return $table
             ->persistFiltersInSession()
             ->filtersLayout(config('davyas.visual_v2')
-                ? \Filament\Tables\Enums\FiltersLayout::AboveContent
-                : \Filament\Tables\Enums\FiltersLayout::Dropdown)
-            ->columns(array_merge($baseColumns, (new DynamicTableColumns())->build()))
+                ? FiltersLayout::AboveContent
+                : FiltersLayout::Dropdown)
+            ->columns(array_merge($baseColumns, (new DynamicTableColumns)->build()))
             ->filters([
                 SelectFilter::make('owner_id')->relationship('owner', 'name'),
                 SelectFilter::make('referrer_id')->label('Referrer')->relationship('referrer', 'name'),
@@ -409,9 +440,9 @@ class StudentResource extends Resource
                     ->label('Pipeline status')
                     ->options([
                         'past_capture' => 'Past Lead Captured',
-                        'active'       => 'Active',
-                        'admitted'     => 'Admitted',
-                        'closed_lost'  => 'Closed (lost)',
+                        'active' => 'Active',
+                        'admitted' => 'Admitted',
+                        'closed_lost' => 'Closed (lost)',
                     ])
                     ->query(function ($query, array $data) {
                         $v = $data['value'] ?? null;
@@ -419,33 +450,34 @@ class StudentResource extends Resource
                             return $query;
                         }
                         if ($v === 'past_capture') {
-                            return $query->where('stage', '!=', \App\Services\PipelineSummary::STAGE_LEAD_CAPTURED);
+                            return $query->where('stage', '!=', PipelineSummary::STAGE_LEAD_CAPTURED);
                         }
                         if ($v === 'admitted') {
                             return $query->where(function ($q) {
-                                $q->where('stage', \App\Services\PipelineSummary::STAGE_SEAT_ALLOTTED)
-                                  ->orWhere(function ($qq) {
-                                      $qq->where('stage', \App\Services\PipelineSummary::STAGE_CLOSED)
-                                         ->where('close_reason', \App\Services\PipelineSummary::CLOSE_REASON_COMPLETED);
-                                  });
+                                $q->where('stage', PipelineSummary::STAGE_SEAT_ALLOTTED)
+                                    ->orWhere(function ($qq) {
+                                        $qq->where('stage', PipelineSummary::STAGE_CLOSED)
+                                            ->where('close_reason', PipelineSummary::CLOSE_REASON_COMPLETED);
+                                    });
                             });
                         }
                         if ($v === 'closed_lost') {
-                            return $query->where('stage', \App\Services\PipelineSummary::STAGE_CLOSED)
+                            return $query->where('stage', PipelineSummary::STAGE_CLOSED)
                                 ->where(function ($q) {
                                     $q->whereNull('close_reason')
-                                      ->orWhere('close_reason', '!=', \App\Services\PipelineSummary::CLOSE_REASON_COMPLETED);
+                                        ->orWhere('close_reason', '!=', PipelineSummary::CLOSE_REASON_COMPLETED);
                                 });
                         }
                         if ($v === 'active') {
                             return $query
-                                ->where('stage', '!=', \App\Services\PipelineSummary::STAGE_LEAD_CAPTURED)
-                                ->where('stage', '!=', \App\Services\PipelineSummary::STAGE_SEAT_ALLOTTED)
+                                ->where('stage', '!=', PipelineSummary::STAGE_LEAD_CAPTURED)
+                                ->where('stage', '!=', PipelineSummary::STAGE_SEAT_ALLOTTED)
                                 ->where(function ($q) {
-                                    $q->where('stage', '!=', \App\Services\PipelineSummary::STAGE_CLOSED)
-                                      ->orWhereNull('stage');
+                                    $q->where('stage', '!=', PipelineSummary::STAGE_CLOSED)
+                                        ->orWhereNull('stage');
                                 });
                         }
+
                         return $query;
                     }),
                 SelectFilter::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
@@ -477,7 +509,7 @@ class StudentResource extends Resource
                         ->where('seat_fee_paid', false))),
                 Tables\Filters\Filter::make('re_entry')
                     ->label('Re-entry candidates')
-                    ->query(fn ($query) => $query->whereIn('id', \App\Models\RoundHistory::reEntryCandidates()->pluck('student_id'))),
+                    ->query(fn ($query) => $query->whereIn('id', RoundHistory::reEntryCandidates()->pluck('student_id'))),
             ])
             ->actions([Tables\Actions\EditAction::make()])
             ->bulkActions([
@@ -495,7 +527,7 @@ class StudentResource extends Resource
                                 ->searchable(),
                         ])
                         ->requiresConfirmation()
-                        ->action(function (\Illuminate\Support\Collection $records, array $data): void {
+                        ->action(function (Collection $records, array $data): void {
                             $newOwnerId = (int) $data['owner_id'];
                             $caller = auth()->user();
                             $touched = 0;
@@ -518,7 +550,7 @@ class StudentResource extends Resource
                                 $touched++;
                             }
 
-                            \Filament\Notifications\Notification::make()
+                            Notification::make()
                                 ->title("Reassigned {$touched} student".($touched === 1 ? '' : 's'))
                                 ->success()
                                 ->send();
