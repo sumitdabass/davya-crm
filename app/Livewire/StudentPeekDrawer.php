@@ -52,6 +52,23 @@ class StudentPeekDrawer extends Component
             ->find($this->studentId);
     }
 
+    /**
+     * @return array<int, array{rank:int, college:string, branch:string, probability_pct:int, bucket:string}>
+     */
+    public function getChoicePredictionsProperty(): array
+    {
+        $student = $this->student;
+        if ($student === null) {
+            return [];
+        }
+        try {
+            return app(\App\Services\Rank\StudentChoicePredictor::class)->topChoices($student, 3);
+        } catch (\Throwable $e) {
+            report($e);
+            return [];
+        }
+    }
+
     public function render()
     {
         return view('livewire.student-peek-drawer');

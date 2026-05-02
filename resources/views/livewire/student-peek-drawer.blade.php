@@ -25,21 +25,52 @@
                         </div>
                     @endif
 
-                    @php
-                        try {
-                            $stages = \App\Models\Stage::orderBy('display_order')->get();
-                        } catch (\Throwable $e) {
-                            $stages = collect();
-                        }
-                        $currentIndex = $stages->isNotEmpty() ? $stages->search(fn ($st) => $st->id === $s->stage_id) : false;
-                    @endphp
-                    @if ($stages->isNotEmpty())
-                        <div style="display: flex; gap: 4px; margin-top: 14px; align-items: center;">
-                            @foreach ($stages as $i => $st)
-                                <div style="flex: 1; height: 6px; border-radius: 3px; background: {{ $currentIndex !== false && $i < $currentIndex ? 'var(--success)' : ($i === $currentIndex ? 'var(--warning)' : 'var(--border)') }};"></div>
+                    @php $choices = $this->choicePredictions; @endphp
+                    @if (! empty($choices))
+                        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+                            <div style="font-size: var(--fs-10); color: var(--text-sub); font-weight: 600; letter-spacing: .05em; text-transform: uppercase;">
+                                Admission likelihood · rank {{ number_format((int) $s->rank) }}{{ $s->category ? ' · '.$s->category : '' }}
+                            </div>
+                            @foreach ($choices as $c)
+                                @php
+                                    $barColor = match ($c['bucket']) {
+                                        'safe'     => 'var(--success)',
+                                        'probable' => 'var(--warning)',
+                                        default    => '#ef4444',
+                                    };
+                                @endphp
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: var(--fs-12);">
+                                        <span style="color: var(--text);">
+                                            <span style="color: var(--text-sub); font-weight: 600;">Choice {{ $c['rank'] }}</span>
+                                            · {{ $c['college'] }}
+                                            <span style="color: var(--text-sub);">— {{ $c['branch'] }}</span>
+                                        </span>
+                                        <span style="font-weight: 700; color: {{ $barColor }}; font-variant-numeric: tabular-nums;">{{ $c['probability_pct'] }}%</span>
+                                    </div>
+                                    <div style="height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+                                        <div style="height: 100%; background: {{ $barColor }}; width: {{ $c['probability_pct'] }}%;"></div>
+                                    </div>
+                                </div>
                             @endforeach
-                            <span style="font-size: var(--fs-10); color: var(--text-sub); margin-left: 8px; font-weight: 600;">{{ $currentIndex !== false ? $currentIndex + 1 : 0 }} / {{ $stages->count() }}</span>
                         </div>
+                    @else
+                        @php
+                            try {
+                                $stages = \App\Models\Stage::orderBy('display_order')->get();
+                            } catch (\Throwable $e) {
+                                $stages = collect();
+                            }
+                            $currentIndex = $stages->isNotEmpty() ? $stages->search(fn ($st) => $st->id === $s->stage_id) : false;
+                        @endphp
+                        @if ($stages->isNotEmpty())
+                            <div style="display: flex; gap: 4px; margin-top: 14px; align-items: center;">
+                                @foreach ($stages as $i => $st)
+                                    <div style="flex: 1; height: 6px; border-radius: 3px; background: {{ $currentIndex !== false && $i < $currentIndex ? 'var(--success)' : ($i === $currentIndex ? 'var(--warning)' : 'var(--border)') }};"></div>
+                                @endforeach
+                                <span style="font-size: var(--fs-10); color: var(--text-sub); margin-left: 8px; font-weight: 600;">{{ $currentIndex !== false ? $currentIndex + 1 : 0 }} / {{ $stages->count() }}</span>
+                            </div>
+                        @endif
                     @endif
                 </div>
 
