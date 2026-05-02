@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('backup:database')->dailyAt('02:00')->timezone('Asia/Kolkata');
+Schedule::command('performance:recalculate')->dailyAt('02:30')->timezone('Asia/Kolkata');
