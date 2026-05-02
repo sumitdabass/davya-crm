@@ -127,12 +127,17 @@ class StudentChoicePredictor
 
     /**
      * Cushion → display probability. Filtering already removed rank > max.
-     * 50% cushion → 95% probability (very safe).
-     * 25% cushion → 64% (probable boundary).
-     * 10% cushion → 43% (reach boundary).
+     * Range maps cushion 0–50 onto probability ~5–95 so all four colour
+     * buckets in the peek drawer can actually fire:
+     *   ≤ 10% → red, ≤ 30% → yellow, ≤ 60% → orange, > 60% → green.
+     *   cushion 0  → 5   (red, borderline-eligible)
+     *   cushion 5  → 10  (red boundary)
+     *   cushion 15 → 30  (yellow boundary)
+     *   cushion 30 → 60  (orange boundary)
+     *   cushion 50 → 95  (green, very safe)
      */
     private function probabilityFromCushion(int $cushion): int
     {
-        return (int) round(min(95, max(25, 30 + $cushion * 1.3)));
+        return (int) round(min(95, max(5, $cushion * 2)));
     }
 }

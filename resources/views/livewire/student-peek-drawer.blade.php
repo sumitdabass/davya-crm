@@ -30,10 +30,12 @@
                         <div style="display: flex; gap: 6px; margin-top: 14px;" title="Admission likelihood · rank {{ number_format((int) $s->rank) }}{{ $s->category ? ' · '.$s->category : '' }}">
                             @foreach ($choices as $c)
                                 @php
-                                    $barColor = match ($c['bucket']) {
-                                        'safe'     => 'var(--success)',
-                                        'probable' => 'var(--warning)',
-                                        default    => '#ef4444',
+                                    $p = (int) $c['probability_pct'];
+                                    $barColor = match (true) {
+                                        $p <= 10 => '#ef4444',  // red — very risky
+                                        $p <= 30 => '#eab308',  // yellow — slim
+                                        $p <= 60 => '#f97316',  // orange — moderate
+                                        default  => '#10b981',  // green — likely
                                     };
                                 @endphp
                                 <div style="flex: 1; height: 18px; border-radius: 4px; background: var(--border); overflow: hidden; position: relative;"
