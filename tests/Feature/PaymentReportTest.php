@@ -202,4 +202,64 @@ class PaymentReportTest extends TestCase
         $this->assertArrayHasKey($nikhil->id, $r['byOwner']);
         $this->assertArrayHasKey($sonam->id, $r['byOwner']);
     }
+
+    public function test_detail_rows_scope_by_owner_and_type(): void
+    {
+        $this->seed();
+        $sumit  = User::where('email', 'sumit@davya.local')->first();
+        $nikhil = User::where('email', 'nikhil@davya.local')->first();
+        $nisha  = User::where('email', 'nisha@davya.local')->first();
+        $this->actingAs($sumit);
+
+        $a = Student::create([
+            'phone' => '9100009001', 'name' => 'A',
+            'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil', 'stage' => 'Onboarded',
+        ]);
+        $b = Student::create([
+            'phone' => '9100009002', 'name' => 'B',
+            'owner_id' => $nisha->id, 'referrer_id' => $nisha->id,
+            'lead_source' => 'Nisha', 'stage' => 'Onboarded',
+        ]);
+        Payment::create([
+            'student_id' => $a->id, 'type' => 'advance', 'amount' => 30000,
+            'received_at' => now(), 'recorded_by_user_id' => $nikhil->id,
+        ]);
+        Payment::create([
+            'student_id' => $a->id, 'type' => 'refund', 'amount' => 5000,
+            'received_at' => now(), 'recorded_by_user_id' => $nikhil->id,
+        ]);
+        Payment::create([
+            'student_id' => $b->id, 'type' => 'advance', 'amount' => 20000,
+            'received_at' => now(), 'recorded_by_user_id' => $nisha->id,
+        ]);
+
+        $page = new PaymentReport;
+        $page->data = [
+            'from' => now()->startOfMonth()->toDateString(),
+            'to'   => now()->endOfMonth()->toDateString(),
+            'owner_ids' => [],
+        ];
+        $page->applied = $page->data;
+
+        // Unscoped: all 3 payments
+        $this->assertCount(3, $page->getDetailRows());
+
+        // Scoped to Nikhil: 2 payments
+        $page->setTab('detail', $nikhil->id);
+        $this->assertCount(2, $page->getDetailRows());
+        foreach ($page->getDetailRows() as $row) {
+            $this->assertSame('A', $row['student_name']);
+        }
+
+        // Scoped to refund type only: 1 payment
+        $page->setTab('detail', null, 'refund');
+        $this->assertCount(1, $page->getDetailRows());
+        $this->assertSame('refund', $page->getDetailRows()[0]['type']);
+
+        // Switching to non-detail tab clears scope
+        $page->setTab('report');
+        $this->assertNull($page->detailOwnerId);
+        $this->assertNull($page->detailType);
+    }
 }

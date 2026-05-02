@@ -35,6 +35,10 @@ class PaymentReport extends Page implements HasForms
 
     public string $activeTab = 'report';
 
+    public ?int $detailOwnerId = null;
+
+    public ?string $detailType = null;
+
     public function mount(): void
     {
         $defaults = [
@@ -158,9 +162,69 @@ class PaymentReport extends Page implements HasForms
         ];
     }
 
-    public function setTab(string $tab): void
+    public function setTab(string $tab, ?int $ownerId = null, ?string $type = null): void
     {
-        $this->activeTab = in_array($tab, ['report', 'today'], true) ? $tab : 'report';
+        $this->activeTab = in_array($tab, ['report', 'today', 'detail'], true) ? $tab : 'report';
+
+        if ($this->activeTab === 'detail') {
+            $this->detailOwnerId = $ownerId;
+            $this->detailType = in_array($type, ['advance', 'partial', 'full', 'refund'], true) ? $type : null;
+        } else {
+            $this->detailOwnerId = null;
+            $this->detailType = null;
+        }
+    }
+
+    /**
+     * @return array<int, array{id:int,received_at:string,student_name:string,student_id:int,amount:float,mode:?string,type:string,owner_name:string}>
+     */
+    public function getDetailRows(): array
+    {
+        $filters = ! empty($this->applied) ? $this->applied : $this->data;
+
+        $tz = 'Asia/Kolkata';
+        $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), $tz)->startOfDay();
+        $to   = Carbon::parse($filters['to']   ?? now(),                  $tz)->endOfDay();
+        $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
+
+        $q = Payment::query()
+            ->whereBetween('received_at', [$from, $to])
+            ->whereHas('student', fn ($q) => $q->visibleTo(auth()->user()))
+            ->with(['student.owner'])
+            ->orderByDesc('received_at');
+
+        if (! empty($ownerIds)) {
+            $q->whereHas('student', fn ($q) => $q->whereIn('owner_id', $ownerIds));
+        }
+        if ($this->detailOwnerId !== null) {
+            $q->whereHas('student', fn ($q) => $q->where('owner_id', $this->detailOwnerId));
+        }
+        if ($this->detailType !== null) {
+            $q->where('type', $this->detailType);
+        }
+
+        return $q->get()->map(fn (Payment $p) => [
+            'id'           => $p->id,
+            'received_at'  => $p->received_at->setTimezone($tz)->format('d M, H:i'),
+            'student_name' => $p->student?->name ?? '—',
+            'student_id'   => $p->student_id,
+            'amount'       => (float) $p->amount,
+            'mode'         => $p->mode,
+            'type'         => $p->type,
+            'owner_name'   => $p->student?->owner?->name ?? '—',
+        ])->all();
+    }
+
+    public function getDetailScopeLabel(): string
+    {
+        $bits = [];
+        if ($this->detailOwnerId !== null) {
+            $bits[] = User::find($this->detailOwnerId)?->name ?? 'owner';
+        }
+        if ($this->detailType !== null) {
+            $bits[] = ucfirst($this->detailType);
+        }
+        return $bits ? implode(' · ', $bits) : 'All payments in range';
     }
 
     /**
