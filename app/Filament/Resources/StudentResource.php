@@ -210,14 +210,40 @@ class StudentResource extends Resource
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
                             Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online','Offline','All'])),
-                            Toggle::make('is_ipu_registered')->label('IPU Registered'),
+                            Select::make('registration_status')
+                                ->label('IPU Registration Status')
+                                ->options([
+                                    'pending'           => 'Registration pending',
+                                    'registration_done' => 'Registration done',
+                                    'fee_paid'          => 'Fee payment done',
+                                ])
+                                ->default('pending')
+                                ->required(),
+                            Select::make('counselling_registration_status')
+                                ->label('Counselling Registration Status')
+                                ->options([
+                                    'pending'           => 'Registration pending',
+                                    'registration_done' => 'Registration done',
+                                    'fee_paid'          => 'Fee payment done',
+                                ])
+                                ->default('pending')
+                                ->required(),
                             TextInput::make('ipu_user_id')->label('IPU User ID'),
                             TextInput::make('ipu_login_code')
                                 ->label('IPU Login Code')
                                 ->maxLength(60)
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
-                            Toggle::make('seat_fee_due')->label('Seat Allotment fee')->disabled(),
+                            Select::make('seat_allotment_fee_status')
+                                ->label('Seat Allotment Fee Status')
+                                ->options([
+                                    'not_allotted'         => 'Seat not allotted till now',
+                                    'allotted_fee_pending' => 'Seat allotted, fee not paid',
+                                    'allotted_fee_paid'    => 'Seat allotted, fee paid',
+                                    'next_round'           => 'Fee paid — processing next round',
+                                ])
+                                ->default('not_allotted')
+                                ->required(),
                         ], self::customFieldsForSection('Deal'), self::customFieldsForSection('Counselling')))->columns(['default' => 1, 'md' => 2])
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
