@@ -131,7 +131,7 @@ class RankLookup extends Page implements HasForms
                     ->multiple()
                     ->options(BranchFamilies::all())
                     ->placeholder('All branches (no filter)')
-                    ->helperText('Pick one or more — selecting Computer / IT auto-includes CSE, AI, ML, IT, etc. Leave empty to see everything.')
+                    ->helperText('Pick one or more families. CS covers every CSE / CS-DS / CS-AIML / CS-AI / CS-ML variant; IT, AIML, AIDS, IIoT, ECE, and EEE are each their own bucket. Leave empty to see everything.')
                     ->columnSpan(2),
                 TextInput::make('user_rank')->label('Your Rank')->numeric()->minValue(1)->required()->placeholder('e.g. 50000'),
                 Select::make('show_all')->label('Filter')->options([

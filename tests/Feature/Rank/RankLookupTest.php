@@ -73,7 +73,7 @@ class RankLookupTest extends TestCase
     }
 
     /** @test */
-    public function branch_family_filter_narrows_to_cs_only(): void
+    public function branch_family_filter_narrows_to_cs_only_excluding_it(): void
     {
         $this->bindCounsellorMock();
 
@@ -87,7 +87,7 @@ class RankLookupTest extends TestCase
             ->set('data.user_rank', 138000)
             ->set('data.region', 'delhi')
             ->set('data.year', 2026)
-            ->set('data.branch_families', ['cs_it'])
+            ->set('data.branch_families', ['cs'])
             ->instance()->getResultsProperty();
 
         $unfilteredBranches = $unfiltered['colleges']->sum(fn ($c) => count($c['branches']));
@@ -98,7 +98,7 @@ class RankLookupTest extends TestCase
         foreach ($csOnly['colleges'] as $col) {
             foreach ($col['branches'] as $b) {
                 $this->assertSame(
-                    'cs_it',
+                    'cs',
                     BranchFamilies::familyFor($b['branch']),
                     "branch '{$b['branch']}' is not cs_it",
                 );
