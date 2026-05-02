@@ -21,8 +21,21 @@
     </div>
 
     <div x-show="$wire.activeTab === 'report'" x-cloak>
-        <form wire:submit.prevent>
+        <form wire:submit="apply">
             {{ $this->form }}
+
+            <div class="mt-4 flex flex-col sm:flex-row sm:justify-end gap-2">
+                <button type="submit"
+                    wire:loading.attr="disabled"
+                    wire:target="apply"
+                    class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60"
+                    style="background-color: #059669;"
+                    onmouseover="this.style.backgroundColor='#047857'"
+                    onmouseout="this.style.backgroundColor='#059669'">
+                    <span wire:loading.remove wire:target="apply">Apply filters</span>
+                    <span wire:loading wire:target="apply">Applying…</span>
+                </button>
+            </div>
         </form>
 
         @php($r = $this->getReport())

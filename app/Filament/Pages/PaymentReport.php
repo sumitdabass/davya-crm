@@ -31,16 +31,25 @@ class PaymentReport extends Page implements HasForms
 
     public ?array $data = [];
 
+    public ?array $applied = [];
+
     public string $activeTab = 'report';
 
     public function mount(): void
     {
-        $this->form->fill([
+        $defaults = [
             'from' => now('Asia/Kolkata')->startOfMonth()->toDateString(),
             'to'   => now('Asia/Kolkata')->endOfDay()->toDateString(),
             'owner_id' => null,
-        ]);
+        ];
+        $this->form->fill($defaults);
+        $this->applied = $defaults;
         $this->activeTab = 'report';
+    }
+
+    public function apply(): void
+    {
+        $this->applied = $this->form->getState();
     }
 
     public function form(Form $form): Form
@@ -86,9 +95,11 @@ class PaymentReport extends Page implements HasForms
      */
     public function getReport(): array
     {
-        $from = Carbon::parse($this->data['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
-        $to   = Carbon::parse($this->data['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
-        $ownerId = $this->data['owner_id'] ?? null;
+        $filters = ! empty($this->applied) ? $this->applied : $this->data;
+
+        $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
+        $to   = Carbon::parse($filters['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
+        $ownerId = $filters['owner_id'] ?? null;
 
         $user = auth()->user();
 
