@@ -223,21 +223,6 @@ class StudentResource extends Resource
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
 
-                    Tabs\Tab::make('Rating')
-                        ->icon('heroicon-o-trophy')
-                        ->schema([
-                            TextInput::make('rank_prob_first_choice')
-                                ->label('Rating — 1st choice probability')
-                                ->numeric()
-                                ->minValue(0)
-                                ->maxValue(100)
-                                ->suffix('%')
-                                ->helperText('Auto-computed from Rank, Category, and 1st choice on save. You can override manually here; the auto-compute will overwrite a manual value when Rank / Category / 1st choice change next.'),
-                        ])->columns(['default' => 1, 'md' => 2])
-                        ->extraAttributes([
-                            'class' => config('davyas.visual_v2') ? 'davya-section' : '',
-                        ]),
-
                     Tabs\Tab::make('Deal & Counselling')
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
