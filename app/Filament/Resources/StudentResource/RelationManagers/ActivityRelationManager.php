@@ -16,7 +16,7 @@ class ActivityRelationManager extends RelationManager
     // here is a placeholder; table()->query() is the source of truth.
     protected static string $relationship = 'roundHistory';
 
-    protected static ?string $title = 'Activity history';
+    protected static ?string $title = 'Timeline';
 
     protected static ?string $icon = 'heroicon-o-clock';
 
@@ -27,7 +27,7 @@ class ActivityRelationManager extends RelationManager
                 ->where('subject_type', 'App\\Models\\Student')
                 ->where('subject_id', $this->ownerRecord->id)
                 ->latest())
-            ->heading('Activity history')
+            ->heading('Timeline')
             ->columns([
                 TextColumn::make('created_at')->label('When')->dateTime('d M Y, H:i')->sortable(),
                 TextColumn::make('causer.name')->label('Who')->badge()->color('gray'),

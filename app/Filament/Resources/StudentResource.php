@@ -223,26 +223,35 @@ class StudentResource extends Resource
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
 
-                    Tabs\Tab::make('Timeline')
-                        ->icon('heroicon-o-clock')
-                        ->schema(array_merge([
-                            \Filament\Forms\Components\Placeholder::make('activity_hint')
-                                ->content('Notes and activity are shown in the tabs below the form.')
-                                ->label(''),
-                        ], self::customFieldsForSection('History')))
-                        ->extraAttributes([
-                            'class' => config('davyas.visual_v2') ? 'davya-section' : '',
-                        ]),
-
-                    Tabs\Tab::make('Closure')
-                        ->icon('heroicon-o-x-circle')
+                    Tabs\Tab::make('Account')
+                        ->icon('heroicon-o-document-text')
                         ->badge(fn ($record) => $record?->stage === 'Closed' ? 'Closed' : null)
                         ->badgeColor('danger')
                         ->schema(array_merge([
-                            Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
-                            TextInput::make('refund_amount')->numeric()->prefix('₹'),
-                            Textarea::make('re_entry_reason')->rows(2),
-                        ], self::customFieldsForSection('Closure')))->columns(['default' => 1, 'md' => 2])
+                            \Filament\Forms\Components\Section::make('Closure')
+                                ->description('Fill these only when wrapping up the student.')
+                                ->collapsible()
+                                ->collapsed(fn ($record) => $record === null || $record->stage !== 'Closed')
+                                ->schema(array_merge([
+                                    Select::make('close_reason')->options(fn () => self::optionsFor('close_reason', ['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other'])),
+                                    TextInput::make('refund_amount')->numeric()->prefix('₹'),
+                                    Textarea::make('re_entry_reason')->rows(2)->columnSpanFull(),
+                                ], self::customFieldsForSection('Closure')))
+                                ->columns(['default' => 1, 'md' => 2]),
+
+                            \Filament\Forms\Components\Placeholder::make('account_hint')
+                                ->label('')
+                                ->content(new \Illuminate\Support\HtmlString(
+                                    '<div style="font-size: 13px; color: #6b7280; padding: 8px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; line-height: 1.5;">'
+                                    .'Use the panels below the form to manage the rest of this student\'s account:'
+                                    .'<ul style="margin: 6px 0 0 18px; list-style: disc; color: #374151;">'
+                                    .'<li><strong>Payments</strong> — record advance / partial / full / refund. New payment opens the same form used to update part-payments.</li>'
+                                    .'<li><strong>Notes</strong> — running log entries.</li>'
+                                    .'<li><strong>Timeline</strong> — every change to this student, who made it, and when.</li>'
+                                    .'</ul>'
+                                    .'</div>'
+                                )),
+                        ], self::customFieldsForSection('History')))
                         ->extraAttributes([
                             'class' => config('davyas.visual_v2') ? 'davya-section' : '',
                         ]),
@@ -473,10 +482,10 @@ class StudentResource extends Resource
     {
         return [
             PaymentsRelationManager::class,
-            RoundHistoryRelationManager::class,
             NotesRelationManager::class,
-            MeetingsRelationManager::class,
             ActivityRelationManager::class,
+            MeetingsRelationManager::class,
+            RoundHistoryRelationManager::class,
         ];
     }
 
