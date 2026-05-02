@@ -74,6 +74,55 @@ class StudentResource extends Resource
     }
 
     /**
+     * IPU institutes that appear in the cutoff data for B.Tech, latest year.
+     * Storing names (not IDs) so the value survives if the ranks DB is rebuilt.
+     *
+     * @return array<string,string>
+     */
+    private static function collegeOptions(): array
+    {
+        try {
+            return \App\Models\Rank\Cutoff::query()
+                ->select('institute_id')
+                ->distinct()
+                ->with('institute:id,name')
+                ->get()
+                ->pluck('institute.name', 'institute.name')
+                ->filter()
+                ->sort()
+                ->all();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Branches offered at the given college (institute name) per the cutoff
+     * data. Empty when no college is selected so the Select stays empty until
+     * the cascade fires.
+     *
+     * @return array<string,string>
+     */
+    private static function branchOptionsFor(?string $instituteName): array
+    {
+        if (! $instituteName) {
+            return [];
+        }
+        try {
+            return \App\Models\Rank\Cutoff::query()
+                ->whereHas('institute', fn ($q) => $q->where('name', $instituteName))
+                ->with('branch:id,name')
+                ->get()
+                ->pluck('branch.name', 'branch.name')
+                ->filter()
+                ->sort()
+                ->all();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
      * Read Select options for a built-in field from its StudentField record.
      * Falls back to the provided defaults if the record is missing or has no options.
      *
@@ -161,9 +210,41 @@ class StudentResource extends Resource
                             Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi','Outside'])),
                             TextInput::make('state')->maxLength(40),
                             TextInput::make('course')->columnSpan(3),
-                            TextInput::make('preference_r1')->label('1st choice')->required()->maxLength(120),
-                            TextInput::make('preference_r2')->label('2nd choice (optional)')->maxLength(120),
-                            TextInput::make('preference_r3')->label('3rd choice (optional)')->maxLength(120),
+                            Select::make('preference_r1_college')
+                                ->label('1st choice — college')
+                                ->options(fn () => self::collegeOptions())
+                                ->searchable()
+                                ->required()
+                                ->live()
+                                ->afterStateUpdated(fn (\Filament\Forms\Set $set) => $set('preference_r1_branch', null)),
+                            Select::make('preference_r1_branch')
+                                ->label('1st choice — branch')
+                                ->options(fn (\Filament\Forms\Get $get) => self::branchOptionsFor($get('preference_r1_college')))
+                                ->searchable()
+                                ->required(),
+                            \Filament\Forms\Components\Placeholder::make('_choice1_spacer')->label('')->content(''),
+                            Select::make('preference_r2_college')
+                                ->label('2nd choice — college (optional)')
+                                ->options(fn () => self::collegeOptions())
+                                ->searchable()
+                                ->live()
+                                ->afterStateUpdated(fn (\Filament\Forms\Set $set) => $set('preference_r2_branch', null)),
+                            Select::make('preference_r2_branch')
+                                ->label('2nd choice — branch')
+                                ->options(fn (\Filament\Forms\Get $get) => self::branchOptionsFor($get('preference_r2_college')))
+                                ->searchable(),
+                            \Filament\Forms\Components\Placeholder::make('_choice2_spacer')->label('')->content(''),
+                            Select::make('preference_r3_college')
+                                ->label('3rd choice — college (optional)')
+                                ->options(fn () => self::collegeOptions())
+                                ->searchable()
+                                ->live()
+                                ->afterStateUpdated(fn (\Filament\Forms\Set $set) => $set('preference_r3_branch', null)),
+                            Select::make('preference_r3_branch')
+                                ->label('3rd choice — branch')
+                                ->options(fn (\Filament\Forms\Get $get) => self::branchOptionsFor($get('preference_r3_college')))
+                                ->searchable(),
+                            \Filament\Forms\Components\Placeholder::make('_choice3_spacer')->label('')->content(''),
                             ...self::customFieldsForSection('Identity'),
                             ...self::customFieldsForSection('Academic'),
                         ]))->columns(['default' => 1, 'md' => 3])
