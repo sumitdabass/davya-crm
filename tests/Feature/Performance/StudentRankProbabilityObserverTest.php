@@ -99,6 +99,30 @@ class StudentRankProbabilityObserverTest extends TestCase
         $this->assertNull($student->fresh()->rank_prob_first_choice);
     }
 
+    public function test_predictor_throwing_does_not_break_save_and_caches_null(): void
+    {
+        $mock = Mockery::mock(StudentChoicePredictor::class);
+        $mock->shouldReceive('topChoices')->andThrow(
+            new \RuntimeException('ranks DB connection refused')
+        );
+        $this->app->instance(StudentChoicePredictor::class, $mock);
+
+        \Illuminate\Support\Facades\Log::shouldReceive('warning')
+            ->once()
+            ->with(
+                'StudentRankProbabilityObserver: predictor failed; caching null',
+                Mockery::on(fn ($ctx) => array_key_exists('student_id', $ctx)
+                    && array_key_exists('rank', $ctx)
+                    && ($ctx['error'] ?? null) === 'ranks DB connection refused')
+            );
+
+        // The save should NOT throw — observer must swallow predictor failures
+        $student = $this->makeStudent(['rank' => '12345', 'category' => 'Delhi', 'preference_r1' => 'NSUT/IT']);
+
+        $this->assertNotNull($student->id, 'student must persist even when predictor throws');
+        $this->assertNull($student->fresh()->rank_prob_first_choice);
+    }
+
     private function mockPredictor(?int $returning): void
     {
         $mock = Mockery::mock(StudentChoicePredictor::class);

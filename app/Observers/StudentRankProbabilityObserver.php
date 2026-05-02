@@ -4,6 +4,8 @@ namespace App\Observers;
 
 use App\Models\Student;
 use App\Services\Rank\StudentChoicePredictor;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class StudentRankProbabilityObserver
 {
@@ -40,7 +42,17 @@ class StudentRankProbabilityObserver
             return null;
         }
 
-        $choices = $this->predictor->topChoices($student, 1);
+        try {
+            $choices = $this->predictor->topChoices($student, 1);
+        } catch (Throwable $e) {
+            Log::warning('StudentRankProbabilityObserver: predictor failed; caching null', [
+                'student_id' => $student->id,
+                'rank'       => $student->rank,
+                'error'      => $e->getMessage(),
+            ]);
+            return null;
+        }
+
         if ($choices === []) {
             return null;
         }
