@@ -57,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
 
         \App\Models\Meeting::observe(\App\Observers\MeetingObserver::class);
         \App\Models\Student::observe(\App\Observers\StudentObserver::class);
+        \App\Models\Student::observe(\App\Observers\StudentRankProbabilityObserver::class);
         \App\Models\Payment::observe(\App\Observers\PaymentObserver::class);
         \App\Models\RoundHistory::observe(\App\Observers\RoundHistoryObserver::class);
         \App\Models\StudentNote::observe(\App\Observers\StudentNoteObserver::class);
