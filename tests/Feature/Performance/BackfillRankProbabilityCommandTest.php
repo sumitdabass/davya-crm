@@ -41,7 +41,7 @@ class BackfillRankProbabilityCommandTest extends TestCase
         $this->assertSame(0, $exitCode);
         $this->assertEquals(
             [77, 77, 77],
-            Student::pluck('rank_prob_first_choice')->map(fn($v) => (int) $v)->all()
+            Student::pluck('rank_prob_first_choice')->map(fn ($v) => (int) $v)->all()
         );
     }
 
@@ -81,7 +81,7 @@ class BackfillRankProbabilityCommandTest extends TestCase
 
         $this->assertEquals(
             [60, 60],
-            Student::pluck('rank_prob_first_choice')->map(fn($v) => (int) $v)->all()
+            Student::pluck('rank_prob_first_choice')->map(fn ($v) => (int) $v)->all()
         );
     }
 
@@ -92,7 +92,7 @@ class BackfillRankProbabilityCommandTest extends TestCase
             $mock->shouldReceive('topChoices')->andReturn([]);
         } else {
             $mock->shouldReceive('topChoices')->andReturn([
-                ['rank'=>1,'college'=>'NSUT','branch'=>'IT','probability_pct'=>$returning,'bucket'=>'safe'],
+                ['rank' => 1, 'college' => 'NSUT', 'branch' => 'IT', 'probability_pct' => $returning, 'bucket' => 'safe'],
             ]);
         }
         $this->app->instance(StudentChoicePredictor::class, $mock);

@@ -35,14 +35,15 @@ class RecalculateAllPerformanceCommand extends Command
             ->where('is_active', true)
             ->whereExists(function ($q) {
                 $q->select(DB::raw(1))
-                  ->from('students')
-                  ->whereColumn('students.owner_id', 'users.id');
+                    ->from('students')
+                    ->whereColumn('students.owner_id', 'users.id');
             })
             ->orderBy('id')
             ->pluck('id');
 
         if ($userIds->isEmpty()) {
             $this->info('No active users with owned students; nothing to recalculate.');
+
             return self::SUCCESS;
         }
 
@@ -64,18 +65,19 @@ class RecalculateAllPerformanceCommand extends Command
             UserPerformanceScore::updateOrCreate(
                 ['user_id' => $userId, 'period_start' => $start],
                 [
-                    'period_end'       => $end,
-                    'score'            => $result->score,
-                    'tier'             => $result->tier,
+                    'period_end' => $end,
+                    'score' => $result->score,
+                    'tier' => $result->tier,
                     'signal_breakdown' => $result->breakdown,
-                    'team_max_snapshot'=> $teamMax->toArray(),
-                    'calculated_at'    => now(),
+                    'team_max_snapshot' => $teamMax->toArray(),
+                    'calculated_at' => now(),
                 ]
             );
             $written++;
         }
 
         $this->info("Recalculated $written user(s) for period {$start->toDateString()} – {$end->toDateString()}");
+
         return self::SUCCESS;
     }
 
@@ -86,47 +88,50 @@ class RecalculateAllPerformanceCommand extends Command
     {
         $monthOpt = $this->option('month');
         if ($monthOpt) {
-            $start = CarbonImmutable::createFromFormat('Y-m-d', $monthOpt . '-01')->startOfMonth();
+            $start = CarbonImmutable::createFromFormat('Y-m-d', $monthOpt.'-01')->startOfMonth();
         } else {
             $start = CarbonImmutable::now('Asia/Kolkata')->startOfMonth();
         }
+
         return [$start, $start->endOfMonth()];
     }
 
     /**
-     * @param array<int, SignalSet> $rawSignals
+     * @param  array<int, SignalSet>  $rawSignals
      */
     private function computeTeamMax(array $rawSignals): TeamMaxes
     {
         $maxClosedWon = 0;
-        $maxDealWon   = 0;
-        $maxAdvance   = 0;
+        $maxDealWon = 0;
+        $maxAdvance = 0;
         foreach ($rawSignals as $s) {
             $maxClosedWon = max($maxClosedWon, $s->closedWon);
-            $maxDealWon   = max($maxDealWon,   $s->dealWonAmount);
-            $maxAdvance   = max($maxAdvance,   $s->advanceReceived);
+            $maxDealWon = max($maxDealWon, $s->dealWonAmount);
+            $maxAdvance = max($maxAdvance, $s->advanceReceived);
         }
+
         return new TeamMaxes($maxClosedWon, $maxDealWon, $maxAdvance);
     }
 
     /**
-     * @param array<int, SignalSet> $rawSignals
+     * @param  array<int, SignalSet>  $rawSignals
      * @return array{conversion_rate: float, meeting_win_rate: float}
      */
     private function computeTeamAvg(array $rawSignals, int $floor): array
     {
         $convRates = [];
-        $mwRates   = [];
+        $mwRates = [];
         foreach ($rawSignals as $s) {
             if (($s->casesCaptured + $s->meetingsHeld) < $floor) {
                 continue;
             }
             $convRates[] = $s->casesCaptured > 0 ? ($s->closedWon / $s->casesCaptured) * 100 : 0;
-            $mwRates[]   = $s->meetingsHeld > 0  ? ($s->closedWon / $s->meetingsHeld)  * 100 : 0;
+            $mwRates[] = $s->meetingsHeld > 0 ? ($s->closedWon / $s->meetingsHeld) * 100 : 0;
         }
+
         return [
-            'conversion_rate'  => $convRates ? array_sum($convRates) / count($convRates) : 0.0,
-            'meeting_win_rate' => $mwRates   ? array_sum($mwRates)   / count($mwRates)   : 0.0,
+            'conversion_rate' => $convRates ? array_sum($convRates) / count($convRates) : 0.0,
+            'meeting_win_rate' => $mwRates ? array_sum($mwRates) / count($mwRates) : 0.0,
         ];
     }
 }

@@ -52,7 +52,7 @@ class StaffPerformancePageTest extends TestCase
 
     public function test_month_options_returns_12_months_descending(): void
     {
-        $page = new StaffPerformance();
+        $page = new StaffPerformance;
         $opts = $page->getMonthOptions();
 
         $this->assertCount(12, $opts);
@@ -62,12 +62,12 @@ class StaffPerformancePageTest extends TestCase
 
     public function test_tier_color_mapping(): void
     {
-        $page = new StaffPerformance();
+        $page = new StaffPerformance;
 
         $this->assertStringContainsString('emerald', $page->tierColor('Star'));
-        $this->assertStringContainsString('sky',     $page->tierColor('Strong'));
-        $this->assertStringContainsString('slate',   $page->tierColor('Solid'));
-        $this->assertStringContainsString('amber',   $page->tierColor('Growth'));
-        $this->assertStringContainsString('rose',    $page->tierColor('Coaching'));
+        $this->assertStringContainsString('sky', $page->tierColor('Strong'));
+        $this->assertStringContainsString('slate', $page->tierColor('Solid'));
+        $this->assertStringContainsString('amber', $page->tierColor('Growth'));
+        $this->assertStringContainsString('rose', $page->tierColor('Coaching'));
     }
 }

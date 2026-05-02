@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 final class SignalCollector
 {
     /**
-     * @param array<int,string> $terminalStages
+     * @param  array<int,string>  $terminalStages
      */
     public function __construct(
         private readonly array $terminalStages,
@@ -22,7 +22,7 @@ final class SignalCollector
     public function collect(User $user, CarbonImmutable $periodStart, CarbonImmutable $periodEnd): SignalSet
     {
         $startTs = $periodStart->startOfDay();
-        $endTs   = $periodEnd->endOfDay();
+        $endTs = $periodEnd->endOfDay();
         $staleBefore = CarbonImmutable::now()->subDays($this->staleThresholdDays);
 
         // 1. closed_won — students currently 'Admission Confirmed' whose FIRST advance

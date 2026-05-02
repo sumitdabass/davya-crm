@@ -39,9 +39,9 @@ class PerformanceConfigTest extends TestCase
         $ph = config('performance.pipeline_health');
         $this->assertSame(30, $ph['balance_penalty_factor']);
         $this->assertSame(50, $ph['balance_penalty_cap']);
-        $this->assertSame(5,  $ph['stale_penalty_per_lead']);
+        $this->assertSame(5, $ph['stale_penalty_per_lead']);
         $this->assertSame(20, $ph['stale_penalty_cap']);
-        $this->assertSame(1,  $ph['open_bonus_per_two']);
+        $this->assertSame(1, $ph['open_bonus_per_two']);
         $this->assertSame(10, $ph['open_bonus_cap']);
     }
 }

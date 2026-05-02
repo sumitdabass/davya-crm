@@ -6,6 +6,7 @@ use App\Models\Student;
 use App\Models\User;
 use App\Services\Rank\StudentChoicePredictor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Mockery;
 use Tests\TestCase;
 
@@ -107,7 +108,7 @@ class StudentRankProbabilityObserverTest extends TestCase
         );
         $this->app->instance(StudentChoicePredictor::class, $mock);
 
-        \Illuminate\Support\Facades\Log::shouldReceive('warning')
+        Log::shouldReceive('warning')
             ->once()
             ->with(
                 'StudentRankProbabilityObserver: predictor failed; caching null',
@@ -145,6 +146,7 @@ class StudentRankProbabilityObserverTest extends TestCase
     private function makeStudent(array $overrides): Student
     {
         $owner = User::factory()->create();
+
         return Student::factory()->create(array_merge([
             'owner_id' => $owner->id,
             'referrer_id' => $owner->id,

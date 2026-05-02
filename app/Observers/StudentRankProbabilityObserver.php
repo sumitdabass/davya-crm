@@ -9,9 +9,7 @@ use Throwable;
 
 class StudentRankProbabilityObserver
 {
-    public function __construct(private readonly StudentChoicePredictor $predictor)
-    {
-    }
+    public function __construct(private readonly StudentChoicePredictor $predictor) {}
 
     public function creating(Student $student): void
     {
@@ -33,6 +31,7 @@ class StudentRankProbabilityObserver
                 return true;
             }
         }
+
         return false;
     }
 
@@ -47,9 +46,10 @@ class StudentRankProbabilityObserver
         } catch (Throwable $e) {
             Log::warning('StudentRankProbabilityObserver: predictor failed; caching null', [
                 'student_id' => $student->id,
-                'rank'       => $student->rank,
-                'error'      => $e->getMessage(),
+                'rank' => $student->rank,
+                'error' => $e->getMessage(),
             ]);
+
             return null;
         }
 

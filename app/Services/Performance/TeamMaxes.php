@@ -18,8 +18,8 @@ final class TeamMaxes
     public function toArray(): array
     {
         return [
-            'closed_won'       => $this->closedWon,
-            'deal_won_amount'  => $this->dealWonAmount,
+            'closed_won' => $this->closedWon,
+            'deal_won_amount' => $this->dealWonAmount,
             'advance_received' => $this->advanceReceived,
         ];
     }

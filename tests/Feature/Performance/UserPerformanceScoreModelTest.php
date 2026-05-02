@@ -19,7 +19,7 @@ class UserPerformanceScoreModelTest extends TestCase
         $this->assertNotNull($score->user_id);
         $this->assertGreaterThanOrEqual(0, $score->score);
         $this->assertLessThanOrEqual(100, $score->score);
-        $this->assertContains($score->tier, ['Star','Strong','Solid','Growth','Coaching']);
+        $this->assertContains($score->tier, ['Star', 'Strong', 'Solid', 'Growth', 'Coaching']);
     }
 
     public function test_signal_breakdown_and_team_max_snapshot_are_arrays(): void

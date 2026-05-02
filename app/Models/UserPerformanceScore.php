@@ -22,12 +22,12 @@ class UserPerformanceScore extends Model
     ];
 
     protected $casts = [
-        'period_start'      => 'date',
-        'period_end'        => 'date',
-        'score'             => 'integer',
-        'signal_breakdown'  => 'array',
+        'period_start' => 'date',
+        'period_end' => 'date',
+        'score' => 'integer',
+        'signal_breakdown' => 'array',
         'team_max_snapshot' => 'array',
-        'calculated_at'     => 'datetime',
+        'calculated_at' => 'datetime',
     ];
 
     public function user(): BelongsTo

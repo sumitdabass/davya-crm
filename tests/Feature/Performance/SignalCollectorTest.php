@@ -16,7 +16,9 @@ class SignalCollectorTest extends TestCase
     use RefreshDatabase;
 
     private SignalCollector $collector;
+
     private CarbonImmutable $start;
+
     private CarbonImmutable $end;
 
     protected function setUp(): void
@@ -28,7 +30,7 @@ class SignalCollectorTest extends TestCase
             staleThresholdDays: 60,
         );
         $this->start = CarbonImmutable::parse('2026-05-01')->startOfDay();
-        $this->end   = CarbonImmutable::parse('2026-05-31')->endOfDay();
+        $this->end = CarbonImmutable::parse('2026-05-31')->endOfDay();
     }
 
     public function test_closed_won_and_deal_won_amount_count_only_admission_confirmed_in_period(): void

@@ -16,16 +16,16 @@ class UserPerformanceScoreFactory extends Factory
     public function definition(): array
     {
         $start = now()->startOfMonth()->toDateString();
-        $end   = now()->endOfMonth()->toDateString();
+        $end = now()->endOfMonth()->toDateString();
         $score = $this->faker->numberBetween(0, 100);
 
         return [
-            'user_id'           => User::factory(),
-            'period_start'      => $start,
-            'period_end'        => $end,
-            'score'             => $score,
-            'tier'              => $this->tierFor($score),
-            'signal_breakdown'  => [
+            'user_id' => User::factory(),
+            'period_start' => $start,
+            'period_end' => $end,
+            'score' => $score,
+            'tier' => $this->tierFor($score),
+            'signal_breakdown' => [
                 'closed_won' => 0, 'deal_won_amount' => 0, 'rank_prob_avg' => 0,
                 'advance_received' => 0, 'cases_captured' => 0, 'meetings_held' => 0,
                 'open_leads' => 0, 'balance_amount' => 0, 'stale_open' => 0,
@@ -36,7 +36,7 @@ class UserPerformanceScoreFactory extends Factory
                 'closed_won' => 0, 'deal_won_amount' => 0,
                 'advance_received' => 0,
             ],
-            'calculated_at'     => now(),
+            'calculated_at' => now(),
         ];
     }
 
@@ -47,7 +47,7 @@ class UserPerformanceScoreFactory extends Factory
             $score >= 70 => 'Strong',
             $score >= 55 => 'Solid',
             $score >= 40 => 'Growth',
-            default      => 'Coaching',
+            default => 'Coaching',
         };
     }
 }

@@ -29,6 +29,7 @@ class BackfillRankProbabilityCommand extends Command
                     } else {
                         $skipped++;
                     }
+
                     continue;
                 }
 
@@ -44,6 +45,7 @@ class BackfillRankProbabilityCommand extends Command
         });
 
         $this->info("Backfill complete — touched=$touched cleared=$cleared skipped=$skipped");
+
         return self::SUCCESS;
     }
 }

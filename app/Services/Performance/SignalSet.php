@@ -24,15 +24,15 @@ final class SignalSet
     public function toArray(): array
     {
         return [
-            'closed_won'       => $this->closedWon,
-            'deal_won_amount'  => $this->dealWonAmount,
-            'rank_prob_avg'    => $this->rankProbAvg,
+            'closed_won' => $this->closedWon,
+            'deal_won_amount' => $this->dealWonAmount,
+            'rank_prob_avg' => $this->rankProbAvg,
             'advance_received' => $this->advanceReceived,
-            'cases_captured'   => $this->casesCaptured,
-            'meetings_held'    => $this->meetingsHeld,
-            'open_leads'       => $this->openLeads,
-            'balance_amount'   => $this->balanceAmount,
-            'stale_open'       => $this->staleOpen,
+            'cases_captured' => $this->casesCaptured,
+            'meetings_held' => $this->meetingsHeld,
+            'open_leads' => $this->openLeads,
+            'balance_amount' => $this->balanceAmount,
+            'stale_open' => $this->staleOpen,
         ];
     }
 }
