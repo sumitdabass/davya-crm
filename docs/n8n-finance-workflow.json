@@ -9,7 +9,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -21,7 +21,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ \"systemInstruction\": { \"parts\": [{ \"text\": \"You are a strict JSON extractor and classifier for Davya consultancy's finance system. Output ONLY JSON matching the provided schema. Every message is exactly one type: \\\"capture\\\", \\\"question\\\", or \\\"ignore\\\".\\n\\nTYPE = \\\"capture\\\": user is LOGGING a finance event. MUST include: type, category, amount (integer, in rupees). MUST NOT include: question_text, intent, time_range, filter.\\n- \\\"got 50k from priya 9999911111, ref nisha\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":50000,\\\"student_phone\\\":\\\"9999911111\\\",\\\"student_name\\\":\\\"priya\\\",\\\"referrer_name\\\":\\\"nisha\\\"}\\n- \\\"priya paid 20k more, pending 30k\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":20000,\\\"student_name\\\":\\\"priya\\\",\\\"is_partial\\\":true}\\n- \\\"paid 5k for fb ads\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Expense\\\",\\\"amount\\\":5000,\\\"expense_category\\\":\\\"Marketing\\\",\\\"notes\\\":\\\"fb ads\\\"}\\n- \\\"bought 100k tata motors\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":100000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"out\\\"}\\n- \\\"tata motors paid 120k\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":120000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"in\\\"}\\n\\nTYPE = \\\"question\\\": user is LOOKING UP past records. MUST include: type, question_text, intent. MUST NOT include: category, amount, student_phone, asset_name, expense_category, investment_direction, is_partial. Set time_range to null \u2014 Laravel parses dates from question_text. filter is optional.\\n- \\\"what did i spend on fb ads this month\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"what did i spend on fb ads this month\\\",\\\"intent\\\":\\\"spend_by_category\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"category\\\":\\\"Marketing\\\"} }\\n- \\\"show payments from priya\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"show payments from priya\\\",\\\"intent\\\":\\\"payments_by_student\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"student_name\\\":\\\"priya\\\"} }\\n- \\\"what is Nikhil ledger balance\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"what is Nikhil ledger balance\\\",\\\"intent\\\":\\\"ledger_balance\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"owner_name\\\":\\\"Nikhil\\\"} }\\n\\nTYPE = \\\"ignore\\\": unrelated to finance (greetings, team chatter, off-topic). MUST include only: type, reason.\\n- \\\"@team lunch at 2?\\\" => {\\\"type\\\":\\\"ignore\\\",\\\"reason\\\":\\\"team chatter\\\"}\\n- \\\"lol\\\" => {\\\"type\\\":\\\"ignore\\\",\\\"reason\\\":\\\"chatter\\\"}\\n\\nRules:\\n- For capture, NEVER omit amount. If amount is not stated, type is NOT capture \u2014 use ignore.\\n- Questions have past-tense or interrogative cues (\\\"what\\\", \\\"show\\\", \\\"how much\\\", \\\"balance\\\"). Captures have imperative/report cues (\\\"got\\\", \\\"paid\\\", \\\"bought\\\").\\n- If unsure between capture and question, choose ignore.\\n- Never fabricate fields. Omit unknown optional fields.\\n- Never reply conversationally. JSON only.\" }] }, \"contents\": [{ \"role\": \"user\", \"parts\": [{ \"text\": (($json.text || $json.event?.text || '').replace(/<(?:[^|>]+\\|)?([^>]+)>/g, '$1')) }] }], \"generationConfig\": { \"temperature\": 0.1, \"responseMimeType\": \"application/json\", \"responseSchema\": { \"type\": \"object\", \"properties\": { \"type\": { \"type\": \"string\", \"enum\": [\"capture\", \"question\", \"ignore\"] }, \"category\": { \"type\": \"string\", \"enum\": [\"Payment\", \"Expense\", \"Investment\"] }, \"amount\": { \"type\": \"number\" }, \"student_phone\": { \"type\": \"string\" }, \"student_name\": { \"type\": \"string\" }, \"referrer_name\": { \"type\": \"string\" }, \"is_partial\": { \"type\": \"boolean\" }, \"expense_category\": { \"type\": \"string\" }, \"asset_name\": { \"type\": \"string\" }, \"investment_direction\": { \"type\": \"string\", \"enum\": [\"in\", \"out\"] }, \"notes\": { \"type\": \"string\" }, \"question_text\": { \"type\": \"string\" }, \"intent\": { \"type\": \"string\", \"enum\": [\"payments_by_student\", \"spend_by_category\", \"ledger_balance\", \"recent_captures\", \"totals_by_range\", \"student_status\", \"freeform\"] }, \"time_range\": { \"type\": \"object\", \"properties\": { \"from\": { \"type\": \"string\" }, \"to\": { \"type\": \"string\" } } }, \"filter\": { \"type\": \"object\" }, \"reason\": { \"type\": \"string\" } }, \"required\": [\"type\"] } } }) }}",
+        "jsonBody": "={{ JSON.stringify({ \"model\": \"llama-3.3-70b-versatile\", \"temperature\": 0.1, \"response_format\": { \"type\": \"json_object\" }, \"messages\": [ { \"role\": \"system\", \"content\": \"You are a strict JSON extractor and classifier for Davya consultancy's finance system. Output ONLY JSON matching the provided schema. Every message is exactly one type: \\\"capture\\\", \\\"question\\\", or \\\"ignore\\\".\\n\\nTYPE = \\\"capture\\\": user is LOGGING a finance event. MUST include: type, category, amount (integer, in rupees). MUST NOT include: question_text, intent, time_range, filter.\\n- \\\"got 50k from priya 9999911111, ref nisha\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":50000,\\\"student_phone\\\":\\\"9999911111\\\",\\\"student_name\\\":\\\"priya\\\",\\\"referrer_name\\\":\\\"nisha\\\"}\\n- \\\"priya paid 20k more, pending 30k\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Payment\\\",\\\"amount\\\":20000,\\\"student_name\\\":\\\"priya\\\",\\\"is_partial\\\":true}\\n- \\\"paid 5k for fb ads\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Expense\\\",\\\"amount\\\":5000,\\\"expense_category\\\":\\\"Marketing\\\",\\\"notes\\\":\\\"fb ads\\\"}\\n- \\\"bought 100k tata motors\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":100000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"out\\\"}\\n- \\\"tata motors paid 120k\\\" => {\\\"type\\\":\\\"capture\\\",\\\"category\\\":\\\"Investment\\\",\\\"amount\\\":120000,\\\"asset_name\\\":\\\"Tata Motors\\\",\\\"investment_direction\\\":\\\"in\\\"}\\n\\nTYPE = \\\"question\\\": user is LOOKING UP past records. MUST include: type, question_text, intent. MUST NOT include: category, amount, student_phone, asset_name, expense_category, investment_direction, is_partial. Set time_range to null \u2014 Laravel parses dates from question_text. filter is optional.\\n- \\\"what did i spend on fb ads this month\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"what did i spend on fb ads this month\\\",\\\"intent\\\":\\\"spend_by_category\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"category\\\":\\\"Marketing\\\"} }\\n- \\\"show payments from priya\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"show payments from priya\\\",\\\"intent\\\":\\\"payments_by_student\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"student_name\\\":\\\"priya\\\"} }\\n- \\\"what is Nikhil ledger balance\\\" => {\\\"type\\\":\\\"question\\\",\\\"question_text\\\":\\\"what is Nikhil ledger balance\\\",\\\"intent\\\":\\\"ledger_balance\\\",\\\"time_range\\\":null,\\\"filter\\\":{\\\"owner_name\\\":\\\"Nikhil\\\"} }\\n\\nTYPE = \\\"ignore\\\": unrelated to finance (greetings, team chatter, off-topic). MUST include only: type, reason.\\n- \\\"@team lunch at 2?\\\" => {\\\"type\\\":\\\"ignore\\\",\\\"reason\\\":\\\"team chatter\\\"}\\n- \\\"lol\\\" => {\\\"type\\\":\\\"ignore\\\",\\\"reason\\\":\\\"chatter\\\"}\\n\\nRules:\\n- For capture, NEVER omit amount. If amount is not stated, type is NOT capture \u2014 use ignore.\\n- Questions have past-tense or interrogative cues (\\\"what\\\", \\\"show\\\", \\\"how much\\\", \\\"balance\\\"). Captures have imperative/report cues (\\\"got\\\", \\\"paid\\\", \\\"bought\\\").\\n- If unsure between capture and question, choose ignore.\\n- Never fabricate fields. Omit unknown optional fields.\\n- Never reply conversationally. JSON only.\" }, { \"role\": \"user\", \"content\": (($json.text || $json.event?.text || '').replace(/<(?:[^|>]+\\|)?([^>]+)>/g, '$1')) } ] }) }}",
         "options": {
           "response": {
             "response": {
@@ -40,18 +40,18 @@
         0
       ],
       "id": "b2222222-2222-4222-8222-222222222222",
-      "name": "Call Gemini",
+      "name": "Call Groq",
       "credentials": {
         "httpHeaderAuth": {
           "id": "pIac2e9ocdbt8drK",
-          "name": "Gemini API Key"
+          "name": "Groq API Key"
         }
       }
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "// Dispatch by type \u2014 capture / question / ignore (v2 assistant + amount fallback)\nconst triggerData = $('Slack Trigger \u2014 new message').item.json;\n\n// Bot-loop guard\nif (triggerData.bot_id || triggerData.subtype === 'bot_message' || triggerData.app_id) {\n  return null;\n}\n\nconst slackChannel = triggerData.channel || triggerData.event?.channel || '';\nconst slackTs      = triggerData.ts || triggerData.event?.ts || '';\nconst slackUser    = triggerData.user || triggerData.event?.user || '';\nconst rawInput     = (triggerData.text || triggerData.event?.text || '').slice(0, 4000);\n\n// Parse Gemini response\nlet gemini = null;\nlet parseError = null;\ntry {\n  const geminiRaw = $input.item.json.body?.candidates?.[0]?.content?.parts?.[0]?.text;\n  if (geminiRaw) gemini = JSON.parse(geminiRaw);\n  else parseError = 'no candidates in Gemini response';\n} catch (e) {\n  parseError = 'JSON parse error: ' + e.message;\n}\n\nif (!gemini || !gemini.type) {\n  return { json: { target: 'failed', payload: { slack_message_id: slackTs, slack_channel: slackChannel, raw_input: rawInput, error_reason: parseError || 'gemini missing type' }, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n}\n\n// type = ignore\nif (gemini.type === 'ignore') return null;\n\n// type = question\nif (gemini.type === 'question') {\n  // Gemini often returns non-ISO strings in time_range (\"this week\"). Laravel requires\n  // real ISO dates, so drop the whole object unless both from+to look like YYYY-MM-DD.\n  let timeRange = null;\n  const tr = gemini.time_range;\n  const isIso = (v) => typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}/.test(v);\n  if (tr && typeof tr === 'object' && isIso(tr.from) && isIso(tr.to)) {\n    timeRange = { from: tr.from, to: tr.to };\n  }\n  // Drop non-plain-object filter too (defensive \u2014 Laravel validates)\n  let filter = null;\n  if (gemini.filter && typeof gemini.filter === 'object' && !Array.isArray(gemini.filter)) {\n    filter = gemini.filter;\n  }\n  // Intent + filter fallbacks — Gemini 2.5 Flash often drops these fields for questions.\n  let intent = gemini.intent || null;\n  if (!intent || intent === 'freeform') {\n    // ledger_balance: \"what is X ledger balance\" / \"X's balance\" / \"balance for X\"\n    let m = rawInput.match(/\\b(?:what(?:'s|\\s+is)|show|tell\\s+me)\\s+(?:the\\s+)?(\\w+)(?:'s)?\\s+(?:ledger\\s+)?balance\\b/i)\n         || rawInput.match(/\\b(?:ledger\\s+)?balance\\s+(?:for|of)\\s+(\\w+)\\b/i);\n    if (m) {\n      intent = 'ledger_balance';\n      filter = filter || { owner_name: m[1].trim() };\n    }\n    // spend_by_category: \"what did i spend on X\" / \"how much on X\"\n    if (!intent || intent === 'freeform') {\n      m = rawInput.match(/\\b(?:what\\s+did\\s+(?:i|we)|how\\s+much(?:\\s+did\\s+(?:i|we))?)\\s+spen[dt]\\s+(?:on|for)\\s+(.+?)(?:\\s+(?:this|last|in|during)\\s+\\w+)?[\\s.?!]*$/i);\n      if (m) {\n        intent = 'spend_by_category';\n        filter = filter || { category: m[1].trim() };\n      }\n    }\n  }\n  if (!intent) intent = 'freeform';\n  return {\n    json: {\n      target: 'assistant',\n      payload: {\n        slack_message_id: slackTs,\n        slack_channel:    slackChannel,\n        slack_user_id:    slackUser,\n        question_text:    gemini.question_text || rawInput,\n        intent:           intent,\n        time_range:       timeRange,\n        filter:           filter,\n      },\n      slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini,\n    }\n  };\n}\n\n// type = capture \u2014 amount regex fallback before bailing\nif (gemini.type === 'capture' && typeof gemini.amount !== 'number') {\n  // Strip phone-like 10-digit runs (so they don't match as amounts)\n  const scrubbed = rawInput.replace(/\\b\\d{10,}\\b/g, ' ');\n  const crMatch = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*cr\\b/i);\n  const lMatch  = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*(?:l|lakh|lac)\\b/i);\n  const kMatch  = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*k\\b/i);\n  const plain   = scrubbed.match(/\\b(\\d{2,})\\b/);\n  if (crMatch)      gemini.amount = Math.round(parseFloat(crMatch[1]) * 10000000);\n  else if (lMatch)  gemini.amount = Math.round(parseFloat(lMatch[1]) * 100000);\n  else if (kMatch)  gemini.amount = Math.round(parseFloat(kMatch[1]) * 1000);\n  else if (plain)   gemini.amount = parseInt(plain[1], 10);\n}\n\nif (gemini.type !== 'capture' || !gemini.category || typeof gemini.amount !== 'number') {\n  return { json: { target: 'failed', payload: { slack_message_id: slackTs, slack_channel: slackChannel, raw_input: rawInput, error_reason: parseError || 'capture missing required fields (after regex fallback)' }, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n}\n\nconst category = gemini.category;\nlet target; let payload;\n\nif (category === 'Payment') {\n  target = 'payments';\n  payload = { slack_message_id: slackTs, raw_input: rawInput };\n  if (gemini.amount !== undefined)        payload.amount = gemini.amount;\n  if (gemini.student_phone !== undefined) payload.student_phone = gemini.student_phone;\n  if (gemini.student_name !== undefined)  payload.student_name = gemini.student_name;\n  if (gemini.referrer_name !== undefined) payload.referrer_name = gemini.referrer_name;\n  if (gemini.is_partial !== undefined)    payload.is_partial = gemini.is_partial;\n  if (!payload.referrer_name) {\n    const m = rawInput.match(/\\bref(?:erred\\s+by)?[:\\s]\\s*([A-Za-z][A-Za-z\\s'.-]*?)(?:[,.!?]|$)/i);\n    if (m) {\n      payload.referrer_name = m[1].trim();\n      gemini.referrer_name = payload.referrer_name;\n    }\n  }\n} else if (category === 'Expense') {\n  target = 'expenses';\n  payload = { amount: gemini.amount, category: gemini.expense_category || null, description: gemini.notes || null, slack_message_id: slackTs, raw_input: rawInput };\n} else if (category === 'Investment') {\n  target = 'investments';\n  payload = { asset_name: gemini.asset_name || null, amount: gemini.amount, direction: (gemini.investment_direction || '').toLowerCase() || null, slack_message_id: slackTs, raw_input: rawInput };\n  // Fallback A: Gemini 2.5 Flash sometimes misplaces the asset into student_name. Salvage.\n  if (!payload.asset_name && gemini.student_name) {\n    payload.asset_name = gemini.student_name;\n    gemini.asset_name = payload.asset_name;\n  }\n  // Fallback B: regex against raw input — \"bought/sold/purchased/invested [amt] <asset>\".\n  if (!payload.asset_name) {\n    const m = rawInput.match(/\\b(?:bought|sold|purchased|invested(?:\\s+in)?|redeemed|put\\s+in)\\s+(?:\\d+(?:\\.\\d+)?\\s*(?:cr|l|lakh|lac|k)\\s+)?([A-Za-z][A-Za-z0-9\\s.&'-]*?)(?:\\s+(?:for|at|via|@|ref|on)\\b|[,.!?]|$)/i);\n    if (m) {\n      payload.asset_name = m[1].trim();\n      gemini.asset_name = payload.asset_name;\n    }\n  }\n  // Direction default: \"bought/purchased/invested/put in\" => out; \"sold/redeemed\" => in.\n  if (!payload.direction) {\n    if (/\\b(?:bought|purchased|invested(?:\\s+in)?|put\\s+in)\\b/i.test(rawInput))      payload.direction = 'out';\n    else if (/\\b(?:sold|redeemed)\\b/i.test(rawInput))                                 payload.direction = 'in';\n    if (payload.direction) gemini.investment_direction = payload.direction;\n  }\n}\n\nreturn { json: { target, payload, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n"
+        "jsCode": "// Dispatch by type \u2014 capture / question / ignore (v2 assistant + amount fallback)\nconst triggerData = $('Slack Trigger \u2014 new message').item.json;\n\n// Bot-loop guard\nif (triggerData.bot_id || triggerData.subtype === 'bot_message' || triggerData.app_id) {\n  return null;\n}\n\nconst slackChannel = triggerData.channel || triggerData.event?.channel || '';\nconst slackTs      = triggerData.ts || triggerData.event?.ts || '';\nconst slackUser    = triggerData.user || triggerData.event?.user || '';\nconst rawInput     = (triggerData.text || triggerData.event?.text || '').slice(0, 4000);\n\n// Parse Groq response\nlet gemini = null;\nlet parseError = null;\ntry {\n  const geminiRaw = $input.item.json.body?.choices?.[0]?.message?.content;\n  if (geminiRaw) gemini = JSON.parse(geminiRaw);\n  else parseError = 'no choices in Groq response';\n} catch (e) {\n  parseError = 'JSON parse error: ' + e.message;\n}\n\nif (!gemini || !gemini.type) {\n  return { json: { target: 'failed', payload: { slack_message_id: slackTs, slack_channel: slackChannel, raw_input: rawInput, error_reason: parseError || 'gemini missing type' }, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n}\n\n// type = ignore\nif (gemini.type === 'ignore') return null;\n\n// type = question\nif (gemini.type === 'question') {\n  // Gemini often returns non-ISO strings in time_range (\"this week\"). Laravel requires\n  // real ISO dates, so drop the whole object unless both from+to look like YYYY-MM-DD.\n  let timeRange = null;\n  const tr = gemini.time_range;\n  const isIso = (v) => typeof v === 'string' && /^\\d{4}-\\d{2}-\\d{2}/.test(v);\n  if (tr && typeof tr === 'object' && isIso(tr.from) && isIso(tr.to)) {\n    timeRange = { from: tr.from, to: tr.to };\n  }\n  // Drop non-plain-object filter too (defensive \u2014 Laravel validates)\n  let filter = null;\n  if (gemini.filter && typeof gemini.filter === 'object' && !Array.isArray(gemini.filter)) {\n    filter = gemini.filter;\n  }\n  // Intent + filter fallbacks \u2014 Gemini 2.5 Flash often drops these fields for questions.\n  let intent = gemini.intent || null;\n  if (!intent || intent === 'freeform') {\n    // ledger_balance: \"what is X ledger balance\" / \"X's balance\" / \"balance for X\"\n    let m = rawInput.match(/\\b(?:what(?:'s|\\s+is)|show|tell\\s+me)\\s+(?:the\\s+)?(\\w+)(?:'s)?\\s+(?:ledger\\s+)?balance\\b/i)\n         || rawInput.match(/\\b(?:ledger\\s+)?balance\\s+(?:for|of)\\s+(\\w+)\\b/i);\n    if (m) {\n      intent = 'ledger_balance';\n      filter = filter || { owner_name: m[1].trim() };\n    }\n    // spend_by_category: \"what did i spend on X\" / \"how much on X\"\n    if (!intent || intent === 'freeform') {\n      m = rawInput.match(/\\b(?:what\\s+did\\s+(?:i|we)|how\\s+much(?:\\s+did\\s+(?:i|we))?)\\s+spen[dt]\\s+(?:on|for)\\s+(.+?)(?:\\s+(?:this|last|in|during)\\s+\\w+)?[\\s.?!]*$/i);\n      if (m) {\n        intent = 'spend_by_category';\n        filter = filter || { category: m[1].trim() };\n      }\n    }\n  }\n  if (!intent) intent = 'freeform';\n  return {\n    json: {\n      target: 'assistant',\n      payload: {\n        slack_message_id: slackTs,\n        slack_channel:    slackChannel,\n        slack_user_id:    slackUser,\n        question_text:    gemini.question_text || rawInput,\n        intent:           intent,\n        time_range:       timeRange,\n        filter:           filter,\n      },\n      slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini,\n    }\n  };\n}\n\n// type = capture \u2014 amount regex fallback before bailing\nif (gemini.type === 'capture' && typeof gemini.amount !== 'number') {\n  // Strip phone-like 10-digit runs (so they don't match as amounts)\n  const scrubbed = rawInput.replace(/\\b\\d{10,}\\b/g, ' ');\n  const crMatch = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*cr\\b/i);\n  const lMatch  = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*(?:l|lakh|lac)\\b/i);\n  const kMatch  = scrubbed.match(/\\b(\\d+(?:\\.\\d+)?)\\s*k\\b/i);\n  const plain   = scrubbed.match(/\\b(\\d{2,})\\b/);\n  if (crMatch)      gemini.amount = Math.round(parseFloat(crMatch[1]) * 10000000);\n  else if (lMatch)  gemini.amount = Math.round(parseFloat(lMatch[1]) * 100000);\n  else if (kMatch)  gemini.amount = Math.round(parseFloat(kMatch[1]) * 1000);\n  else if (plain)   gemini.amount = parseInt(plain[1], 10);\n}\n\nif (gemini.type !== 'capture' || !gemini.category || typeof gemini.amount !== 'number') {\n  return { json: { target: 'failed', payload: { slack_message_id: slackTs, slack_channel: slackChannel, raw_input: rawInput, error_reason: parseError || 'capture missing required fields (after regex fallback)' }, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n}\n\nconst category = gemini.category;\nlet target; let payload;\n\nif (category === 'Payment') {\n  target = 'payments';\n  payload = { slack_message_id: slackTs, raw_input: rawInput };\n  if (gemini.amount !== undefined)        payload.amount = gemini.amount;\n  if (gemini.student_phone !== undefined) payload.student_phone = gemini.student_phone;\n  if (gemini.student_name !== undefined)  payload.student_name = gemini.student_name;\n  if (gemini.referrer_name !== undefined) payload.referrer_name = gemini.referrer_name;\n  if (gemini.is_partial !== undefined)    payload.is_partial = gemini.is_partial;\n  if (!payload.referrer_name) {\n    const m = rawInput.match(/\\bref(?:erred\\s+by)?[:\\s]\\s*([A-Za-z][A-Za-z\\s'.-]*?)(?:[,.!?]|$)/i);\n    if (m) {\n      payload.referrer_name = m[1].trim();\n      gemini.referrer_name = payload.referrer_name;\n    }\n  }\n} else if (category === 'Expense') {\n  target = 'expenses';\n  payload = { amount: gemini.amount, category: gemini.expense_category || null, description: gemini.notes || null, slack_message_id: slackTs, raw_input: rawInput };\n} else if (category === 'Investment') {\n  target = 'investments';\n  payload = { asset_name: gemini.asset_name || null, amount: gemini.amount, direction: (gemini.investment_direction || '').toLowerCase() || null, slack_message_id: slackTs, raw_input: rawInput };\n  // Fallback A: Gemini 2.5 Flash sometimes misplaces the asset into student_name. Salvage.\n  if (!payload.asset_name && gemini.student_name) {\n    payload.asset_name = gemini.student_name;\n    gemini.asset_name = payload.asset_name;\n  }\n  // Fallback B: regex against raw input \u2014 \"bought/sold/purchased/invested [amt] <asset>\".\n  if (!payload.asset_name) {\n    const m = rawInput.match(/\\b(?:bought|sold|purchased|invested(?:\\s+in)?|redeemed|put\\s+in)\\s+(?:\\d+(?:\\.\\d+)?\\s*(?:cr|l|lakh|lac|k)\\s+)?([A-Za-z][A-Za-z0-9\\s.&'-]*?)(?:\\s+(?:for|at|via|@|ref|on)\\b|[,.!?]|$)/i);\n    if (m) {\n      payload.asset_name = m[1].trim();\n      gemini.asset_name = payload.asset_name;\n    }\n  }\n  // Direction default: \"bought/purchased/invested/put in\" => out; \"sold/redeemed\" => in.\n  if (!payload.direction) {\n    if (/\\b(?:bought|purchased|invested(?:\\s+in)?|put\\s+in)\\b/i.test(rawInput))      payload.direction = 'out';\n    else if (/\\b(?:sold|redeemed)\\b/i.test(rawInput))                                 payload.direction = 'in';\n    if (payload.direction) gemini.investment_direction = payload.direction;\n  }\n}\n\nreturn { json: { target, payload, slack_ts: slackTs, slack_channel: slackChannel, slack_user: slackUser, gemini } };\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -117,14 +117,37 @@
                 "type": "number",
                 "operation": "equals"
               }
-            },
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        0
+      ],
+      "id": "e5555555-5555-4555-8555-555555555555",
+      "name": "201?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
             {
-              "id": "not-failed-target",
+              "id": "target-was-failed",
               "leftValue": "={{ $('Dispatch by category').item.json.target }}",
               "rightValue": "failed",
               "operator": {
                 "type": "string",
-                "operation": "notEquals"
+                "operation": "equals"
               }
             }
           ],
@@ -138,8 +161,37 @@
         560,
         0
       ],
-      "id": "e5555555-5555-4555-8555-555555555555",
-      "name": "201?"
+      "id": "i9999999-9999-4999-8999-999999999999",
+      "name": "Was target failed?"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Dispatch by category').item.json.slack_channel }}",
+          "mode": "id"
+        },
+        "text": "={{ ':thinking_face: Couldn\\'t parse this as a finance entry \u2014 ' + ($('Dispatch by category').item.json.payload.error_reason || 'unknown reason') + '. See #finance-log or failed_extractions.' }}",
+        "otherOptions": {
+          "thread_ts": "={{ $('Dispatch by category').item.json.slack_ts }}"
+        }
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        160
+      ],
+      "id": "j1010101-1010-4010-8010-101010101010",
+      "name": "Reply: couldn't parse",
+      "webhookId": "a3c5e8b1-couldnt-parse-reply-node",
+      "credentials": {
+        "slackApi": {
+          "id": "XCfBOF1k4wJubFWo",
+          "name": "Slack account"
+        }
+      }
     },
     {
       "parameters": {
@@ -450,17 +502,6 @@
     }
   ],
   "connections": {
-    "Call Gemini": {
-      "main": [
-        [
-          {
-            "node": "Dispatch by category",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Dispatch by category": {
       "main": [
         [
@@ -474,6 +515,24 @@
     },
     "POST to CRM": {
       "main": [
+        [
+          {
+            "node": "Was target failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was target failed?": {
+      "main": [
+        [
+          {
+            "node": "Reply: couldn't parse",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "201?",
@@ -567,7 +626,7 @@
       "main": [
         [
           {
-            "node": "Call Gemini",
+            "node": "Call Groq",
             "type": "main",
             "index": 0
           }
@@ -597,6 +656,17 @@
         [
           {
             "node": "POST to CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call Groq": {
+      "main": [
+        [
+          {
+            "node": "Dispatch by category",
             "type": "main",
             "index": 0
           }
