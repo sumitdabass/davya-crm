@@ -2,7 +2,10 @@
  * Loaded via AdminPanelProvider::HEAD_END when config('davyas.visual_v2') is true.
  * Spec: docs/superpowers/specs/2026-04-24-visual-refresh-design.md
  */
+@import url('https://fonts.bunny.net/css?family=fraunces:500,600,700&display=swap');
+
 :root {
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
     /* Brand — emerald, matches existing logo / PWA theme */
     --brand-50:  #ECFDF5;
     --brand-100: #D1FAE5;
@@ -32,7 +35,8 @@
     --stage-advance: #10B981;
     --stage-round:   #06B6D4;
     --stage-offline: #6366F1;
-    --stage-won:     #059669;
+    --stage-won:     #D97757;
+    --stage-won-soft: #FBE9DF;
     --stage-lost:    #EF4444;
 
     /* Student response (card left strip) */
@@ -384,4 +388,28 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
 .davya-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+}
+
+/* === Display face (Fraunces) — applied sparingly to identity surfaces. === */
+
+/* Kanban column titles — stage names carry hierarchy in the pipeline view. */
+body.davya-v2 .davya-kanban-col-head h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-14);
+    letter-spacing: -0.01em;
+}
+
+/* Filament resource record heading — student name on detail/edit pages. */
+body.davya-v2 .fi-header-heading {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+}
+
+/* Dashboard stat numbers — tagged via .davya-stat-number on stat-body. */
+body.davya-v2 .davya-stat-number {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
 }

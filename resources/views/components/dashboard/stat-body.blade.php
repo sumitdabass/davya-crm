@@ -11,13 +11,14 @@
         @if ($drillable)
             <button
                 type="button"
+                class="davya-stat-number"
                 wire:click="$dispatch('open-slide-over', { cardId: '{{ $cardId }}' })"
                 style="font-size: 30px; font-weight: 600; color: #059669; background: transparent; border: none; cursor: pointer; padding: 0; line-height: 1;"
                 onmouseover="this.style.textDecoration='underline';"
                 onmouseout="this.style.textDecoration='none';"
             >{{ $value }}</button>
         @else
-            <span style="font-size: 30px; font-weight: 600; color: #111827;">{{ $value }}</span>
+            <span class="davya-stat-number" style="font-size: 30px; font-weight: 600; color: #111827;">{{ $value }}</span>
         @endif
     </div>
     @if ($secondary)

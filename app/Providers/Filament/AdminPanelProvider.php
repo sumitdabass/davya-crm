@@ -33,6 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogo(asset('davyas-logo.png'))
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('davyas-logo.png'))
+            ->font('Figtree', url: 'https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap')
             ->colors([
                 'primary' => Color::Emerald,
                 'gray'    => Color::Slate,
