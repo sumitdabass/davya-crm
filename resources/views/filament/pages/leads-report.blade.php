@@ -1,13 +1,15 @@
 <x-filament-panels::page>
-    @php($r = $this->getReport())
-    @php($studentsBase = \App\Filament\Resources\StudentResource::getUrl('index'))
-    @php($studentsUrl = function (array $params) use ($studentsBase) {
-        $tableFilters = [];
-        foreach ($params as $k => $v) {
-            $tableFilters[$k] = ['value' => $v];
-        }
-        return $studentsBase . '?' . http_build_query(['tableFilters' => $tableFilters]);
-    })
+    @php
+        $r = $this->getReport();
+        $studentsBase = \App\Filament\Resources\StudentResource::getUrl('index');
+        $studentsUrl = function (array $params) use ($studentsBase) {
+            $tableFilters = [];
+            foreach ($params as $k => $v) {
+                $tableFilters[$k] = ['value' => $v];
+            }
+            return $studentsBase . '?' . http_build_query(['tableFilters' => $tableFilters]);
+        };
+    @endphp
 
     <p class="text-sm text-gray-600 dark:text-gray-400">
         Counts exclude students still in the <strong>Lead Captured</strong> stage, showing only leads that have progressed past initial capture.
