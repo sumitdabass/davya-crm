@@ -199,7 +199,7 @@ For any `book_section` with `kind='asset'`, every entry auto-extends to a `book_
 - `yearlyDepFor(BookAsset $a, BookFiscalYear $fy) → decimal`
   - **Straight Line:** `original_value × dep_percent / 100`, prorated by days-in-FY since `dep_started_at`
   - **WDV:** `book_value_at_start_of_fy × dep_percent / 100`
-- `accumulatedDepThrough(asset, fy) → decimal` — sums every closed FY from `dep_started_at` to `fy`
+- `accumulatedDepThrough(asset, fy) → decimal` — sums dep for every prior FY by date from `dep_started_at` to `fy` (regardless of closure — asset wear is a physical concept, not tied to bookkeeping closure)
 - `bookValueAtEndOf(asset, fy) → decimal`
 
 The computed depreciation for a given FY contributes **only** to the FY's `non_cash_outflow` aggregate (see "Computed accessors" above). It is **never** written into `book_entry_payments` and **never** rolled into the `paid` accessor. Asset-section table columns display the computed yearly dep + accumulated dep + book value as their own read-only columns, not as a "Paid" value. This preserves the cash vs non-cash separation end-to-end.
