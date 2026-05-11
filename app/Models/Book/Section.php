@@ -17,6 +17,7 @@ class Section extends Model
         'rent' => ['paid'],
         'expense' => ['paid'],
         'asset' => ['original_value', 'this_year_dep', 'accumulated_dep', 'book_value'],
+        'assets' => ['original_value', 'this_year_dep', 'accumulated_dep', 'book_value'],
     ];
 
     protected $table = 'book_sections';
