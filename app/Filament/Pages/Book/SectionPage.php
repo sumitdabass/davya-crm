@@ -209,4 +209,76 @@ class SectionPage extends Page
                 Entry::findOrFail($arguments['id'])->delete();
             });
     }
+
+    public function uploadDocumentsAction(): Action
+    {
+        return Action::make('uploadDocuments')
+            ->label('+ Documents')
+            ->icon('heroicon-o-paper-clip')
+            ->color('gray')
+            ->modalHeading(fn (array $arguments) => 'Upload documents for "'
+                .\App\Models\Book\Entry::find($arguments['id'])->title.'"')
+            ->form([
+                \Filament\Forms\Components\FileUpload::make('files')
+                    ->label('Files')
+                    ->multiple()
+                    ->disk(config('books.attachments_disk'))
+                    ->directory(fn (array $arguments) => 'books/'.$this->companyModel->slug.'/'.$this->fyModel->label
+                        .'/'.$this->sectionModel->slug.'/'.$arguments['id'])
+                    ->preserveFilenames()
+                    ->required(),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $entry = Entry::findOrFail($arguments['id']);
+                $disk = \Illuminate\Support\Facades\Storage::disk(config('books.attachments_disk'));
+                foreach ($data['files'] as $path) {
+                    \App\Models\Book\Attachment::create([
+                        'attachable_type' => $entry::class,
+                        'attachable_id' => $entry->id,
+                        'disk' => config('books.attachments_disk'),
+                        'path' => $path,
+                        'original_name' => basename($path),
+                        'mime' => $disk->mimeType($path) ?: null,
+                        'size' => $disk->size($path) ?: null,
+                        'uploaded_by' => auth()->id(),
+                    ]);
+                }
+            });
+    }
+
+    public function viewDocumentsAction(): Action
+    {
+        return Action::make('viewDocuments')
+            ->label('View')
+            ->modalHeading(fn (array $arguments) => 'Documents for "'
+                .\App\Models\Book\Entry::find($arguments['id'])->title.'"')
+            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+                $entry = Entry::findOrFail($arguments['id']);
+                $attachments = $entry->attachments()->latest('uploaded_at')->get();
+
+                return view('filament.pages.book.partials.attachment-list', [
+                    'attachments' => $attachments,
+                ]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
+    }
+
+    public function deleteDocumentAction(): Action
+    {
+        return Action::make('deleteDocument')
+            ->requiresConfirmation()
+            ->color('danger')
+            ->action(function (array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $attachment = \App\Models\Book\Attachment::findOrFail($arguments['id']);
+                \Illuminate\Support\Facades\Storage::disk($attachment->disk)->delete($attachment->path);
+                $attachment->delete();
+            });
+    }
 }

@@ -23,6 +23,7 @@
                 @if (in_array('loan_outstanding', $cols)) <th class="text-right p-2">Loan Outstanding</th>@endif
                 <th class="text-left p-2">Notes</th>
                 <th class="text-left p-2">Frequency</th>
+                <th class="text-left p-2">Docs</th>
                 <th class="text-right p-2">Actions</th>
             </tr>
         </thead>
@@ -54,6 +55,17 @@
                         @endphp
                         <span class="px-2 py-0.5 rounded {{ $bg }}">{{ $fLabels[$e->frequency] ?? $e->frequency }}</span>
                     </td>
+                    <td class="p-2 text-xs">
+                        @php($count = $e->attachments()->count())
+                        <button type="button" wire:click="mountAction('uploadDocuments', { id: {{ $e->id }} })"
+                                class="text-gray-600 hover:text-gray-900 text-xs">+ Add</button>
+                        @if ($count > 0)
+                            <button type="button" wire:click="mountAction('viewDocuments', { id: {{ $e->id }} })"
+                                    class="text-blue-600 hover:text-blue-800 text-xs ml-2">
+                                {{ $count }} doc{{ $count === 1 ? '' : 's' }}
+                            </button>
+                        @endif
+                    </td>
                     <td class="p-2 text-right whitespace-nowrap">
                         <button type="button" wire:click="mountAction('editEntry', { id: {{ $e->id }} })"
                                 class="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
@@ -64,7 +76,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="11" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
+                <tr><td colspan="12" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
             @endforelse
         </tbody>
     </table>
