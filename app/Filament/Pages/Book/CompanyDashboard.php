@@ -157,6 +157,7 @@ class CompanyDashboard extends Page
 
         return [
             'total_income'     => $agg->totalIncome($this->fy),
+            'cash_received'    => $agg->cashInflowFromRecoveries($this->fy),
             'cash_outflow'     => $agg->cashOutflow($this->fy),
             'non_cash_outflow' => $agg->nonCashOutflow($this->fy),
             'total_outflow'    => $agg->totalOutflow($this->fy),
@@ -164,6 +165,57 @@ class CompanyDashboard extends Page
             'carryover'        => $carry,
             'cumulative_pl'    => $agg->netPl($this->fy) + $carry['value'],
         ];
+    }
+
+    public function explainKpiAction(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('explainKpi')
+            ->modalHeading(fn (array $arguments) => 'How "'.($arguments['label'] ?? 'KPI').'" is computed')
+            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+                $kpis = $this->getKpis();
+                $fmt = fn ($n) => '₹ '.number_format((float) $n, 2);
+                $rows = match ($arguments['key'] ?? '') {
+                    'cash_received' => [
+                        ['Sum of all received-back payments this FY', $fmt($kpis['cash_received'])],
+                    ],
+                    'total_outflow' => [
+                        ['Cash Outflow (direction=out payments)', $fmt($kpis['cash_outflow'])],
+                        ['+ Non-Cash Outflow (depreciation)',      $fmt($kpis['non_cash_outflow'])],
+                        ['= Total Outflow',                        $fmt($kpis['total_outflow']), true],
+                    ],
+                    'net_pl' => [
+                        ['Total Income',                           $fmt($kpis['total_income'])],
+                        ['+ Cash Received (recoveries)',           $fmt($kpis['cash_received'])],
+                        ['− Total Outflow',                        '−'.$fmt($kpis['total_outflow'])],
+                        ['= Net P/L (this FY)',                    $fmt($kpis['net_pl']), true],
+                    ],
+                    'carryover' => $kpis['carryover']['estimate']
+                        ? [
+                            ['Prior FY exists but is still OPEN — value is live and may move until that FY is closed.', ''],
+                            ['Carryover (estimate)',               $fmt($kpis['carryover']['value']), true],
+                        ]
+                        : ($kpis['carryover']['value'] == 0 && ! $this->priorFyLabel()
+                            ? [
+                                ['No prior fiscal year exists for this company.', ''],
+                                ['Create a prior-year FY from + New FY in the header if you want a non-zero carryover.', ''],
+                                ['Carryover',                      $fmt(0), true],
+                            ]
+                            : [
+                                ['Net P/L of the most recent closed prior FY.', ''],
+                                ['Carryover',                      $fmt($kpis['carryover']['value']), true],
+                            ]),
+                    'cumulative_pl' => [
+                        ['Net P/L (this FY)',                      $fmt($kpis['net_pl'])],
+                        ['+ Carryover from prior FY',              $fmt($kpis['carryover']['value'])],
+                        ['= Cumulative P/L',                       $fmt($kpis['cumulative_pl']), true],
+                    ],
+                    default => [['Unknown KPI: '.($arguments['key'] ?? '—'), '']],
+                };
+
+                return view('filament.pages.book.partials.kpi-breakdown', ['rows' => $rows]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
     }
 
     public function getSectionRollups(): array

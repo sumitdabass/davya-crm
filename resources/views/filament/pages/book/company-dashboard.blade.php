@@ -26,6 +26,7 @@
                 @php
                     $tiles = [
                         ['key'=>'total_income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
+                        ['key'=>'cash_received',    'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of all received-back payments (loan recoveries + reimbursements)'],
                         ['key'=>'cash_outflow',     'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
                         ['key'=>'non_cash_outflow', 'label'=>'Non-Cash (Dep)',   'href'=>$assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null, 'hint'=>$assetSlug ? 'View assets' : null],
                         ['key'=>'total_outflow',    'label'=>'Total Outflow',    'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>null],
@@ -47,10 +48,14 @@
                             @endif
                         </a>
                     @else
-                        <div class="davya-books-kpi" title="{{ $tile['tooltip'] ?? '' }}">
+                        {{-- Non-href tiles (Net P/L / Cumulative P/L / Cash Received) open an explain modal --}}
+                        <a class="davya-books-kpi" style="cursor:pointer;"
+                           wire:click.prevent="mountAction('explainKpi', { key: '{{ $tile['key'] }}', label: '{{ $tile['label'] }}' })"
+                           title="{{ $tile['tooltip'] ?? 'Click to see the math' }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
                             <div class="{{ $valueClass }}">&#8377; {{ number_format($value, 2) }}</div>
-                        </div>
+                            <div class="davya-books-kpi__hint">See math</div>
+                        </a>
                     @endif
                 @endforeach
 
@@ -70,7 +75,8 @@
                         <div class="davya-books-kpi__hint">View prior FY</div>
                     </a>
                 @else
-                    <div class="davya-books-kpi">
+                    <a class="davya-books-kpi" style="cursor:pointer;"
+                       wire:click.prevent="mountAction('explainKpi', { key: 'carryover', label: 'Carryover' })">
                         <div class="davya-books-kpi__label">
                             Carryover
                             @if ($kpis['carryover']['estimate'])
@@ -78,7 +84,8 @@
                             @endif
                         </div>
                         <div class="davya-books-kpi__value davya-books-kpi__value--muted">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
-                    </div>
+                        <div class="davya-books-kpi__hint">See math</div>
+                    </a>
                 @endif
             </div>
         </div>

@@ -74,4 +74,71 @@ class CompaniesLanding extends Page
                 ->url(fn () => url('/admin/books/history')),
         ];
     }
+
+    public function editCompanyAction(): Action
+    {
+        return Action::make('editCompany')
+            ->modalHeading('Edit company')
+            ->fillForm(function (array $arguments): array {
+                $c = Company::findOrFail($arguments['id']);
+                return [
+                    'name' => $c->name,
+                    'slug' => $c->slug,
+                ];
+            })
+            ->form([
+                TextInput::make('name')->required(),
+                TextInput::make('slug')
+                    ->required()
+                    ->alphaDash()
+                    ->helperText('URL slug — change with care, it rewrites bookmarks.'),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                $c = Company::findOrFail($arguments['id']);
+                // Unique check that excludes self
+                if (Company::where('slug', $data['slug'])->where('id', '!=', $c->id)->exists()) {
+                    throw new \DomainException("Slug '{$data['slug']}' is already taken.");
+                }
+                $c->update(['name' => $data['name'], 'slug' => $data['slug']]);
+            });
+    }
+
+    public function createFirstFyAction(): Action
+    {
+        return Action::make('createFirstFy')
+            ->modalHeading('Create first fiscal year')
+            ->fillForm(function (array $arguments): array {
+                $year = (int) now()->year;
+                $month = (int) now()->month;
+                // If we're past April, the current FY started this April; else previous April.
+                $fyStartYear = $month >= 4 ? $year : $year - 1;
+
+                return [
+                    'label'      => $fyStartYear.'-'.substr((string) ($fyStartYear + 1), -2),
+                    'start_date' => $fyStartYear.'-04-01',
+                    'end_date'   => ($fyStartYear + 1).'-03-31',
+                ];
+            })
+            ->form([
+                TextInput::make('label')
+                    ->required()
+                    ->placeholder('e.g. 2025-26')
+                    ->helperText('Indian financial year label (Apr–Mar).'),
+                \Filament\Forms\Components\DatePicker::make('start_date')
+                    ->label('Start (Apr 1)')
+                    ->required(),
+                \Filament\Forms\Components\DatePicker::make('end_date')
+                    ->label('End (Mar 31)')
+                    ->required(),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                $fy = \App\Models\Book\FiscalYear::create([
+                    'company_id' => $arguments['company_id'],
+                    'label'      => $data['label'],
+                    'start_date' => $data['start_date'],
+                    'end_date'   => $data['end_date'],
+                ]);
+                $this->redirect(url('/admin/books/'.$arguments['company_slug'].'/'.$fy->label));
+            });
+    }
 }
