@@ -42,7 +42,7 @@
                     @if ($tile['href'])
                         <a href="{{ $tile['href'] }}" class="davya-books-kpi">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
-                            <div class="{{ $valueClass }}">&#8377; {{ number_format($value, 2) }}</div>
+                            <div class="{{ $valueClass }}">&#8377;{{ number_format($value, 2) }}</div>
                             @if (! empty($tile['hint']))
                                 <div class="davya-books-kpi__hint">{{ $tile['hint'] }}</div>
                             @endif
@@ -53,7 +53,7 @@
                            wire:click.prevent="mountAction('explainKpi', { key: '{{ $tile['key'] }}', label: '{{ $tile['label'] }}' })"
                            title="{{ $tile['tooltip'] ?? 'Click to see the math' }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
-                            <div class="{{ $valueClass }}">&#8377; {{ number_format($value, 2) }}</div>
+                            <div class="{{ $valueClass }}">&#8377;{{ number_format($value, 2) }}</div>
                             <div class="davya-books-kpi__hint">See math</div>
                         </a>
                     @endif
@@ -71,7 +71,7 @@
                                 <span class="davya-books-badge davya-books-badge--warning">estimate</span>
                             @endif
                         </div>
-                        <div class="davya-books-kpi__value">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
+                        <div class="davya-books-kpi__value">&#8377;{{ number_format($kpis['carryover']['value'], 2) }}</div>
                         <div class="davya-books-kpi__hint">View prior FY</div>
                     </a>
                 @else
@@ -83,7 +83,7 @@
                                 <span class="davya-books-badge davya-books-badge--warning">estimate</span>
                             @endif
                         </div>
-                        <div class="davya-books-kpi__value davya-books-kpi__value--muted">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
+                        <div class="davya-books-kpi__value davya-books-kpi__value--muted">&#8377;{{ number_format($kpis['carryover']['value'], 2) }}</div>
                         <div class="davya-books-kpi__hint">See math</div>
                     </a>
                 @endif
@@ -104,16 +104,16 @@
                         <div class="davya-books-roll__count">{{ $r['count'] }} {{ $r['count'] === 1 ? 'entry' : 'entries' }}</div>
                         <div class="davya-books-roll__rows">
                             @if ($r['salary_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Salary (ann)</span><strong>&#8377; {{ number_format($r['salary_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>Salary (ann)</span><strong>&#8377;{{ number_format($r['salary_total'], 0) }}</strong></div>
                             @endif
                             @if ($r['loan_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Loan</span><strong>&#8377; {{ number_format($r['loan_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>Loan</span><strong>&#8377;{{ number_format($r['loan_total'], 0) }}</strong></div>
                             @endif
                             @if ($r['paid_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Paid</span><strong>&#8377; {{ number_format($r['paid_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>Paid</span><strong>&#8377;{{ number_format($r['paid_total'], 0) }}</strong></div>
                             @endif
                             @if ($r['balance_total'] != 0)
-                                <div class="davya-books-roll__row"><span>Balance</span><strong>&#8377; {{ number_format($r['balance_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>Balance</span><strong>&#8377;{{ number_format($r['balance_total'], 0) }}</strong></div>
                             @endif
                         </div>
                     </a>

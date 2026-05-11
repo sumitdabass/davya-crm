@@ -171,13 +171,54 @@ class CompanyDashboard extends Page
     {
         return \Filament\Actions\Action::make('explainKpi')
             ->modalHeading(fn (array $arguments) => 'How "'.($arguments['label'] ?? 'KPI').'" is computed')
+            ->modalWidth('3xl')
             ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+                $key = $arguments['key'] ?? '';
                 $kpis = $this->getKpis();
-                $fmt = fn ($n) => '₹ '.number_format((float) $n, 2);
-                $rows = match ($arguments['key'] ?? '') {
-                    'cash_received' => [
-                        ['Sum of all received-back payments this FY', $fmt($kpis['cash_received'])],
-                    ],
+
+                // KPIs backed by actual payment events get a full record list.
+                if (in_array($key, ['cash_received', 'cash_outflow'], true)) {
+                    $direction = $key === 'cash_received' ? 'in' : 'out';
+                    $payments = \App\Models\Book\EntryPayment::query()
+                        ->where('direction', $direction)
+                        ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
+                        ->with(['entry.section', 'createdBy'])
+                        ->orderBy('occurred_on')
+                        ->get();
+                    return view('filament.pages.book.partials.kpi-payments', [
+                        'payments' => $payments,
+                        'total' => (float) $payments->sum('amount'),
+                        'label' => $arguments['label'] ?? 'Payments',
+                        'companySlug' => $this->company->slug,
+                        'fyLabel' => $this->fy->label,
+                    ]);
+                }
+
+                // Non-cash outflow = per-asset depreciation events.
+                if ($key === 'non_cash_outflow') {
+                    $assets = \App\Models\Book\Asset::query()
+                        ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
+                        ->with('entry.section')
+                        ->get();
+                    $calc = new \App\Books\Services\DepreciationCalculator();
+                    return view('filament.pages.book.partials.kpi-depreciation', [
+                        'rows' => $assets->map(fn ($a) => [
+                            'name' => $a->entry->title,
+                            'section_slug' => $a->entry->section?->slug,
+                            'original' => (float) $a->original_value,
+                            'percent' => (float) $a->dep_percent,
+                            'method' => $a->method,
+                            'this_year' => $calc->yearlyDepFor($a, $this->fy),
+                        ])->all(),
+                        'total' => (float) $kpis['non_cash_outflow'],
+                        'companySlug' => $this->company->slug,
+                        'fyLabel' => $this->fy->label,
+                    ]);
+                }
+
+                // Derived KPIs get a formula breakdown.
+                $fmt = fn ($n) => '₹'.number_format((float) $n, 2);
+                $rows = match ($key) {
                     'total_outflow' => [
                         ['Cash Outflow (direction=out payments)', $fmt($kpis['cash_outflow'])],
                         ['+ Non-Cash Outflow (depreciation)',      $fmt($kpis['non_cash_outflow'])],
@@ -209,7 +250,7 @@ class CompanyDashboard extends Page
                         ['+ Carryover from prior FY',              $fmt($kpis['carryover']['value'])],
                         ['= Cumulative P/L',                       $fmt($kpis['cumulative_pl']), true],
                     ],
-                    default => [['Unknown KPI: '.($arguments['key'] ?? '—'), '']],
+                    default => [['Unknown KPI: '.$key, '']],
                 };
 
                 return view('filament.pages.book.partials.kpi-breakdown', ['rows' => $rows]);

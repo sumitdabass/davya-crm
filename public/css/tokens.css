@@ -447,10 +447,15 @@ body.davya-v2 .davya-stat-number {
 .davya-books-kpi__value {
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 26px;
+    font-size: 22px;
     letter-spacing: -0.02em;
     color: var(--text);
-    line-height: 1.1;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-variant-numeric: tabular-nums;
+    display: block;
 }
 .davya-books-kpi__value--muted { color: var(--text-sub); }
 .davya-books-kpi__value--danger { color: var(--danger); }
@@ -620,7 +625,7 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
 .davya-books-header__crumb::after { content: " /"; color: var(--text-muted); margin-left: 4px; }
 
 @media (max-width: 768px) {
-    .davya-books-kpi__value { font-size: 20px; }
+    .davya-books-kpi__value { font-size: 18px; }
     .davya-books-table thead th,
     .davya-books-table tbody td { padding: 8px 10px; font-size: var(--fs-12); }
 }
