@@ -80,4 +80,26 @@ class FiscalYearAggregatorTest extends TestCase
         // 12500000 + 0 - (200000 + 0) = 12300000
         $this->assertSame(12300000.0, (float) (new FiscalYearAggregator())->netPl($fy));
     }
+
+    public function test_non_cash_outflow_sums_depreciation_across_asset_entries(): void
+    {
+        $c = \App\Models\Book\Company::factory()->create();
+        $fy = \App\Models\Book\FiscalYear::factory()->create([
+            'company_id' => $c->id,
+            'start_date' => '2025-04-01', 'end_date' => '2026-03-31', 'label' => '2025-26',
+        ]);
+        $assetSection = $c->sections()->where('slug', 'assets')->first();
+        $entry = \App\Models\Book\Entry::create([
+            'company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $assetSection->id, 'title' => 'Car',
+        ]);
+        \App\Models\Book\Asset::create([
+            'entry_id' => $entry->id, 'original_value' => 300000,
+            'dep_percent' => 20, 'dep_years' => 5,
+            'dep_started_at' => '2025-04-01', 'method' => 'straight_line',
+        ]);
+
+        $agg = new \App\Books\Services\FiscalYearAggregator();
+        $this->assertSame(60000.0, (float) $agg->nonCashOutflow($fy));
+    }
 }

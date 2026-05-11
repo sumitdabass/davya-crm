@@ -61,4 +61,15 @@ class FeatureFlagTest extends TestCase
 
         $this->actingAs($user)->get('/admin/books')->assertForbidden();
     }
+
+    public function test_deep_book_urls_return_404_when_flag_off(): void
+    {
+        config()->set('books.enabled', false);
+        $user = User::factory()->create(['is_active' => true, 'must_change_password' => false]);
+        $user->assignRole('super_admin');
+
+        $this->actingAs($user)
+            ->get('/admin/books/some-company/2025-26')
+            ->assertNotFound();
+    }
 }

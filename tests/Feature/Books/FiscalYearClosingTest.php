@@ -66,6 +66,49 @@ class FiscalYearClosingTest extends TestCase
         ]);
     }
 
+    public function test_blocks_updates_to_entries_in_a_closed_fy(): void
+    {
+        $c = Company::factory()->create();
+        $fy = FiscalYear::factory()->create(['company_id' => $c->id]); // open
+        $s = Section::factory()->create(['company_id' => $c->id]);
+
+        $e = Entry::create([
+            'company_id' => $c->id,
+            'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id,
+            'title' => 'pre-close',
+            'salary_amount' => 100,
+        ]);
+
+        $fy->update(['is_closed' => true]);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessageMatches('/closed/');
+
+        $e->update(['salary_amount' => 999]);
+    }
+
+    public function test_blocks_deletes_to_entries_in_a_closed_fy(): void
+    {
+        $c = Company::factory()->create();
+        $fy = FiscalYear::factory()->create(['company_id' => $c->id]); // open
+        $s = Section::factory()->create(['company_id' => $c->id]);
+
+        $e = Entry::create([
+            'company_id' => $c->id,
+            'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id,
+            'title' => 'pre-close',
+        ]);
+
+        $fy->update(['is_closed' => true]);
+
+        $this->expectException(\DomainException::class);
+        $this->expectExceptionMessageMatches('/closed/');
+
+        $e->delete();
+    }
+
     public function test_blocks_writes_to_payments_whose_entry_is_in_a_closed_fy(): void
     {
         $c = Company::factory()->create();

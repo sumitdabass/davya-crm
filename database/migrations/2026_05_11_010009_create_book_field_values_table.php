@@ -21,6 +21,9 @@ return new class extends Migration
             $t->decimal('value_number', 18, 4)->nullable();
             $t->date('value_date')->nullable();
             $t->json('value_json')->nullable();
+            // Intentionally unconstrained — would create a circular dependency with
+            // book_attachments.attachable_id (which polymorphs back to field_values).
+            // Application code enforces the relationship via FieldValue::attachments().
             $t->foreignId('value_attachment_id')->nullable();
             $t->timestamps();
             $t->unique(['entry_id', 'field_id']);
