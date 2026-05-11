@@ -5,10 +5,12 @@ namespace App\Models\Book;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Asset extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     public const METHODS = ['straight_line', 'wdv'];
 
@@ -47,5 +49,14 @@ class Asset extends Model
     protected static function newFactory()
     {
         return \Database\Factories\Book\AssetFactory::new();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('books');
     }
 }

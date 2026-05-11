@@ -5,10 +5,12 @@ namespace App\Models\Book;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Field extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     public const TYPES = ['text', 'textarea', 'number', 'date', 'email', 'dropdown', 'checkbox', 'multiselect', 'file'];
 
@@ -49,5 +51,14 @@ class Field extends Model
     protected static function newFactory()
     {
         return \Database\Factories\Book\FieldFactory::new();
+    }
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logFillable()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->useLogName('books');
     }
 }
