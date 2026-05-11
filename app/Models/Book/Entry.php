@@ -34,8 +34,7 @@ class Entry extends Model
     protected static function booted(): void
     {
         static::saving(function (Entry $e) {
-            $fy = $e->fiscalYear()->first()
-                ?? FiscalYear::find($e->fiscal_year_id);
+            $fy = FiscalYear::find($e->fiscal_year_id);
             if ($fy && $fy->is_closed && $e->isDirty(['salary_amount', 'loan_amount', 'title', 'notes', 'section_id'])) {
                 throw new \DomainException("Cannot edit entry — FY {$fy->label} is closed");
             }
