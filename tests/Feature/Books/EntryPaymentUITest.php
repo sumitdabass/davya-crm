@@ -110,4 +110,62 @@ class EntryPaymentUITest extends TestCase
                 'occurred_on' => '2025-06-01'])
             ->callMountedAction();
     }
+
+    public function test_edit_payment_action_updates_record(): void
+    {
+        $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = \App\Models\Book\FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'salary')->first();
+        $entry = \App\Models\Book\Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Usha']);
+        $p = \App\Models\Book\EntryPayment::create([
+            'entry_id' => $entry->id, 'amount' => 100, 'direction' => 'out',
+            'mode' => 'cash', 'occurred_on' => '2025-06-01',
+        ]);
+
+        \Livewire\Livewire::test(\App\Filament\Pages\Book\SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'salary'])
+            ->mountAction('editPayment', ['id' => $p->id])
+            ->setActionData([
+                'direction' => 'in',
+                'amount' => 250,
+                'mode' => 'bank',
+                'occurred_on' => '2025-07-15',
+                'reference' => 'TXN-001',
+            ])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $p->refresh();
+        $this->assertSame('in', $p->direction);
+        $this->assertSame(250.0, (float) $p->amount);
+        $this->assertSame('bank', $p->mode);
+        $this->assertSame('TXN-001', $p->reference);
+    }
+
+    public function test_edit_payment_blocked_when_fy_is_closed(): void
+    {
+        $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = \App\Models\Book\FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'salary')->first();
+        $entry = \App\Models\Book\Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Usha']);
+        $p = \App\Models\Book\EntryPayment::create([
+            'entry_id' => $entry->id, 'amount' => 100, 'direction' => 'out',
+            'mode' => 'cash', 'occurred_on' => '2025-06-01',
+        ]);
+        $fy->forceFill(['is_closed' => true])->saveQuietly();
+
+        $this->expectException(\DomainException::class);
+        \Livewire\Livewire::test(\App\Filament\Pages\Book\SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'salary'])
+            ->mountAction('editPayment', ['id' => $p->id])
+            ->setActionData([
+                'direction' => 'in', 'amount' => 250, 'mode' => 'bank',
+                'occurred_on' => '2025-07-15',
+            ])
+            ->callMountedAction();
+    }
 }

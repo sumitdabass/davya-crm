@@ -378,4 +378,67 @@ class SectionPage extends Page
                 $payment->delete();
             });
     }
+
+    public function editPaymentAction(): \Filament\Actions\Action
+    {
+        return \Filament\Actions\Action::make('editPayment')
+            ->modalHeading(fn (array $arguments) => 'Edit payment')
+            ->fillForm(function (array $arguments): array {
+                $p = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+
+                return [
+                    'direction' => $p->direction,
+                    'amount' => (float) $p->amount,
+                    'mode' => $p->mode,
+                    'occurred_on' => $p->occurred_on?->toDateString(),
+                    'reference' => $p->reference,
+                    'notes' => $p->notes,
+                ];
+            })
+            ->form([
+                \Filament\Forms\Components\Select::make('direction')
+                    ->label('Direction')
+                    ->required()
+                    ->options([
+                        'out' => 'Paid out (we paid them)',
+                        'in' => 'Received back (they paid us)',
+                    ]),
+                \Filament\Forms\Components\TextInput::make('amount')
+                    ->numeric()
+                    ->required()
+                    ->minValue(0.01)
+                    ->prefix('₹'),
+                \Filament\Forms\Components\Select::make('mode')
+                    ->required()
+                    ->options([
+                        'cash' => 'Cash',
+                        'bank' => 'Bank transfer',
+                        'upi' => 'UPI',
+                        'cheque' => 'Cheque',
+                        'other' => 'Other',
+                    ]),
+                \Filament\Forms\Components\DatePicker::make('occurred_on')
+                    ->label('Date')
+                    ->required(),
+                \Filament\Forms\Components\TextInput::make('reference')
+                    ->label('Reference')
+                    ->placeholder('e.g. cheque no., UTR, txn id'),
+                \Filament\Forms\Components\Textarea::make('notes')->rows(2),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                $payment = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+                $entry = $payment->entry;
+                if ($entry && $entry->fiscalYear?->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $payment->update([
+                    'direction' => $data['direction'],
+                    'amount' => $data['amount'],
+                    'mode' => $data['mode'],
+                    'occurred_on' => $data['occurred_on'],
+                    'reference' => $data['reference'] ?? null,
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            });
+    }
 }
