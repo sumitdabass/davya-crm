@@ -59,6 +59,11 @@ class EntryPayment extends Model
         return $this->belongsTo(Entry::class);
     }
 
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
+    }
+
     protected static function newFactory()
     {
         return \Database\Factories\Book\EntryPaymentFactory::new();

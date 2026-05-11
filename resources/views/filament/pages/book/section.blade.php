@@ -28,6 +28,7 @@
                     @if (in_array('balance',$cols))<th class="num">Balance</th>@endif
                     @if (in_array('loan_outstanding',$cols))<th class="num">Loan outstanding</th>@endif
                     <th>Frequency</th>
+                    <th>Payments</th>
                     <th>Docs</th>
                     <th>Notes</th>
                     <th class="actions">Actions</th>
@@ -55,6 +56,15 @@
                             </td>
                             <td>
                                 @php
+                                    $pCount = $e->payments()->count();
+                                @endphp
+                                <button type="button" wire:click="mountAction('addPayment', { id: {{ $e->id }} })" data-variant="primary" style="background:transparent; border:0; cursor:pointer; color:var(--brand-700); font-size:var(--fs-11); padding:2px 6px;">+ Add</button>
+                                @if ($pCount > 0)
+                                    <button type="button" wire:click="mountAction('viewPayments', { id: {{ $e->id }} })" style="background:var(--border-muted); border:0; cursor:pointer; color:var(--text-sub); font-size:var(--fs-11); padding:2px 8px; border-radius:9999px; margin-left:4px;">{{ $pCount }} payment{{ $pCount === 1 ? '' : 's' }}</button>
+                                @endif
+                            </td>
+                            <td>
+                                @php
                                     $count = $e->attachments()->count();
                                 @endphp
                                 <button type="button" wire:click="mountAction('uploadDocuments', { id: {{ $e->id }} })" data-variant="primary" style="background:transparent; border:0; cursor:pointer; color:var(--brand-700); font-size:var(--fs-11); padding:2px 6px;">+ Add</button>
@@ -70,7 +80,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="{{ $colsCount + 5 }}" style="text-align:center; padding:32px 0; color:var(--text-sub);">No entries — click <strong>+ Add Row</strong> above.</td></tr>
+                        <tr><td colspan="{{ $colsCount + 6 }}" style="text-align:center; padding:32px 0; color:var(--text-sub);">No entries — click <strong>+ Add Row</strong> above.</td></tr>
                     @endforelse
                 </tbody>
             </table>

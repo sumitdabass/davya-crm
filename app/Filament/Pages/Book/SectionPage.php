@@ -281,4 +281,101 @@ class SectionPage extends Page
                 $attachment->delete();
             });
     }
+
+    public function addPaymentAction(): Action
+    {
+        return Action::make('addPayment')
+            ->modalHeading(fn (array $arguments) => 'Record payment — '
+                .\App\Models\Book\Entry::find($arguments['id'])->title)
+            ->fillForm(function (array $arguments): array {
+                $entry = \App\Models\Book\Entry::findOrFail($arguments['id']);
+                $defaultDirection = ((float) $entry->loan_amount > 0 && (float) $entry->salary_amount == 0)
+                    ? 'in' : 'out';
+
+                return [
+                    'direction' => $defaultDirection,
+                    'mode' => 'bank',
+                    'occurred_on' => now()->toDateString(),
+                ];
+            })
+            ->form([
+                Select::make('direction')
+                    ->label('Direction')
+                    ->required()
+                    ->options([
+                        'out' => 'Paid out (we paid them)',
+                        'in' => 'Received back (they paid us)',
+                    ])
+                    ->helperText('"In" reduces loan_outstanding; "out" reduces salary balance.'),
+                TextInput::make('amount')
+                    ->numeric()
+                    ->required()
+                    ->minValue(0.01)
+                    ->prefix('₹'),
+                Select::make('mode')
+                    ->required()
+                    ->options([
+                        'cash' => 'Cash',
+                        'bank' => 'Bank transfer',
+                        'upi' => 'UPI',
+                        'cheque' => 'Cheque',
+                        'other' => 'Other',
+                    ]),
+                \Filament\Forms\Components\DatePicker::make('occurred_on')
+                    ->label('Date')
+                    ->required(),
+                TextInput::make('reference')
+                    ->label('Reference')
+                    ->placeholder('e.g. cheque no., UTR, txn id'),
+                Textarea::make('notes')->rows(2),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $entry = Entry::findOrFail($arguments['id']);
+                \App\Models\Book\EntryPayment::create([
+                    'entry_id' => $entry->id,
+                    'occurred_on' => $data['occurred_on'],
+                    'amount' => $data['amount'],
+                    'direction' => $data['direction'],
+                    'mode' => $data['mode'],
+                    'reference' => $data['reference'] ?? null,
+                    'notes' => $data['notes'] ?? null,
+                    'created_by' => auth()->id(),
+                ]);
+            });
+    }
+
+    public function viewPaymentsAction(): Action
+    {
+        return Action::make('viewPayments')
+            ->modalHeading(fn (array $arguments) => 'Payments — '
+                .\App\Models\Book\Entry::find($arguments['id'])->title)
+            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+                $entry = Entry::findOrFail($arguments['id']);
+
+                return view('filament.pages.book.partials.payment-list', [
+                    'entry' => $entry,
+                    'payments' => $entry->payments()->latest('occurred_on')->latest('id')->get(),
+                ]);
+            })
+            ->modalSubmitAction(false)
+            ->modalCancelActionLabel('Close');
+    }
+
+    public function deletePaymentAction(): Action
+    {
+        return Action::make('deletePayment')
+            ->requiresConfirmation()
+            ->color('danger')
+            ->action(function (array $arguments): void {
+                $payment = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+                $entry = $payment->entry;
+                if ($entry && $entry->fiscalYear?->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $payment->delete();
+            });
+    }
 }
