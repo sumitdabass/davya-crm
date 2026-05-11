@@ -81,6 +81,7 @@ class AppServiceProvider extends ServiceProvider
         RoundHistory::observe(RoundHistoryObserver::class);
         StudentNote::observe(StudentNoteObserver::class);
         StudentFieldValue::observe(StudentFieldValueObserver::class);
+        \App\Models\Book\Company::observe(\App\Observers\Book\CompanyObserver::class);
 
         // Lock every Filament delete action to super_admin. Picks up
         // DeleteAction / DeleteBulkAction wherever they're used (table

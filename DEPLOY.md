@@ -75,6 +75,20 @@ git tag v<milestone>-<name>
 git push --tags
 ```
 
+## Books module deploy
+
+Prerequisites: `BOOKS_MODULE` env must be `false` until smoke green.
+
+1. SSH to Hostinger as ipuc.
+2. `cd ~/davya-crm && git pull`
+3. `/opt/alt/php84/usr/bin/php artisan migrate`  ← 10 new book_* tables
+4. `/opt/alt/php84/usr/bin/php artisan optimize:clear`
+5. Flip Filament FPM via cPanel MultiPHP Manager (8.4 off → on) — needed for new classes
+6. Manually edit `.env` on prod: `BOOKS_MODULE=true`
+7. `/opt/alt/php84/usr/bin/php artisan config:clear`
+8. Visit `https://davyas.ipu.co.in/admin/books` as `sumitdabass@gmail.com` → see landing
+9. Rollback: `BOOKS_MODULE=false` + `config:clear`; tables stay, no data loss
+
 ## Rollback
 
 Every milestone is tagged (`v0-scaffold`, `v1-users`, `v2-students`, `v3-payments`, `v4-rounds`, …). To roll back:
