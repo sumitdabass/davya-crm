@@ -6,104 +6,101 @@
         $causers = $this->getCauserOptions();
     @endphp
 
-    <div class="mb-4 flex flex-wrap items-end gap-3">
-        <div>
-            <label class="block text-xs text-gray-500 mb-1">Subject</label>
-            <select wire:model.live="subjectTypeFilter" class="rounded border-gray-300 text-sm">
-                <option value="">All subjects</option>
-                @foreach ($subjectTypes as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs text-gray-500 mb-1">Event</label>
-            <select wire:model.live="eventFilter" class="rounded border-gray-300 text-sm">
-                <option value="">All events</option>
-                @foreach ($events as $value => $label)
-                    <option value="{{ $value }}">{{ $label }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs text-gray-500 mb-1">User</label>
-            <select wire:model.live="causerIdFilter" class="rounded border-gray-300 text-sm">
-                <option value="">All users</option>
-                @foreach ($causers as $id => $email)
-                    <option value="{{ $id }}">{{ $email }}</option>
-                @endforeach
-            </select>
-        </div>
-        @if ($subjectTypeFilter || $eventFilter || $causerIdFilter)
-            <button wire:click="clearFilters" type="button"
-                    class="text-xs text-blue-600 hover:underline self-end pb-1">Clear filters</button>
-        @endif
+    <div class="davya-books-header">
+        <a href="{{ url('/admin/books') }}" class="davya-books-header__crumb">Books</a>
+        <h1 class="davya-books-header__title">Activity history</h1>
     </div>
 
-    <table class="w-full text-sm border rounded-lg overflow-hidden">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="text-left p-2">When</th>
-                <th class="text-left p-2">User</th>
-                <th class="text-left p-2">Event</th>
-                <th class="text-left p-2">Subject</th>
-                <th class="text-left p-2">Changes</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($activities as $a)
-                <tr class="border-t align-top">
-                    <td class="p-2 whitespace-nowrap text-gray-600">
-                        {{ $a->created_at->format('d M Y H:i') }}
-                    </td>
-                    <td class="p-2">
-                        {{ $a->causer?->email ?? 'system' }}
-                    </td>
-                    <td class="p-2">
-                        @php
-                            $color = match($a->event) {
-                                'created'  => 'bg-green-100 text-green-800',
-                                'updated'  => 'bg-blue-100 text-blue-800',
-                                'deleted'  => 'bg-red-100 text-red-800',
-                                'restored' => 'bg-amber-100 text-amber-800',
-                                default    => 'bg-gray-100 text-gray-800',
-                            };
-                        @endphp
-                        <span class="px-2 py-0.5 rounded text-xs {{ $color }}">{{ $a->event }}</span>
-                    </td>
-                    <td class="p-2">
-                        <div class="font-medium">{{ class_basename($a->subject_type) }} #{{ $a->subject_id }}</div>
-                        @if ($a->subject)
-                            <div class="text-xs text-gray-500">{{ $a->subject->title ?? $a->subject->name ?? $a->subject->source ?? '—' }}</div>
-                        @endif
-                    </td>
-                    <td class="p-2 text-xs text-gray-600 max-w-md">
-                        @if (! empty($a->properties['attributes'] ?? []))
-                            @foreach ($a->properties['attributes'] as $key => $val)
-                                @php
-                                    $oldVal = data_get($a->properties, "old.$key");
-                                @endphp
-                                <div>
-                                    <span class="font-medium text-gray-700">{{ $key }}:</span>
-                                    @if ($a->event === 'updated' && $oldVal !== null && $oldVal !== $val)
-                                        <span class="text-red-600 line-through">{{ is_scalar($oldVal) ? $oldVal : json_encode($oldVal) }}</span>
-                                        →
-                                        <span class="text-green-600">{{ is_scalar($val) ? $val : json_encode($val) }}</span>
-                                    @else
-                                        <span>{{ is_scalar($val) ? $val : json_encode($val) }}</span>
-                                    @endif
-                                </div>
-                            @endforeach
-                        @endif
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="p-4 text-gray-500 text-center">No activity yet.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="davya-section-card">
+        <div class="davya-section-card-title">Filters</div>
+        <div style="display:flex; flex-wrap:wrap; align-items:end; gap:12px;">
+            <div>
+                <label style="display:block; font-size:var(--fs-11); color:var(--text-sub); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Subject</label>
+                <select wire:model.live="subjectTypeFilter" style="padding:6px 10px; border:1px solid var(--border); border-radius:var(--r-md); font-size:var(--fs-12); background:var(--surface); min-width:160px;">
+                    <option value="">All subjects</option>
+                    @foreach ($subjectTypes as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:var(--fs-11); color:var(--text-sub); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">Event</label>
+                <select wire:model.live="eventFilter" style="padding:6px 10px; border:1px solid var(--border); border-radius:var(--r-md); font-size:var(--fs-12); background:var(--surface); min-width:120px;">
+                    <option value="">All events</option>
+                    @foreach ($events as $value => $label)
+                        <option value="{{ $value }}">{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label style="display:block; font-size:var(--fs-11); color:var(--text-sub); margin-bottom:4px; text-transform:uppercase; letter-spacing:0.5px;">User</label>
+                <select wire:model.live="causerIdFilter" style="padding:6px 10px; border:1px solid var(--border); border-radius:var(--r-md); font-size:var(--fs-12); background:var(--surface); min-width:200px;">
+                    <option value="">All users</option>
+                    @foreach ($causers as $id => $email)
+                        <option value="{{ $id }}">{{ $email }}</option>
+                    @endforeach
+                </select>
+            </div>
+            @if ($subjectTypeFilter || $eventFilter || $causerIdFilter)
+                <button wire:click="clearFilters" type="button" style="background:transparent; border:0; cursor:pointer; color:var(--brand-700); font-size:var(--fs-12); padding:6px 0;">Clear filters</button>
+            @endif
+        </div>
+    </div>
 
-    <div class="mt-4">
-        {{ $activities->links() }}
+    <div class="davya-section-card">
+        <div class="davya-section-card-title">{{ $activities->total() }} {{ $activities->total() === 1 ? 'event' : 'events' }}</div>
+        <div class="davya-table-scroll">
+            <table class="davya-books-table">
+                <thead><tr>
+                    <th>When</th><th>User</th><th>Event</th><th>Subject</th><th>Changes</th>
+                </tr></thead>
+                <tbody>
+                    @forelse ($activities as $a)
+                        <tr>
+                            <td style="white-space:nowrap; color:var(--text-sub); font-size:var(--fs-12);">{{ $a->created_at->format('d M Y H:i') }}</td>
+                            <td style="font-size:var(--fs-12);">{{ $a->causer?->email ?? 'system' }}</td>
+                            <td>
+                                @php
+                                    $variant = match($a->event) {
+                                        'created' => 'success', 'updated' => 'info',
+                                        'deleted' => 'danger', 'restored' => 'warning',
+                                        default => '',
+                                    };
+                                @endphp
+                                <span class="davya-books-badge davya-books-badge--{{ $variant }}">{{ $a->event }}</span>
+                            </td>
+                            <td>
+                                <div class="title">{{ class_basename($a->subject_type) }} #{{ $a->subject_id }}</div>
+                                @if ($a->subject)
+                                    <div style="font-size:var(--fs-11); color:var(--text-muted);">{{ $a->subject->title ?? $a->subject->name ?? $a->subject->source ?? '—' }}</div>
+                                @endif
+                            </td>
+                            <td style="font-size:var(--fs-11); color:var(--text-sub); max-width:380px;">
+                                @if (! empty($a->properties['attributes'] ?? []))
+                                    @foreach ($a->properties['attributes'] as $key => $val)
+                                        @php
+                                            $oldVal = data_get($a->properties, "old.$key");
+                                        @endphp
+                                        <div>
+                                            <span style="font-weight:600; color:var(--text);">{{ $key }}:</span>
+                                            @if ($a->event === 'updated' && $oldVal !== null && $oldVal !== $val)
+                                                <span style="color:var(--danger); text-decoration:line-through;">{{ is_scalar($oldVal) ? $oldVal : json_encode($oldVal) }}</span>
+                                                →
+                                                <span style="color:var(--brand-700);">{{ is_scalar($val) ? $val : json_encode($val) }}</span>
+                                            @else
+                                                <span>{{ is_scalar($val) ? $val : json_encode($val) }}</span>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @endif
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align:center; padding:32px 0; color:var(--text-sub);">No activity yet.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top:12px;">{{ $activities->links() }}</div>
     </div>
 </x-filament-panels::page>

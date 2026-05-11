@@ -1,41 +1,50 @@
 <x-filament-panels::page>
-    <div class="mb-4">
-        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}"
-           class="text-sm text-gray-500">&larr; {{ $companyModel->name }} / FY {{ $fyModel->label }}</a>
-        <h2 class="text-xl font-semibold">Income &mdash; {{ $companyModel->name }} / FY {{ $fyModel->label }}</h2>
-    </div>
-
     @php
-        $rows = $this->getIncome();
+        $items = $this->getIncome();
     @endphp
 
-    <table class="w-full text-sm border rounded-lg overflow-hidden">
-        <thead class="bg-gray-50">
-            <tr>
-                <th class="text-left p-2">Date</th>
-                <th class="text-left p-2">Source</th>
-                <th class="text-right p-2">Amount</th>
-                <th class="text-left p-2">Notes</th>
-                <th class="text-right p-2">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse ($rows as $i)
-                <tr class="border-t">
-                    <td class="p-2">{{ $i->occurred_on->format('d M Y') }}</td>
-                    <td class="p-2 font-medium">{{ $i->source }}</td>
-                    <td class="p-2 text-right">{{ number_format((float) $i->amount, 2) }}</td>
-                    <td class="p-2 text-gray-500">{{ $i->notes }}</td>
-                    <td class="p-2 text-right whitespace-nowrap">
-                        <button type="button" wire:click="mountAction('editIncome', { id: {{ $i->id }} })"
-                                class="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
-                        <button type="button" wire:click="mountAction('deleteIncome', { id: {{ $i->id }} })"
-                                class="text-red-600 hover:text-red-800 text-xs ml-2">Delete</button>
-                    </td>
-                </tr>
-            @empty
-                <tr><td colspan="5" class="p-4 text-gray-500 text-center">No income yet.</td></tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="davya-books-header">
+        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">{{ $companyModel->name }}</a>
+        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">FY {{ $fyModel->label }}</a>
+        <h1 class="davya-books-header__title">Income</h1>
+        @if ($fyModel->is_closed)
+            <span class="davya-books-badge davya-books-badge--warning">FY closed — read only</span>
+        @endif
+    </div>
+
+    <div class="davya-section-card">
+        <div class="davya-section-card-title">{{ count($items) }} {{ count($items) === 1 ? 'entry' : 'entries' }}</div>
+        <div class="davya-table-scroll">
+            <table class="davya-books-table">
+                <thead><tr>
+                    <th>Date</th><th>Source</th><th class="num">Amount</th><th>Notes</th><th class="actions">Actions</th>
+                </tr></thead>
+                <tbody>
+                    @forelse ($items as $i)
+                        <tr>
+                            <td style="white-space:nowrap; color:var(--text-sub);">{{ $i->occurred_on->format('d M Y') }}</td>
+                            <td class="title">{{ $i->source }}</td>
+                            <td class="num">{{ number_format((float) $i->amount, 2) }}</td>
+                            <td style="color:var(--text-sub); font-size:var(--fs-12);">{{ $i->notes }}</td>
+                            <td class="actions">
+                                <button type="button" wire:click="mountAction('editIncome', { id: {{ $i->id }} })" data-variant="primary">Edit</button>
+                                <button type="button" wire:click="mountAction('deleteIncome', { id: {{ $i->id }} })" data-variant="danger">Delete</button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" style="text-align:center; padding:32px 0; color:var(--text-sub);">No income yet — click <strong>+ Add Income</strong> above.</td></tr>
+                    @endforelse
+                </tbody>
+                @if (count($items))
+                    <tfoot>
+                        <tr>
+                            <td colspan="2">Total</td>
+                            <td class="num">&#8377; {{ number_format($items->sum(fn ($i) => (float) $i->amount), 2) }}</td>
+                            <td colspan="2"></td>
+                        </tr>
+                    </tfoot>
+                @endif
+            </table>
+        </div>
+    </div>
 </x-filament-panels::page>

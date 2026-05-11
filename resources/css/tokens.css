@@ -413,3 +413,214 @@ body.davya-v2 .davya-stat-number {
     font-weight: 600;
     letter-spacing: -0.02em;
 }
+
+/* === Books module — visual integration (2026-05-11) ============================
+ * Books pages adopt the davya-v2 vocabulary. These three classes formalise the
+ * patterns Books needs that aren't already in the system: a KPI tile (white
+ * surface + Fraunces number + emerald hover when clickable), a section roll-up
+ * tile (with stage-style accent bar), and a hand-rolled data table styled to
+ * match Filament's resource tables. The rest of Books re-uses the existing
+ * .davya-section-card, .davya-section-card-title, .davya-stat-number,
+ * .davya-tab, .davya-owner-pill, .davya-table-scroll, .davya-card-row.
+ */
+.davya-books-kpi {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    box-shadow: var(--elev-1);
+    text-decoration: none;
+    color: inherit;
+}
+.davya-books-kpi__label {
+    font-size: var(--fs-11);
+    font-weight: 600;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.davya-books-kpi__value {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.1;
+}
+.davya-books-kpi__value--muted { color: var(--text-sub); }
+.davya-books-kpi__value--danger { color: var(--danger); }
+.davya-books-kpi__hint {
+    font-size: var(--fs-10);
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+a.davya-books-kpi:hover {
+    border-color: var(--brand-600);
+    box-shadow: var(--elev-2);
+}
+a.davya-books-kpi .davya-books-kpi__hint::after {
+    content: " →";
+    color: var(--brand-600);
+}
+
+/* Section roll-up tile — used on Company Dashboard for per-section summaries. */
+.davya-books-roll {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--brand-500);
+    border-radius: var(--r-lg);
+    padding: var(--s-4);
+    box-shadow: var(--elev-1);
+    text-decoration: none;
+    color: inherit;
+}
+.davya-books-roll:hover { border-color: var(--brand-600); box-shadow: var(--elev-2); }
+.davya-books-roll[data-kind="asset"]    { border-top-color: var(--info); }
+.davya-books-roll[data-kind="rent"]     { border-top-color: var(--warning); }
+.davya-books-roll[data-kind="loan"]     { border-top-color: var(--stage-meeting); }
+.davya-books-roll[data-kind="salary"]   { border-top-color: var(--brand-500); }
+.davya-books-roll[data-kind="expense"]  { border-top-color: var(--text-sub); }
+
+.davya-books-roll__name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--fs-16);
+    letter-spacing: -0.01em;
+    color: var(--text);
+}
+.davya-books-roll__count {
+    font-size: var(--fs-10);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+.davya-books-roll__rows {
+    margin-top: var(--s-3);
+    display: grid;
+    gap: 2px;
+    font-size: var(--fs-12);
+}
+.davya-books-roll__row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text-sub);
+}
+.davya-books-roll__row strong { color: var(--text); font-weight: 600; }
+
+/* Hand-rolled data table — used for asset register, loans, section page,
+ * income page, and history page. Mirrors Filament's resource-table look so
+ * the Books surfaces don't feel foreign. */
+.davya-books-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--fs-13);
+}
+.davya-books-table thead th {
+    text-align: left;
+    font-size: var(--fs-10);
+    font-weight: 700;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px var(--s-3);
+    background: #FAFBFC;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+}
+.davya-books-table tbody td {
+    padding: 10px var(--s-3);
+    border-bottom: 1px solid var(--border-muted);
+    color: var(--text);
+    vertical-align: middle;
+}
+.davya-books-table tbody tr:last-child td { border-bottom: none; }
+.davya-books-table tbody tr:hover { background: #FAFBFC; }
+.davya-books-table .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.davya-books-table .title { font-weight: 600; color: var(--text); }
+.davya-books-table a { color: var(--brand-700); text-decoration: none; }
+.davya-books-table a:hover { text-decoration: underline; }
+.davya-books-table tfoot td {
+    padding: 10px var(--s-3);
+    border-top: 2px solid var(--border);
+    font-weight: 700;
+    background: #FAFBFC;
+}
+.davya-books-table .actions {
+    text-align: right;
+    white-space: nowrap;
+}
+.davya-books-table .actions button {
+    background: transparent;
+    border: 0;
+    padding: 2px 6px;
+    font-size: var(--fs-11);
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--r-sm);
+    color: var(--text-sub);
+}
+.davya-books-table .actions button:hover { background: var(--border-muted); color: var(--text); }
+.davya-books-table .actions button[data-variant="primary"] { color: var(--brand-700); }
+.davya-books-table .actions button[data-variant="primary"]:hover { background: var(--brand-50); }
+.davya-books-table .actions button[data-variant="warning"] { color: #B45309; }
+.davya-books-table .actions button[data-variant="warning"]:hover { background: #FEF3C7; }
+.davya-books-table .actions button[data-variant="danger"] { color: var(--danger); }
+.davya-books-table .actions button[data-variant="danger"]:hover { background: #FEE2E2; }
+
+/* Frequency / event / status badges used in Books tables. */
+.davya-books-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-10);
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    background: var(--border-muted);
+    color: var(--text-sub);
+}
+.davya-books-badge--brand    { background: var(--brand-50);  color: var(--brand-700); }
+.davya-books-badge--info     { background: #DBEAFE;          color: #1E40AF; }
+.davya-books-badge--success  { background: #D1FAE5;          color: #065F46; }
+.davya-books-badge--warning  { background: #FEF3C7;          color: #92400E; }
+.davya-books-badge--danger   { background: #FEE2E2;          color: #991B1B; }
+
+/* Books page header bar — breadcrumb + FY chip + meta actions. */
+.davya-books-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    margin-bottom: var(--s-4);
+    flex-wrap: wrap;
+}
+.davya-books-header__title {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 22px;
+    letter-spacing: -0.015em;
+    color: var(--text);
+    margin: 0;
+}
+.davya-books-header__crumb {
+    font-size: var(--fs-12);
+    color: var(--text-sub);
+    text-decoration: none;
+}
+.davya-books-header__crumb:hover { color: var(--brand-700); }
+.davya-books-header__crumb::after { content: " /"; color: var(--text-muted); margin-left: 4px; }
+
+@media (max-width: 768px) {
+    .davya-books-kpi__value { font-size: 20px; }
+    .davya-books-table thead th,
+    .davya-books-table tbody td { padding: 8px 10px; font-size: var(--fs-12); }
+}

@@ -5,158 +5,170 @@
         $assets = $this->getAssetRegister();
         $loans = $this->getLoansOutstanding();
         $visibleRegions = $this->getVisibleRegions();
-    @endphp
-
-    <div class="mb-4 flex items-center gap-3">
-        <div class="text-2xl font-semibold">{{ $company->name }}</div>
-        <div class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-sm font-medium">
-            FY {{ $fy->label }} {{ $fy->is_closed ? '(closed)' : '' }}
-        </div>
-    </div>
-
-    @php
-        $companySlug = $company->slug;
-        $fyLabel = $fy->label;
+        $priorFy = $this->priorFyLabel();
         $defaultGenericSlug = $this->defaultGenericSection()?->slug;
         $assetSlug = $this->assetSection()?->slug;
-        $priorFy = $this->priorFyLabel();
-
-        $tiles = [
-            ['key' => 'total_income',     'label' => 'Total Income',
-             'href' => url("/admin/books/{$companySlug}/{$fyLabel}/income"),
-             'tooltip' => null],
-            ['key' => 'cash_outflow',     'label' => 'Cash Outflow',
-             'href' => $defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null,
-             'tooltip' => null],
-            ['key' => 'non_cash_outflow', 'label' => 'Non-Cash (Dep)',
-             'href' => $assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null,
-             'tooltip' => null],
-            ['key' => 'total_outflow',    'label' => 'Total Outflow',
-             'href' => $defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null,
-             'tooltip' => null],
-            ['key' => 'net_pl',           'label' => 'Net P/L',
-             'href' => null, 'tooltip' => 'Total Income + Recoveries − Total Outflow'],
-            ['key' => 'cumulative_pl',    'label' => 'Cumulative P/L',
-             'href' => null, 'tooltip' => 'Net P/L + Carryover from prior FY'],
-        ];
+        $companySlug = $company->slug;
+        $fyLabel = $fy->label;
     @endphp
 
+    <div class="davya-books-header">
+        <a href="{{ url('/admin/books') }}" class="davya-books-header__crumb">Books</a>
+        <h1 class="davya-books-header__title">{{ $company->name }}</h1>
+        <span class="davya-owner-pill" style="background:var(--brand-50); border-color:var(--brand-100); color:var(--brand-700);">FY {{ $fyLabel }}{{ $fy->is_closed ? ' · closed' : '' }}</span>
+    </div>
+
+    {{-- KPI tiles --}}
     @if ($visibleRegions['kpis'])
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        @foreach ($tiles as $tile)
-            @if ($tile['href'])
-                <a href="{{ $tile['href'] }}" class="block">
-                    <div class="p-4 rounded-lg border bg-white hover:shadow-md hover:border-emerald-500 transition cursor-pointer">
-                        <div class="text-xs text-gray-500">{{ $tile['label'] }}</div>
-                        <div class="text-xl font-semibold">&#8377; {{ number_format($kpis[$tile['key']], 2) }}</div>
+        <div class="davya-section-card">
+            <div class="davya-section-card-title">Year at a glance</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
+                @php
+                    $tiles = [
+                        ['key'=>'total_income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
+                        ['key'=>'cash_outflow',     'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
+                        ['key'=>'non_cash_outflow', 'label'=>'Non-Cash (Dep)',   'href'=>$assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null, 'hint'=>$assetSlug ? 'View assets' : null],
+                        ['key'=>'total_outflow',    'label'=>'Total Outflow',    'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>null],
+                        ['key'=>'net_pl',           'label'=>'Net P/L',          'href'=>null, 'tooltip'=>'Total Income + Recoveries − Total Outflow'],
+                        ['key'=>'cumulative_pl',    'label'=>'Cumulative P/L',   'href'=>null, 'tooltip'=>'Net P/L + Carryover from prior FY'],
+                    ];
+                @endphp
+                @foreach ($tiles as $tile)
+                    @php
+                        $value = $kpis[$tile['key']];
+                        $valueClass = $value < 0 ? 'davya-books-kpi__value davya-books-kpi__value--danger' : 'davya-books-kpi__value';
+                    @endphp
+                    @if ($tile['href'])
+                        <a href="{{ $tile['href'] }}" class="davya-books-kpi">
+                            <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
+                            <div class="{{ $valueClass }}">&#8377; {{ number_format($value, 2) }}</div>
+                            @if (! empty($tile['hint']))
+                                <div class="davya-books-kpi__hint">{{ $tile['hint'] }}</div>
+                            @endif
+                        </a>
+                    @else
+                        <div class="davya-books-kpi" title="{{ $tile['tooltip'] ?? '' }}">
+                            <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
+                            <div class="{{ $valueClass }}">&#8377; {{ number_format($value, 2) }}</div>
+                        </div>
+                    @endif
+                @endforeach
+
+                {{-- Carryover tile --}}
+                @php
+                    $carryHref = $priorFy ? url("/admin/books/{$companySlug}/{$priorFy}") : null;
+                @endphp
+                @if ($carryHref)
+                    <a href="{{ $carryHref }}" class="davya-books-kpi">
+                        <div class="davya-books-kpi__label">
+                            Carryover
+                            @if ($kpis['carryover']['estimate'])
+                                <span class="davya-books-badge davya-books-badge--warning">estimate</span>
+                            @endif
+                        </div>
+                        <div class="davya-books-kpi__value">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
+                        <div class="davya-books-kpi__hint">View prior FY</div>
+                    </a>
+                @else
+                    <div class="davya-books-kpi">
+                        <div class="davya-books-kpi__label">
+                            Carryover
+                            @if ($kpis['carryover']['estimate'])
+                                <span class="davya-books-badge davya-books-badge--warning">estimate</span>
+                            @endif
+                        </div>
+                        <div class="davya-books-kpi__value davya-books-kpi__value--muted">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
                     </div>
-                </a>
-            @else
-                <div class="p-4 rounded-lg border bg-white" @if ($tile['tooltip']) title="{{ $tile['tooltip'] }}" @endif>
-                    <div class="text-xs text-gray-500">{{ $tile['label'] }}</div>
-                    <div class="text-xl font-semibold">&#8377; {{ number_format($kpis[$tile['key']], 2) }}</div>
-                </div>
-            @endif
-        @endforeach
-
-        {{-- Carryover tile (special: links to prior FY if exists) --}}
-        @php
-            $carryHref = $priorFy ? url("/admin/books/{$companySlug}/{$priorFy}") : null;
-        @endphp
-        @if ($carryHref)
-            <a href="{{ $carryHref }}" class="block">
-                <div class="p-4 rounded-lg border bg-white hover:shadow-md hover:border-emerald-500 transition cursor-pointer">
-                    <div class="text-xs text-gray-500">Carryover {{ $kpis['carryover']['estimate'] ? '(estimate)' : '' }}</div>
-                    <div class="text-xl font-semibold">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
-                </div>
-            </a>
-        @else
-            <div class="p-4 rounded-lg border bg-white">
-                <div class="text-xs text-gray-500">Carryover {{ $kpis['carryover']['estimate'] ? '(estimate)' : '' }}</div>
-                <div class="text-xl font-semibold">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
+                @endif
             </div>
-        @endif
-    </div>
-    @endif
-
-    @if ($visibleRegions['rollups'])
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
-        @foreach ($rollups as $r)
-            <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$r['section']->slug) }}"
-               class="block p-4 rounded-lg border bg-white hover:shadow-md">
-                <div class="font-semibold">{{ $r['section']->name }}</div>
-                <div class="text-xs text-gray-500">{{ $r['count'] }} entries</div>
-                <div class="mt-2 text-sm">Salary &#8377; {{ number_format($r['salary_total'], 2) }}</div>
-                <div class="text-sm">Loan &#8377; {{ number_format($r['loan_total'], 2) }}</div>
-                <div class="text-sm">Paid &#8377; {{ number_format($r['paid_total'], 2) }}</div>
-            </a>
-        @endforeach
-    </div>
-    @endif
-
-    @if (count($assets) && $visibleRegions['assets'])
-        <div class="mb-6">
-            <h3 class="font-semibold mb-2">Asset Register</h3>
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="text-left p-2">Asset</th>
-                        <th class="text-right p-2">Original</th>
-                        <th class="text-right p-2">Dep (This FY)</th>
-                        <th class="text-right p-2">Accumulated</th>
-                        <th class="text-right p-2">Book Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($assets as $a)
-                        <tr class="border-t hover:bg-gray-50">
-                            <td class="p-2">
-                                <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$a['section_slug']) }}"
-                                   class="text-emerald-700 hover:underline">{{ $a['name'] }}</a>
-                            </td>
-                            <td class="p-2 text-right">{{ number_format($a['original'], 2) }}</td>
-                            <td class="p-2 text-right">{{ number_format($a['this_year'], 2) }}</td>
-                            <td class="p-2 text-right">{{ number_format($a['accumulated'], 2) }}</td>
-                            <td class="p-2 text-right">{{ number_format($a['book_value'], 2) }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
         </div>
     @endif
 
+    {{-- Section roll-ups --}}
+    @if ($visibleRegions['rollups'])
+        <div class="davya-section-card">
+            <div class="davya-section-card-title">Sections</div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;">
+                @foreach ($rollups as $r)
+                    <a href="{{ url('/admin/books/'.$companySlug.'/'.$fyLabel.'/section/'.$r['section']->slug) }}"
+                       class="davya-books-roll"
+                       data-kind="{{ $r['section']->slug }}">
+                        <div class="davya-books-roll__name">{{ $r['section']->name }}</div>
+                        <div class="davya-books-roll__count">{{ $r['count'] }} {{ $r['count'] === 1 ? 'entry' : 'entries' }}</div>
+                        <div class="davya-books-roll__rows">
+                            @if ($r['salary_total'] > 0)
+                                <div class="davya-books-roll__row"><span>Salary (ann)</span><strong>&#8377; {{ number_format($r['salary_total'], 0) }}</strong></div>
+                            @endif
+                            @if ($r['loan_total'] > 0)
+                                <div class="davya-books-roll__row"><span>Loan</span><strong>&#8377; {{ number_format($r['loan_total'], 0) }}</strong></div>
+                            @endif
+                            @if ($r['paid_total'] > 0)
+                                <div class="davya-books-roll__row"><span>Paid</span><strong>&#8377; {{ number_format($r['paid_total'], 0) }}</strong></div>
+                            @endif
+                            @if ($r['balance_total'] != 0)
+                                <div class="davya-books-roll__row"><span>Balance</span><strong>&#8377; {{ number_format($r['balance_total'], 0) }}</strong></div>
+                            @endif
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- Asset register --}}
+    @if (count($assets) && $visibleRegions['assets'])
+        <div class="davya-section-card">
+            <div class="davya-section-card-title">Asset register</div>
+            <div class="davya-table-scroll">
+                <table class="davya-books-table">
+                    <thead><tr>
+                        <th>Asset</th><th class="num">Original</th><th class="num">Dep (This FY)</th>
+                        <th class="num">Accumulated</th><th class="num">Book value</th>
+                    </tr></thead>
+                    <tbody>
+                        @foreach ($assets as $a)
+                            <tr>
+                                <td class="title"><a href="{{ url('/admin/books/'.$companySlug.'/'.$fyLabel.'/section/'.$a['section_slug']) }}">{{ $a['name'] }}</a></td>
+                                <td class="num">{{ number_format($a['original'], 2) }}</td>
+                                <td class="num">{{ number_format($a['this_year'], 2) }}</td>
+                                <td class="num">{{ number_format($a['accumulated'], 2) }}</td>
+                                <td class="num">{{ number_format($a['book_value'], 2) }}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    @endif
+
+    {{-- Loans outstanding --}}
     @if (count($loans) && $visibleRegions['loans'])
-        <div class="mb-6">
-            <h3 class="font-semibold mb-2">Loans Outstanding</h3>
-            <table class="w-full text-sm">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="text-left p-2">Counterparty</th>
-                        <th class="text-right p-2">Loan</th>
-                        <th class="text-right p-2">Received Back</th>
-                        <th class="text-right p-2">Outstanding</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($loans as $l)
-                        <tr class="border-t hover:bg-gray-50">
-                            <td class="p-2">
-                                @if ($l['section_slug'])
-                                    <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$l['section_slug']) }}"
-                                       class="text-emerald-700 hover:underline">{{ $l['title'] }}</a>
-                                @else
-                                    {{ $l['title'] }}
-                                @endif
-                            </td>
-                            <td class="p-2 text-right">{{ number_format($l['loan'], 2) }}</td>
-                            <td class="p-2 text-right">{{ number_format($l['received_back'], 2) }}</td>
-                            <td class="p-2 text-right font-semibold">
-                                {{ number_format($l['outstanding'], 2) }}
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
+        <div class="davya-section-card">
+            <div class="davya-section-card-title">Loans outstanding</div>
+            <div class="davya-table-scroll">
+                <table class="davya-books-table">
+                    <thead><tr>
+                        <th>Counterparty</th><th class="num">Loan</th>
+                        <th class="num">Received back</th><th class="num">Outstanding</th>
+                    </tr></thead>
+                    <tbody>
+                        @foreach ($loans as $l)
+                            <tr>
+                                <td class="title">
+                                    @if ($l['section_slug'])
+                                        <a href="{{ url('/admin/books/'.$companySlug.'/'.$fyLabel.'/section/'.$l['section_slug']) }}">{{ $l['title'] }}</a>
+                                    @else
+                                        {{ $l['title'] }}
+                                    @endif
+                                </td>
+                                <td class="num">{{ number_format($l['loan'], 2) }}</td>
+                                <td class="num">{{ number_format($l['received_back'], 2) }}</td>
+                                <td class="num"><strong>{{ number_format($l['outstanding'], 2) }}</strong></td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     @endif
 </x-filament-panels::page>
