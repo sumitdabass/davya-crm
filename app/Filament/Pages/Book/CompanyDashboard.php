@@ -8,6 +8,7 @@ use App\Models\Book\Asset;
 use App\Models\Book\Company;
 use App\Models\Book\Entry;
 use App\Models\Book\FiscalYear;
+use App\Models\Book\Section;
 use Filament\Pages\Page;
 
 class CompanyDashboard extends Page
@@ -76,11 +77,13 @@ class CompanyDashboard extends Page
 
         return Asset::whereHas('entry',
                 fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
-            ->with('entry')->get()
+            ->with('entry.section')->get()
             ->map(fn ($a) => [
-                'name'        => $a->entry->title,
-                'original'    => (float) $a->original_value,
-                'this_year'   => $calc->yearlyDepFor($a, $this->fy),
+                'id'           => $a->entry->id,
+                'name'         => $a->entry->title,
+                'section_slug' => $a->entry->section?->slug ?? 'assets',
+                'original'     => (float) $a->original_value,
+                'this_year'    => $calc->yearlyDepFor($a, $this->fy),
                 'accumulated' => $calc->accumulatedDepThrough($a, $this->fy),
                 'book_value'  => $calc->bookValueAtEndOf($a, $this->fy),
             ])->all();
@@ -89,13 +92,42 @@ class CompanyDashboard extends Page
     public function getLoansOutstanding(): array
     {
         return Entry::where('fiscal_year_id', $this->fy->id)
-            ->where('loan_amount', '>', 0)->get()
+            ->where('loan_amount', '>', 0)->with('section')->get()
             ->filter(fn ($e) => (float) $e->loan_outstanding > 0)
             ->map(fn ($e) => [
+                'id'            => $e->id,
                 'title'         => $e->title,
                 'loan'          => (float) $e->loan_amount,
                 'received_back' => (float) $e->received_back,
                 'outstanding'   => (float) $e->loan_outstanding,
+                'section_slug'  => $e->section?->slug,
             ])->values()->all();
+    }
+
+    public function defaultGenericSection(): ?Section
+    {
+        return $this->company->sections()
+            ->where('kind', 'generic')->orderBy('sort_order')->first();
+    }
+
+    public function assetSection(): ?Section
+    {
+        return $this->company->sections()->where('kind', 'asset')->first();
+    }
+
+    public function priorFyLabel(): ?string
+    {
+        $prior = FiscalYear::where('company_id', $this->company->id)
+            ->where('end_date', '<', $this->fy->start_date)
+            ->orderByDesc('end_date')->first();
+
+        return $prior?->label;
+    }
+
+    public function entrySectionSlug(int $entryId): ?string
+    {
+        $entry = Entry::with('section')->find($entryId);
+
+        return $entry?->section?->slug;
     }
 }

@@ -13,19 +13,67 @@
         </div>
     </div>
 
+    @php
+        $companySlug = $company->slug;
+        $fyLabel = $fy->label;
+        $defaultGenericSlug = $this->defaultGenericSection()?->slug;
+        $assetSlug = $this->assetSection()?->slug;
+        $priorFy = $this->priorFyLabel();
+
+        $tiles = [
+            ['key' => 'total_income',     'label' => 'Total Income',
+             'href' => url("/admin/books/{$companySlug}/{$fyLabel}/income"),
+             'tooltip' => null],
+            ['key' => 'cash_outflow',     'label' => 'Cash Outflow',
+             'href' => $defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null,
+             'tooltip' => null],
+            ['key' => 'non_cash_outflow', 'label' => 'Non-Cash (Dep)',
+             'href' => $assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null,
+             'tooltip' => null],
+            ['key' => 'total_outflow',    'label' => 'Total Outflow',
+             'href' => $defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null,
+             'tooltip' => null],
+            ['key' => 'net_pl',           'label' => 'Net P/L',
+             'href' => null, 'tooltip' => 'Total Income + Recoveries − Total Outflow'],
+            ['key' => 'cumulative_pl',    'label' => 'Cumulative P/L',
+             'href' => null, 'tooltip' => 'Net P/L + Carryover from prior FY'],
+        ];
+    @endphp
+
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        @foreach (['total_income' => 'Total Income', 'cash_outflow' => 'Cash Outflow', 'non_cash_outflow' => 'Non-Cash (Dep)', 'total_outflow' => 'Total Outflow', 'net_pl' => 'Net P/L', 'cumulative_pl' => 'Cumulative P/L'] as $k => $lbl)
-            <div class="p-4 rounded-lg border bg-white">
-                <div class="text-xs text-gray-500">{{ $lbl }}</div>
-                <div class="text-xl font-semibold">&#8377; {{ number_format($kpis[$k], 2) }}</div>
-            </div>
+        @foreach ($tiles as $tile)
+            @if ($tile['href'])
+                <a href="{{ $tile['href'] }}" class="block">
+                    <div class="p-4 rounded-lg border bg-white hover:shadow-md hover:border-emerald-500 transition cursor-pointer">
+                        <div class="text-xs text-gray-500">{{ $tile['label'] }}</div>
+                        <div class="text-xl font-semibold">&#8377; {{ number_format($kpis[$tile['key']], 2) }}</div>
+                    </div>
+                </a>
+            @else
+                <div class="p-4 rounded-lg border bg-white" @if ($tile['tooltip']) title="{{ $tile['tooltip'] }}" @endif>
+                    <div class="text-xs text-gray-500">{{ $tile['label'] }}</div>
+                    <div class="text-xl font-semibold">&#8377; {{ number_format($kpis[$tile['key']], 2) }}</div>
+                </div>
+            @endif
         @endforeach
-        <div class="p-4 rounded-lg border bg-white">
-            <div class="text-xs text-gray-500">
-                Carryover {{ $kpis['carryover']['estimate'] ? '(estimate)' : '' }}
+
+        {{-- Carryover tile (special: links to prior FY if exists) --}}
+        @php
+            $carryHref = $priorFy ? url("/admin/books/{$companySlug}/{$priorFy}") : null;
+        @endphp
+        @if ($carryHref)
+            <a href="{{ $carryHref }}" class="block">
+                <div class="p-4 rounded-lg border bg-white hover:shadow-md hover:border-emerald-500 transition cursor-pointer">
+                    <div class="text-xs text-gray-500">Carryover {{ $kpis['carryover']['estimate'] ? '(estimate)' : '' }}</div>
+                    <div class="text-xl font-semibold">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
+                </div>
+            </a>
+        @else
+            <div class="p-4 rounded-lg border bg-white">
+                <div class="text-xs text-gray-500">Carryover {{ $kpis['carryover']['estimate'] ? '(estimate)' : '' }}</div>
+                <div class="text-xl font-semibold">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
             </div>
-            <div class="text-xl font-semibold">&#8377; {{ number_format($kpis['carryover']['value'], 2) }}</div>
-        </div>
+        @endif
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
@@ -56,8 +104,11 @@
                 </thead>
                 <tbody>
                     @foreach ($assets as $a)
-                        <tr class="border-t">
-                            <td class="p-2">{{ $a['name'] }}</td>
+                        <tr class="border-t hover:bg-gray-50">
+                            <td class="p-2">
+                                <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$a['section_slug']) }}"
+                                   class="text-emerald-700 hover:underline">{{ $a['name'] }}</a>
+                            </td>
                             <td class="p-2 text-right">{{ number_format($a['original'], 2) }}</td>
                             <td class="p-2 text-right">{{ number_format($a['this_year'], 2) }}</td>
                             <td class="p-2 text-right">{{ number_format($a['accumulated'], 2) }}</td>
@@ -83,8 +134,15 @@
                 </thead>
                 <tbody>
                     @foreach ($loans as $l)
-                        <tr class="border-t">
-                            <td class="p-2">{{ $l['title'] }}</td>
+                        <tr class="border-t hover:bg-gray-50">
+                            <td class="p-2">
+                                @if ($l['section_slug'])
+                                    <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$l['section_slug']) }}"
+                                       class="text-emerald-700 hover:underline">{{ $l['title'] }}</a>
+                                @else
+                                    {{ $l['title'] }}
+                                @endif
+                            </td>
                             <td class="p-2 text-right">{{ number_format($l['loan'], 2) }}</td>
                             <td class="p-2 text-right">{{ number_format($l['received_back'], 2) }}</td>
                             <td class="p-2 text-right font-semibold">
