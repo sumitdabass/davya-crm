@@ -31,6 +31,26 @@ class Entry extends Model
         'loan_amount' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (Entry $e) {
+            $fy = $e->fiscalYear()->first()
+                ?? FiscalYear::find($e->fiscal_year_id);
+            if ($fy && $fy->is_closed && $e->isDirty(['salary_amount', 'loan_amount', 'title', 'notes', 'section_id'])) {
+                throw new \DomainException("Cannot edit entry — FY {$fy->label} is closed");
+            }
+            if ($fy && $fy->is_closed && ! $e->exists) {
+                throw new \DomainException("Cannot create entry — FY {$fy->label} is closed");
+            }
+        });
+        static::deleting(function (Entry $e) {
+            $fy = FiscalYear::find($e->fiscal_year_id);
+            if ($fy && $fy->is_closed) {
+                throw new \DomainException("Cannot delete entry — FY {$fy->label} is closed");
+            }
+        });
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

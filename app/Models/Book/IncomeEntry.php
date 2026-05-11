@@ -27,6 +27,16 @@ class IncomeEntry extends Model
         'amount' => 'decimal:2',
     ];
 
+    protected static function booted(): void
+    {
+        static::saving(function (IncomeEntry $i) {
+            $fy = FiscalYear::find($i->fiscal_year_id);
+            if ($fy && $fy->is_closed) {
+                throw new \DomainException("Cannot edit income — FY {$fy->label} is closed");
+            }
+        });
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

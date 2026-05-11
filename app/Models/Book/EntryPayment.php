@@ -42,6 +42,13 @@ class EntryPayment extends Model
             if (! in_array($p->mode, self::MODES, true)) {
                 throw new \InvalidArgumentException("Invalid mode: {$p->mode}");
             }
+            $entry = Entry::find($p->entry_id);
+            if ($entry) {
+                $fy = FiscalYear::find($entry->fiscal_year_id);
+                if ($fy && $fy->is_closed) {
+                    throw new \DomainException("Cannot record payment — FY {$fy->label} is closed");
+                }
+            }
         });
     }
 
