@@ -40,6 +40,8 @@
                     <td class="p-2 text-right whitespace-nowrap">
                         <button type="button" wire:click="mountAction('editEntry', { id: {{ $e->id }} })"
                                 class="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
+                        <button type="button" wire:click="mountAction('reclassifyAsLoan', { id: {{ $e->id }} })"
+                                class="text-amber-600 hover:text-amber-800 text-xs ml-2">Convert to Loan</button>
                         <button type="button" wire:click="mountAction('deleteEntry', { id: {{ $e->id }} })"
                                 class="text-red-600 hover:text-red-800 text-xs ml-2">Delete</button>
                     </td>

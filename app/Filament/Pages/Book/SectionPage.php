@@ -132,6 +132,48 @@ class SectionPage extends Page
             });
     }
 
+    public function reclassifyAsLoanAction(): Action
+    {
+        return Action::make('reclassifyAsLoan')
+            ->label('Convert to Loan')
+            ->icon('heroicon-o-arrow-path')
+            ->color('warning')
+            ->fillForm(function (array $arguments): array {
+                $entry = Entry::findOrFail($arguments['id']);
+
+                return [
+                    'loan_amount' => (float) $entry->salary_amount + (float) $entry->loan_amount,
+                    'zero_salary' => true,
+                ];
+            })
+            ->modalHeading(function (array $arguments): string {
+                $entry = Entry::find($arguments['id']);
+
+                return 'Convert "'.($entry?->title ?? 'entry').'" to Loan';
+            })
+            ->modalDescription('Moves this entry into the loan book. Useful when a salary advance should be treated as a recoverable loan instead.')
+            ->form([
+                TextInput::make('loan_amount')
+                    ->label('Loan amount')
+                    ->numeric()
+                    ->required()
+                    ->minValue(0),
+                \Filament\Forms\Components\Checkbox::make('zero_salary')
+                    ->label('Zero out the salary column (recommended)')
+                    ->default(true),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $entry = Entry::findOrFail($arguments['id']);
+                $entry->update([
+                    'loan_amount' => $data['loan_amount'],
+                    'salary_amount' => ($data['zero_salary'] ?? true) ? 0 : $entry->salary_amount,
+                ]);
+            });
+    }
+
     public function deleteEntryAction(): Action
     {
         return Action::make('deleteEntry')
