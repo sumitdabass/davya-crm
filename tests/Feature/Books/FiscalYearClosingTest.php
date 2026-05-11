@@ -152,4 +152,73 @@ class FiscalYearClosingTest extends TestCase
             'amount' => 1,
         ]);
     }
+
+    public function test_close_fy_action_freezes_the_year(): void
+    {
+        config()->set('books.enabled', true);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin']);
+        $u = \App\Models\User::factory()->create(['is_active' => true, 'must_change_password' => false]);
+        $u->assignRole('super_admin');
+        $this->actingAs($u);
+
+        $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = \App\Models\Book\FiscalYear::create(['company_id' => $c->id,
+            'start_date' => '2025-04-01', 'end_date' => '2026-03-31', 'label' => '2025-26']);
+
+        \Livewire\Livewire::test(\App\Filament\Pages\Book\CompanyDashboard::class,
+            ['company' => 'a', 'fy' => '2025-26'])
+            ->callAction('closeFy')
+            ->assertHasNoActionErrors();
+
+        $this->assertTrue($fy->fresh()->is_closed);
+        $this->assertNotNull($fy->fresh()->closing_summary);
+    }
+
+    public function test_reopen_fy_action_clears_snapshot(): void
+    {
+        config()->set('books.enabled', true);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin']);
+        $u = \App\Models\User::factory()->create(['is_active' => true, 'must_change_password' => false]);
+        $u->assignRole('super_admin');
+        $this->actingAs($u);
+
+        $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = \App\Models\Book\FiscalYear::create(['company_id' => $c->id,
+            'start_date' => '2025-04-01', 'end_date' => '2026-03-31', 'label' => '2025-26',
+            'is_closed' => true, 'closing_summary_json' => ['net_pl' => 1234]]);
+
+        \Livewire\Livewire::test(\App\Filament\Pages\Book\CompanyDashboard::class,
+            ['company' => 'a', 'fy' => '2025-26'])
+            ->callAction('reopenFy')
+            ->assertHasNoActionErrors();
+
+        $this->assertFalse($fy->fresh()->is_closed);
+        $this->assertNull($fy->fresh()->closing_summary_json);
+    }
+
+    public function test_new_fy_action_creates_the_year(): void
+    {
+        config()->set('books.enabled', true);
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin']);
+        $u = \App\Models\User::factory()->create(['is_active' => true, 'must_change_password' => false]);
+        $u->assignRole('super_admin');
+        $this->actingAs($u);
+
+        $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = \App\Models\Book\FiscalYear::create(['company_id' => $c->id,
+            'start_date' => '2025-04-01', 'end_date' => '2026-03-31', 'label' => '2025-26']);
+
+        \Livewire\Livewire::test(\App\Filament\Pages\Book\CompanyDashboard::class,
+            ['company' => 'a', 'fy' => '2025-26'])
+            ->callAction('newFy', [
+                'label' => '2026-27',
+                'start_date' => '2026-04-01',
+                'end_date' => '2027-03-31',
+            ])
+            ->assertHasNoActionErrors();
+
+        $this->assertDatabaseHas('book_fiscal_years', [
+            'company_id' => $c->id, 'label' => '2026-27',
+        ]);
+    }
 }

@@ -66,6 +66,12 @@ class CompaniesLanding extends Page
                         ->required(),
                 ])
                 ->action(fn (array $data) => Company::create($data)),
+
+            Action::make('viewHistory')
+                ->label('History')
+                ->icon('heroicon-o-clock')
+                ->color('gray')
+                ->url(fn () => url('/admin/books/history')),
         ];
     }
 }

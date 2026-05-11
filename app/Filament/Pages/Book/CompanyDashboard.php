@@ -83,6 +83,70 @@ class CompanyDashboard extends Page
                     }
                     $user->forceFill(['books_dashboard_prefs' => $prefs])->save();
                 }),
+
+            \Filament\Actions\Action::make('newFy')
+                ->label('+ New FY')
+                ->icon('heroicon-o-plus')
+                ->color('gray')
+                ->form([
+                    \Filament\Forms\Components\TextInput::make('label')
+                        ->required()
+                        ->placeholder('e.g. 2026-27')
+                        ->helperText('Indian financial year label (Apr–Mar).'),
+                    \Filament\Forms\Components\DatePicker::make('start_date')
+                        ->label('Start (Apr 1)')
+                        ->required()
+                        ->default(function () {
+                            $year = (int) \Carbon\Carbon::parse($this->fy->end_date)->format('Y');
+                            return $year . '-04-01';
+                        }),
+                    \Filament\Forms\Components\DatePicker::make('end_date')
+                        ->label('End (Mar 31)')
+                        ->required()
+                        ->default(function () {
+                            $year = (int) \Carbon\Carbon::parse($this->fy->end_date)->format('Y');
+                            return ($year + 1) . '-03-31';
+                        }),
+                ])
+                ->action(function (array $data): void {
+                    $fy = \App\Models\Book\FiscalYear::create([
+                        'company_id' => $this->company->id,
+                        'label' => $data['label'],
+                        'start_date' => $data['start_date'],
+                        'end_date' => $data['end_date'],
+                    ]);
+                    $this->redirect(url('/admin/books/'.$this->company->slug.'/'.$fy->label));
+                }),
+
+            \Filament\Actions\Action::make('closeFy')
+                ->label('Close FY')
+                ->icon('heroicon-o-lock-closed')
+                ->color('warning')
+                ->visible(fn () => ! $this->fy->is_closed)
+                ->requiresConfirmation()
+                ->modalDescription('Closing freezes every entry, payment, and income line in FY '.$this->fy->label.'. You can reopen it any time — the snapshot will refresh.')
+                ->action(function (): void {
+                    (new \App\Books\Services\ClosingSnapshotWriter())->close($this->fy);
+                    $this->redirect(request()->url());
+                }),
+
+            \Filament\Actions\Action::make('reopenFy')
+                ->label('Reopen FY')
+                ->icon('heroicon-o-lock-open')
+                ->color('warning')
+                ->visible(fn () => $this->fy->is_closed)
+                ->requiresConfirmation()
+                ->modalDescription('Reopening clears the closing snapshot so prior-year carryover will recompute live until the next close.')
+                ->action(function (): void {
+                    (new \App\Books\Services\ClosingSnapshotWriter())->reopen($this->fy);
+                    $this->redirect(request()->url());
+                }),
+
+            \Filament\Actions\Action::make('viewHistory')
+                ->label('History')
+                ->icon('heroicon-o-clock')
+                ->color('gray')
+                ->url(fn () => url('/admin/books/history')),
         ];
     }
 
