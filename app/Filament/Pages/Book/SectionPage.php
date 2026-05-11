@@ -89,4 +89,66 @@ class SectionPage extends Page
                 }),
         ];
     }
+
+    public function editEntryAction(): Action
+    {
+        return Action::make('editEntry')
+            ->label('Edit Entry')
+            ->fillForm(function (array $arguments): array {
+                $entry = Entry::findOrFail($arguments['id']);
+
+                return [
+                    'title' => $entry->title,
+                    'salary_amount' => (float) $entry->salary_amount,
+                    'loan_amount' => (float) $entry->loan_amount,
+                    'notes' => $entry->notes,
+                ];
+            })
+            ->form(function (): array {
+                $cols = $this->getVisibleMoneyColumns();
+                $form = [TextInput::make('title')->required()];
+
+                if (in_array('salary', $cols, true)) {
+                    $form[] = TextInput::make('salary_amount')->numeric()->default(0);
+                }
+                if (in_array('loan', $cols, true)) {
+                    $form[] = TextInput::make('loan_amount')->numeric()->default(0);
+                }
+                $form[] = Textarea::make('notes')->rows(2);
+
+                return $form;
+            })
+            ->action(function (array $data, array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                $entry = Entry::findOrFail($arguments['id']);
+                $entry->update([
+                    'title' => $data['title'],
+                    'salary_amount' => $data['salary_amount'] ?? 0,
+                    'loan_amount' => $data['loan_amount'] ?? 0,
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            });
+    }
+
+    public function deleteEntryAction(): Action
+    {
+        return Action::make('deleteEntry')
+            ->label('Delete Entry')
+            ->requiresConfirmation()
+            ->modalHeading('Delete entry')
+            ->modalDescription(function (array $arguments): string {
+                $entry = Entry::find($arguments['id']);
+
+                return 'Delete "'.($entry?->title ?? 'entry').'"? This cannot be undone.';
+            })
+            ->color('danger')
+            ->action(function (array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                Entry::findOrFail($arguments['id'])->delete();
+            });
+    }
 }

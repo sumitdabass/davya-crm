@@ -22,6 +22,7 @@
                 @if (in_array('balance', $cols)) <th class="text-right p-2">Balance</th>@endif
                 @if (in_array('loan_outstanding', $cols)) <th class="text-right p-2">Loan Outstanding</th>@endif
                 <th class="text-left p-2">Notes</th>
+                <th class="text-right p-2">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -36,9 +37,15 @@
                     @if (in_array('balance', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->balance, 2) }}</td>@endif
                     @if (in_array('loan_outstanding', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->loan_outstanding, 2) }}</td>@endif
                     <td class="p-2 text-gray-500">{{ $e->notes }}</td>
+                    <td class="p-2 text-right whitespace-nowrap">
+                        <button type="button" wire:click="mountAction('editEntry', { id: {{ $e->id }} })"
+                                class="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
+                        <button type="button" wire:click="mountAction('deleteEntry', { id: {{ $e->id }} })"
+                                class="text-red-600 hover:text-red-800 text-xs ml-2">Delete</button>
+                    </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
+                <tr><td colspan="10" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
             @endforelse
         </tbody>
     </table>

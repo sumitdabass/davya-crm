@@ -60,4 +60,57 @@ class IncomePage extends Page
                 ]))),
         ];
     }
+
+    public function editIncomeAction(): Action
+    {
+        return Action::make('editIncome')
+            ->label('Edit Income')
+            ->fillForm(function (array $arguments): array {
+                $entry = IncomeEntry::findOrFail($arguments['id']);
+
+                return [
+                    'occurred_on' => $entry->occurred_on?->toDateString(),
+                    'source' => $entry->source,
+                    'amount' => (float) $entry->amount,
+                    'notes' => $entry->notes,
+                ];
+            })
+            ->form([
+                DatePicker::make('occurred_on')->required(),
+                TextInput::make('source')->required(),
+                TextInput::make('amount')->numeric()->required(),
+                Textarea::make('notes')->rows(2),
+            ])
+            ->action(function (array $data, array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                IncomeEntry::findOrFail($arguments['id'])->update([
+                    'occurred_on' => $data['occurred_on'],
+                    'source' => $data['source'],
+                    'amount' => $data['amount'],
+                    'notes' => $data['notes'] ?? null,
+                ]);
+            });
+    }
+
+    public function deleteIncomeAction(): Action
+    {
+        return Action::make('deleteIncome')
+            ->label('Delete Income')
+            ->requiresConfirmation()
+            ->modalHeading('Delete income entry')
+            ->modalDescription(function (array $arguments): string {
+                $entry = IncomeEntry::find($arguments['id']);
+
+                return 'Delete income from "'.($entry?->source ?? 'this source').'"? This cannot be undone.';
+            })
+            ->color('danger')
+            ->action(function (array $arguments): void {
+                if ($this->fyModel->is_closed) {
+                    throw new \DomainException('FY is closed');
+                }
+                IncomeEntry::findOrFail($arguments['id'])->delete();
+            });
+    }
 }
