@@ -7,7 +7,6 @@ use App\Models\Book\Asset;
 use App\Models\Book\Company;
 use App\Models\Book\Entry;
 use App\Models\Book\FiscalYear;
-use App\Models\Book\Section;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -30,11 +29,9 @@ class DepreciationCalculatorTest extends TestCase
             'end_date' => '2027-03-31',
             'label' => '2026-27',
         ]);
-        $s = Section::factory()->create([
-            'company_id' => $c->id,
-            'kind' => 'asset',
-            'slug' => 'assets',
-        ]);
+        // 'assets' (kind=asset) is auto-seeded on every Company by the
+        // CompanyObserver — reuse it instead of trying to create a duplicate.
+        $s = $c->sections()->where('slug', 'assets')->firstOrFail();
         $e = Entry::factory()->create([
             'company_id' => $c->id,
             'section_id' => $s->id,

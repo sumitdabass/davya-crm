@@ -8,7 +8,6 @@ use App\Models\Book\Entry;
 use App\Models\Book\EntryPayment;
 use App\Models\Book\FiscalYear;
 use App\Models\Book\IncomeEntry;
-use App\Models\Book\Section;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -25,10 +24,9 @@ class FiscalYearAggregatorTest extends TestCase
             'end_date' => '2026-03-31',
             'label' => '2025-26',
         ]);
-        $s = Section::factory()->create([
-            'company_id' => $c->id,
-            'slug' => 'salary',
-        ]);
+        // The salary section is auto-seeded on every Company by the
+        // CompanyObserver — reuse it instead of creating a duplicate.
+        $s = $c->sections()->where('slug', 'salary')->firstOrFail();
         IncomeEntry::create([
             'company_id' => $c->id,
             'fiscal_year_id' => $fy->id,

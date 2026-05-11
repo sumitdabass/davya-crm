@@ -6,7 +6,6 @@ use App\Models\Book\Company;
 use App\Models\Book\Entry;
 use App\Models\Book\Field;
 use App\Models\Book\FieldValue;
-use App\Models\Book\Section;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,15 +17,16 @@ class FieldTest extends TestCase
     public function test_creates_a_custom_field_scoped_to_a_section(): void
     {
         $c = Company::factory()->create();
-        $s = Section::factory()->create(['company_id' => $c->id, 'slug' => 'salary']);
+        // Use the salary section auto-seeded by CompanyObserver.
+        $s = $c->sections()->where('slug', 'salary')->firstOrFail();
 
         $f = Field::create([
             'company_id' => $c->id,
             'section_id' => $s->id,
-            'key' => 'pan',
-            'label' => 'PAN',
+            'key' => 'custom_pan',
+            'label' => 'Custom PAN',
             'type' => 'text',
-            'sort_order' => 1,
+            'sort_order' => 99,
             'show_in_table' => true,
         ]);
 
@@ -36,7 +36,7 @@ class FieldTest extends TestCase
     public function test_stores_a_text_value_for_an_entry_field_pair(): void
     {
         $c = Company::factory()->create();
-        $s = Section::factory()->create(['company_id' => $c->id, 'slug' => 'salary']);
+        $s = $c->sections()->where('slug', 'salary')->firstOrFail();
         $e = Entry::factory()->create([
             'company_id' => $c->id,
             'section_id' => $s->id,
@@ -44,10 +44,10 @@ class FieldTest extends TestCase
         $f = Field::create([
             'company_id' => $c->id,
             'section_id' => $s->id,
-            'key' => 'pan',
-            'label' => 'PAN',
+            'key' => 'custom_pan',
+            'label' => 'Custom PAN',
             'type' => 'text',
-            'sort_order' => 1,
+            'sort_order' => 99,
         ]);
 
         $v = FieldValue::create([
@@ -62,7 +62,7 @@ class FieldTest extends TestCase
     public function test_enforces_unique_entry_field_pair(): void
     {
         $c = Company::factory()->create();
-        $s = Section::factory()->create(['company_id' => $c->id, 'slug' => 'salary']);
+        $s = $c->sections()->where('slug', 'salary')->firstOrFail();
         $e = Entry::factory()->create([
             'company_id' => $c->id,
             'section_id' => $s->id,
@@ -70,10 +70,10 @@ class FieldTest extends TestCase
         $f = Field::create([
             'company_id' => $c->id,
             'section_id' => $s->id,
-            'key' => 'pan',
-            'label' => 'PAN',
+            'key' => 'custom_pan',
+            'label' => 'Custom PAN',
             'type' => 'text',
-            'sort_order' => 1,
+            'sort_order' => 99,
         ]);
 
         FieldValue::create([
