@@ -101,6 +101,7 @@ class AdminPanelProvider extends PanelProvider
             ->pages([
                 \App\Filament\Pages\Book\CompaniesLanding::class,
                 \App\Filament\Pages\Book\CompanyDashboard::class,
+                \App\Filament\Pages\Book\SectionPage::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
