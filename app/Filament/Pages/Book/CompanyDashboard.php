@@ -63,7 +63,7 @@ class CompanyDashboard extends Page
                 return [
                     'section' => $s,
                     'count' => $entries->count(),
-                    'salary_total'  => $entries->sum(fn ($e) => (float) $e->salary_amount),
+                    'salary_total'  => $entries->sum(fn ($e) => (float) $e->annualized_salary_amount),
                     'loan_total'    => $entries->sum(fn ($e) => (float) $e->loan_amount),
                     'paid_total'    => $entries->sum(fn ($e) => (float) $e->paid),
                     'balance_total' => $entries->sum(fn ($e) => (float) $e->balance),

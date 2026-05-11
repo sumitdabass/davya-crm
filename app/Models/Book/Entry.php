@@ -17,6 +17,20 @@ class Entry extends Model
 
     protected $table = 'book_entries';
 
+    public const FREQUENCIES = [
+        'one_time' => 'One-time',
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'monthly' => 'Monthly',
+        'quarterly' => 'Quarterly',
+        'yearly' => 'Yearly',
+    ];
+
+    public const PERIODS_PER_YEAR = [
+        'one_time' => 1, 'daily' => 365, 'weekly' => 52,
+        'monthly' => 12, 'quarterly' => 4, 'yearly' => 1,
+    ];
+
     protected $fillable = [
         'company_id',
         'fiscal_year_id',
@@ -24,6 +38,7 @@ class Entry extends Model
         'title',
         'salary_amount',
         'loan_amount',
+        'frequency',
         'notes',
         'sort_order',
     ];
@@ -31,6 +46,10 @@ class Entry extends Model
     protected $casts = [
         'salary_amount' => 'decimal:2',
         'loan_amount' => 'decimal:2',
+    ];
+
+    protected $attributes = [
+        'frequency' => 'one_time',
     ];
 
     protected static function booted(): void
@@ -42,6 +61,11 @@ class Entry extends Model
             }
             if ($fy && $fy->is_closed && ! $e->exists) {
                 throw new \DomainException("Cannot create entry — FY {$fy->label} is closed");
+            }
+        });
+        static::saving(function (Entry $e) {
+            if ($e->frequency && ! array_key_exists($e->frequency, self::FREQUENCIES)) {
+                throw new \InvalidArgumentException("Invalid frequency: {$e->frequency}");
             }
         });
         static::deleting(function (Entry $e) {
@@ -70,6 +94,16 @@ class Entry extends Model
     public function getIsLoanAttribute(): bool
     {
         return (float) $this->loan_amount > 0;
+    }
+
+    public function getPeriodsPerYearAttribute(): int
+    {
+        return self::PERIODS_PER_YEAR[$this->frequency ?? 'one_time'] ?? 1;
+    }
+
+    public function getAnnualizedSalaryAmountAttribute(): float
+    {
+        return (float) $this->salary_amount * $this->periods_per_year;
     }
 
     public function payments(): HasMany

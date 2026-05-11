@@ -22,6 +22,7 @@
                 @if (in_array('balance', $cols)) <th class="text-right p-2">Balance</th>@endif
                 @if (in_array('loan_outstanding', $cols)) <th class="text-right p-2">Loan Outstanding</th>@endif
                 <th class="text-left p-2">Notes</th>
+                <th class="text-left p-2">Frequency</th>
                 <th class="text-right p-2">Actions</th>
             </tr>
         </thead>
@@ -30,13 +31,29 @@
                 <tr class="border-t">
                     <td class="p-2">{{ $i + 1 }}</td>
                     <td class="p-2 font-medium">{{ $e->title }}</td>
-                    @if (in_array('salary', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->salary_amount, 2) }}</td>@endif
+                    @if (in_array('salary', $cols))
+                        <td class="p-2 text-right">
+                            {{ number_format((float) $e->salary_amount, 2) }}
+                            @if ($e->frequency !== 'one_time')
+                                <div class="text-xs text-gray-500">
+                                    {{ \App\Models\Book\Entry::FREQUENCIES[$e->frequency] }} &middot; ann &#8377; {{ number_format($e->annualized_salary_amount, 0) }}
+                                </div>
+                            @endif
+                        </td>
+                    @endif
                     @if (in_array('loan', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->loan_amount, 2) }}</td>@endif
                     @if (in_array('paid', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->paid, 2) }}</td>@endif
                     @if (in_array('received_back', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->received_back, 2) }}</td>@endif
                     @if (in_array('balance', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->balance, 2) }}</td>@endif
                     @if (in_array('loan_outstanding', $cols)) <td class="p-2 text-right">{{ number_format((float) $e->loan_outstanding, 2) }}</td>@endif
                     <td class="p-2 text-gray-500">{{ $e->notes }}</td>
+                    <td class="p-2 text-xs">
+                        @php
+                            $fLabels = \App\Models\Book\Entry::FREQUENCIES;
+                            $bg = $e->frequency === 'one_time' ? 'bg-gray-100 text-gray-700' : 'bg-emerald-100 text-emerald-800';
+                        @endphp
+                        <span class="px-2 py-0.5 rounded {{ $bg }}">{{ $fLabels[$e->frequency] ?? $e->frequency }}</span>
+                    </td>
                     <td class="p-2 text-right whitespace-nowrap">
                         <button type="button" wire:click="mountAction('editEntry', { id: {{ $e->id }} })"
                                 class="text-blue-600 hover:text-blue-800 text-xs">Edit</button>
@@ -47,7 +64,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="10" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
+                <tr><td colspan="11" class="p-4 text-gray-500 text-center">No entries &mdash; click "+ Add Row".</td></tr>
             @endforelse
         </tbody>
     </table>

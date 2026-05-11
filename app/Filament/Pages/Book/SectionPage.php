@@ -7,6 +7,7 @@ use App\Models\Book\Entry;
 use App\Models\Book\FiscalYear;
 use App\Models\Book\Section;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Pages\Page;
@@ -67,6 +68,12 @@ class SectionPage extends Page
         if (in_array('loan', $cols, true)) {
             $form[] = TextInput::make('loan_amount')->numeric()->default(0);
         }
+        $form[] = Select::make('frequency')
+            ->label('Frequency')
+            ->options(Entry::FREQUENCIES)
+            ->default('one_time')
+            ->required()
+            ->helperText('How often does this amount apply? Daily/Monthly/etc. multiplies for the annual total.');
         $form[] = Textarea::make('notes')->rows(2);
 
         return [
@@ -84,6 +91,7 @@ class SectionPage extends Page
                         'title' => $data['title'],
                         'salary_amount' => $data['salary_amount'] ?? 0,
                         'loan_amount' => $data['loan_amount'] ?? 0,
+                        'frequency' => $data['frequency'] ?? 'one_time',
                         'notes' => $data['notes'] ?? null,
                     ]);
                 }),
@@ -101,6 +109,7 @@ class SectionPage extends Page
                     'title' => $entry->title,
                     'salary_amount' => (float) $entry->salary_amount,
                     'loan_amount' => (float) $entry->loan_amount,
+                    'frequency' => $entry->frequency ?? 'one_time',
                     'notes' => $entry->notes,
                 ];
             })
@@ -114,6 +123,12 @@ class SectionPage extends Page
                 if (in_array('loan', $cols, true)) {
                     $form[] = TextInput::make('loan_amount')->numeric()->default(0);
                 }
+                $form[] = Select::make('frequency')
+                    ->label('Frequency')
+                    ->options(Entry::FREQUENCIES)
+                    ->default('one_time')
+                    ->required()
+                    ->helperText('How often does this amount apply? Daily/Monthly/etc. multiplies for the annual total.');
                 $form[] = Textarea::make('notes')->rows(2);
 
                 return $form;
@@ -127,6 +142,7 @@ class SectionPage extends Page
                     'title' => $data['title'],
                     'salary_amount' => $data['salary_amount'] ?? 0,
                     'loan_amount' => $data['loan_amount'] ?? 0,
+                    'frequency' => $data['frequency'] ?? 'one_time',
                     'notes' => $data['notes'] ?? null,
                 ]);
             });
