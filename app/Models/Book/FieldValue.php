@@ -1,0 +1,37 @@
+<?php
+
+namespace App\Models\Book;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class FieldValue extends Model
+{
+    protected $table = 'book_field_values';
+
+    protected $fillable = [
+        'entry_id',
+        'field_id',
+        'value_text',
+        'value_number',
+        'value_date',
+        'value_json',
+        'value_attachment_id',
+    ];
+
+    protected $casts = [
+        'value_number' => 'decimal:4',
+        'value_date' => 'date',
+        'value_json' => 'array',
+    ];
+
+    public function entry(): BelongsTo
+    {
+        return $this->belongsTo(Entry::class);
+    }
+
+    public function field(): BelongsTo
+    {
+        return $this->belongsTo(Field::class);
+    }
+}
