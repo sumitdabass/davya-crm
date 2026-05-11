@@ -19,6 +19,13 @@ class CompanyDashboard extends Page
 
     protected static string $view = 'filament.pages.book.company-dashboard';
 
+    public const DASHBOARD_REGIONS = [
+        'kpis' => 'KPI Tiles',
+        'rollups' => 'Section Roll-ups',
+        'assets' => 'Asset Register',
+        'loans' => 'Loans Outstanding',
+    ];
+
     /** @var Company */
     public $company;
 
@@ -34,6 +41,49 @@ class CompanyDashboard extends Page
         $this->fy = FiscalYear::where('company_id', $this->company->id)
             ->where('label', $fy)
             ->firstOrFail();
+    }
+
+    public function getVisibleRegions(): array
+    {
+        $prefs = auth()->user()?->books_dashboard_prefs ?? null;
+        if (! is_array($prefs)) {
+            return array_fill_keys(array_keys(self::DASHBOARD_REGIONS), true);
+        }
+        // Default any missing key to true (so newly added regions are visible)
+        $resolved = [];
+        foreach (array_keys(self::DASHBOARD_REGIONS) as $key) {
+            $resolved[$key] = $prefs[$key] ?? true;
+        }
+
+        return $resolved;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            \Filament\Actions\Action::make('customize')
+                ->label('Customize')
+                ->icon('heroicon-o-adjustments-horizontal')
+                ->color('gray')
+                ->fillForm(fn () => $this->getVisibleRegions())
+                ->form([
+                    \Filament\Forms\Components\Section::make('Choose what to see')
+                        ->description('Toggle dashboard regions on or off. Saved per user.')
+                        ->schema(collect(self::DASHBOARD_REGIONS)
+                            ->map(fn ($label, $key) => \Filament\Forms\Components\Checkbox::make($key)
+                                ->label($label)
+                                ->default(true)
+                            )->values()->all()),
+                ])
+                ->action(function (array $data): void {
+                    $user = auth()->user();
+                    $prefs = [];
+                    foreach (array_keys(self::DASHBOARD_REGIONS) as $key) {
+                        $prefs[$key] = (bool) ($data[$key] ?? false);
+                    }
+                    $user->forceFill(['books_dashboard_prefs' => $prefs])->save();
+                }),
+        ];
     }
 
     public function getKpis(): array

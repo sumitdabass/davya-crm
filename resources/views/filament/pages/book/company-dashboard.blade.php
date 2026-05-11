@@ -4,6 +4,7 @@
         $rollups = $this->getSectionRollups();
         $assets = $this->getAssetRegister();
         $loans = $this->getLoansOutstanding();
+        $visibleRegions = $this->getVisibleRegions();
     @endphp
 
     <div class="mb-4 flex items-center gap-3">
@@ -40,6 +41,7 @@
         ];
     @endphp
 
+    @if ($visibleRegions['kpis'])
     <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
         @foreach ($tiles as $tile)
             @if ($tile['href'])
@@ -75,7 +77,9 @@
             </div>
         @endif
     </div>
+    @endif
 
+    @if ($visibleRegions['rollups'])
     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
         @foreach ($rollups as $r)
             <a href="{{ url('/admin/books/'.$company->slug.'/'.$fy->label.'/section/'.$r['section']->slug) }}"
@@ -88,8 +92,9 @@
             </a>
         @endforeach
     </div>
+    @endif
 
-    @if (count($assets))
+    @if (count($assets) && $visibleRegions['assets'])
         <div class="mb-6">
             <h3 class="font-semibold mb-2">Asset Register</h3>
             <table class="w-full text-sm">
@@ -120,7 +125,7 @@
         </div>
     @endif
 
-    @if (count($loans))
+    @if (count($loans) && $visibleRegions['loans'])
         <div class="mb-6">
             <h3 class="font-semibold mb-2">Loans Outstanding</h3>
             <table class="w-full text-sm">
