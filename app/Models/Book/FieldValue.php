@@ -4,6 +4,7 @@ namespace App\Models\Book;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class FieldValue extends Model
 {
@@ -33,5 +34,10 @@ class FieldValue extends Model
     public function field(): BelongsTo
     {
         return $this->belongsTo(Field::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 }
