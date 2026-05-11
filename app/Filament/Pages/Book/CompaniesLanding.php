@@ -2,6 +2,10 @@
 
 namespace App\Filament\Pages\Book;
 
+use App\Models\Book\Company;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
 
 class CompaniesLanding extends Page
@@ -38,5 +42,30 @@ class CompaniesLanding extends Page
     public static function shouldRegisterNavigation(): bool
     {
         return static::canAccess();
+    }
+
+    public function getCompanies()
+    {
+        return Company::orderBy('name')->get();
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('createCompany')
+                ->label('+ New Company')
+                ->form([
+                    TextInput::make('name')->required(),
+                    TextInput::make('slug')
+                        ->required()
+                        ->unique('book_companies', 'slug')
+                        ->alphaDash(),
+                    Select::make('currency')
+                        ->options(['INR' => 'INR'])
+                        ->default('INR')
+                        ->required(),
+                ])
+                ->action(fn (array $data) => Company::create($data)),
+        ];
     }
 }
