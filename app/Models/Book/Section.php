@@ -16,6 +16,7 @@ class Section extends Model
     public const DEFAULT_COLUMNS = [
         'salary' => ['salary', 'paid', 'balance'],
         'loan' => ['loan', 'received_back', 'loan_outstanding'],
+        'loans_taken' => ['loan', 'repaid', 'loan_outstanding_taken'],
         'rent' => ['paid'],
         'expense' => ['paid'],
         'asset' => ['original_value', 'this_year_dep', 'accumulated_dep', 'book_value'],

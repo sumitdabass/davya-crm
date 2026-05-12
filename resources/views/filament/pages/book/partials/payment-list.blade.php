@@ -9,6 +9,7 @@
                     <th>Direction</th>
                     <th>Mode</th>
                     <th class="num">Amount</th>
+                    <th>Source</th>
                     <th>Reference</th>
                     <th>By</th>
                     <th class="actions"></th>
@@ -26,6 +27,7 @@
                                 <span class="davya-books-badge">{{ ucfirst($p->mode) }}</span>
                             </td>
                             <td class="num"><strong>&#8377; {{ number_format((float) $p->amount, 2) }}</strong></td>
+                            <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->source ?? '—' }}</td>
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->reference ?? '—' }}</td>
                             <td style="font-size:var(--fs-11); color:var(--text-muted);">{{ $p->createdBy?->email ?? '—' }}</td>
                             <td class="actions">
@@ -48,7 +50,7 @@
                                 &#8377; {{ number_format($net, 2) }}
                             </strong>
                         </td>
-                        <td colspan="3"></td>
+                        <td colspan="4"></td>
                     </tr>
                 </tfoot>
             </table>

@@ -6,6 +6,7 @@
             <thead><tr>
                 <th>Date</th>
                 <th>Section / Entry</th>
+                <th>Source</th>
                 <th>Reference</th>
                 <th>Mode</th>
                 <th class="num">Amount</th>
@@ -23,6 +24,7 @@
                                 {{ $p->entry?->title ?? '—' }}
                             @endif
                         </td>
+                        <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->source ?? '—' }}</td>
                         <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->reference ?? '—' }}</td>
                         <td>
                             <span class="davya-books-badge">{{ ucfirst($p->mode) }}</span>
@@ -33,7 +35,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="4">Total &mdash; {{ $label }}</td>
+                    <td colspan="5">Total &mdash; {{ $label }}</td>
                     <td class="num"><strong>&#8377;{{ number_format($total, 2) }}</strong></td>
                 </tr>
             </tfoot>

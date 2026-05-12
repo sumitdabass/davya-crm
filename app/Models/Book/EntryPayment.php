@@ -25,6 +25,7 @@ class EntryPayment extends Model
         'amount',
         'direction',
         'mode',
+        'source',
         'reference',
         'notes',
         'created_by',

@@ -66,7 +66,25 @@ class SectionPage extends Page
             $form[] = TextInput::make('salary_amount')->numeric()->default(0);
         }
         if (in_array('loan', $cols, true)) {
-            $form[] = TextInput::make('loan_amount')->numeric()->default(0);
+            $isTaken = $this->sectionModel->slug === 'loans_taken';
+            $form[] = TextInput::make('loan_amount')
+                ->label($isTaken ? 'Principal taken' : 'Principal lent')
+                ->numeric()->default(0);
+            $form[] = TextInput::make('interest_rate')
+                ->label('Interest rate')
+                ->placeholder($isTaken ? 'e.g. "8.5% pa" — bank rate' : 'e.g. "0% — interest-free"');
+            $form[] = TextInput::make('emi_amount')
+                ->label('Monthly EMI')
+                ->numeric()
+                ->minValue(0)
+                ->prefix('₹')
+                ->helperText('Equated monthly instalment. Leave blank if no fixed EMI.');
+            $form[] = TextInput::make('tenure_months')
+                ->label('Tenure (months)')
+                ->numeric()
+                ->minValue(1)
+                ->maxValue(600)
+                ->helperText('Total number of monthly EMIs. e.g. 60 for a 5-year loan.');
         }
         $form[] = Select::make('frequency')
             ->label('Frequency')
@@ -91,6 +109,9 @@ class SectionPage extends Page
                         'title' => $data['title'],
                         'salary_amount' => $data['salary_amount'] ?? 0,
                         'loan_amount' => $data['loan_amount'] ?? 0,
+                        'interest_rate' => $data['interest_rate'] ?? null,
+                        'emi_amount' => $data['emi_amount'] ?? null,
+                        'tenure_months' => $data['tenure_months'] ?? null,
                         'frequency' => $data['frequency'] ?? 'one_time',
                         'notes' => $data['notes'] ?? null,
                     ]);
@@ -109,6 +130,9 @@ class SectionPage extends Page
                     'title' => $entry->title,
                     'salary_amount' => (float) $entry->salary_amount,
                     'loan_amount' => (float) $entry->loan_amount,
+                    'interest_rate' => $entry->interest_rate,
+                    'emi_amount' => $entry->emi_amount ? (float) $entry->emi_amount : null,
+                    'tenure_months' => $entry->tenure_months,
                     'frequency' => $entry->frequency ?? 'one_time',
                     'notes' => $entry->notes,
                 ];
@@ -142,6 +166,9 @@ class SectionPage extends Page
                     'title' => $data['title'],
                     'salary_amount' => $data['salary_amount'] ?? 0,
                     'loan_amount' => $data['loan_amount'] ?? 0,
+                    'interest_rate' => $data['interest_rate'] ?? null,
+                    'emi_amount' => $data['emi_amount'] ?? null,
+                    'tenure_months' => $data['tenure_months'] ?? null,
                     'frequency' => $data['frequency'] ?? 'one_time',
                     'notes' => $data['notes'] ?? null,
                 ]);
@@ -324,6 +351,9 @@ class SectionPage extends Page
                 \Filament\Forms\Components\DatePicker::make('occurred_on')
                     ->label('Date')
                     ->required(),
+                TextInput::make('source')
+                    ->label('Source')
+                    ->placeholder('Who/what — free text, e.g. "Vendor X", "Client Y"'),
                 TextInput::make('reference')
                     ->label('Reference')
                     ->placeholder('e.g. cheque no., UTR, txn id'),
@@ -340,6 +370,7 @@ class SectionPage extends Page
                     'amount' => $data['amount'],
                     'direction' => $data['direction'],
                     'mode' => $data['mode'],
+                    'source' => $data['source'] ?? null,
                     'reference' => $data['reference'] ?? null,
                     'notes' => $data['notes'] ?? null,
                     'created_by' => auth()->id(),
@@ -391,6 +422,7 @@ class SectionPage extends Page
                     'amount' => (float) $p->amount,
                     'mode' => $p->mode,
                     'occurred_on' => $p->occurred_on?->toDateString(),
+                    'source' => $p->source,
                     'reference' => $p->reference,
                     'notes' => $p->notes,
                 ];
@@ -420,6 +452,9 @@ class SectionPage extends Page
                 \Filament\Forms\Components\DatePicker::make('occurred_on')
                     ->label('Date')
                     ->required(),
+                \Filament\Forms\Components\TextInput::make('source')
+                    ->label('Source')
+                    ->placeholder('Who/what — free text'),
                 \Filament\Forms\Components\TextInput::make('reference')
                     ->label('Reference')
                     ->placeholder('e.g. cheque no., UTR, txn id'),
@@ -436,6 +471,7 @@ class SectionPage extends Page
                     'amount' => $data['amount'],
                     'mode' => $data['mode'],
                     'occurred_on' => $data['occurred_on'],
+                    'source' => $data['source'] ?? null,
                     'reference' => $data['reference'] ?? null,
                     'notes' => $data['notes'] ?? null,
                 ]);

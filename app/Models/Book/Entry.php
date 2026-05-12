@@ -38,6 +38,9 @@ class Entry extends Model
         'title',
         'salary_amount',
         'loan_amount',
+        'interest_rate',
+        'emi_amount',
+        'tenure_months',
         'frequency',
         'notes',
         'sort_order',
@@ -46,6 +49,8 @@ class Entry extends Model
     protected $casts = [
         'salary_amount' => 'decimal:2',
         'loan_amount' => 'decimal:2',
+        'emi_amount' => 'decimal:2',
+        'tenure_months' => 'integer',
     ];
 
     protected $attributes = [
@@ -127,6 +132,17 @@ class Entry extends Model
             (float) $this->salary_amount + (float) $this->loan_amount
             - (float) $this->paid - (float) $this->received_back
         );
+    }
+
+    public function getRepaidAttribute(): string
+    {
+        // For loans we have *taken*, outflow payments are repayments.
+        return (string) $this->payments()->where('direction', 'out')->sum('amount');
+    }
+
+    public function getLoanOutstandingTakenAttribute(): string
+    {
+        return (string) ((float) $this->loan_amount - (float) $this->repaid);
     }
 
     public function getLoanOutstandingAttribute(): string

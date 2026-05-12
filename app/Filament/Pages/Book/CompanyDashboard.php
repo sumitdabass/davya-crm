@@ -61,6 +61,79 @@ class CompanyDashboard extends Page
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('cashReceived')
+                ->label('+ Cash Received')
+                ->icon('heroicon-o-banknotes')
+                ->color('success')
+                ->visible(fn () => ! $this->fy->is_closed)
+                ->fillForm(fn () => [
+                    'source' => 'Other',
+                    'amount' => null,
+                    'occurred_on' => now()->toDateString(),
+                    'mode' => 'bank',
+                ])
+                ->form([
+                    \Filament\Forms\Components\TextInput::make('source')
+                        ->label('Source')
+                        ->required()
+                        ->default('Other')
+                        ->placeholder('Free text — e.g. "Refund", "Sumit Loan back", "Other"'),
+                    \Filament\Forms\Components\TextInput::make('amount')
+                        ->label('Amount')
+                        ->required()
+                        ->numeric()
+                        ->minValue(0.01)
+                        ->prefix('₹')
+                        ->live(onBlur: true)
+                        ->helperText(fn ($state) => $state
+                            ? \App\Support\MoneyFormat::toIndianWords((float) $state)
+                            : 'Type an amount — the words will appear here.'),
+                    \Filament\Forms\Components\DatePicker::make('occurred_on')
+                        ->label('Date')
+                        ->required(),
+                    \Filament\Forms\Components\Select::make('mode')
+                        ->required()
+                        ->options([
+                            'cash' => 'Cash',
+                            'bank' => 'Bank transfer',
+                            'upi' => 'UPI',
+                            'cheque' => 'Cheque',
+                            'other' => 'Other',
+                        ]),
+                ])
+                ->action(function (array $data): void {
+                    if ($this->fy->is_closed) {
+                        throw new \DomainException("Cannot record receipt — FY {$this->fy->label} is closed");
+                    }
+                    $section = $this->company->sections()->where('slug', 'receipts')->first();
+                    if (! $section) {
+                        $maxOrder = (int) $this->company->sections()->max('sort_order');
+                        $section = \App\Models\Book\Section::create([
+                            'company_id' => $this->company->id,
+                            'slug' => 'receipts',
+                            'name' => 'Receipts',
+                            'kind' => 'generic',
+                            'sort_order' => $maxOrder + 1,
+                        ]);
+                    }
+                    $source = trim((string) ($data['source'] ?? '')) ?: 'Other';
+                    $entry = \App\Models\Book\Entry::create([
+                        'company_id' => $this->company->id,
+                        'fiscal_year_id' => $this->fy->id,
+                        'section_id' => $section->id,
+                        'title' => $source,
+                    ]);
+                    \App\Models\Book\EntryPayment::create([
+                        'entry_id' => $entry->id,
+                        'occurred_on' => $data['occurred_on'],
+                        'amount' => $data['amount'],
+                        'direction' => 'in',
+                        'mode' => $data['mode'] ?? 'bank',
+                        'source' => $source,
+                        'created_by' => auth()->id(),
+                    ]);
+                }),
+
             \Filament\Actions\Action::make('customize')
                 ->label('Customize')
                 ->icon('heroicon-o-adjustments-horizontal')
@@ -156,15 +229,29 @@ class CompanyDashboard extends Page
         $carry = $agg->carryover($this->fy);
 
         return [
-            'total_income'     => $agg->totalIncome($this->fy),
-            'cash_received'    => $agg->cashInflowFromRecoveries($this->fy),
-            'cash_outflow'     => $agg->cashOutflow($this->fy),
-            'non_cash_outflow' => $agg->nonCashOutflow($this->fy),
-            'total_outflow'    => $agg->totalOutflow($this->fy),
-            'net_pl'           => $agg->netPl($this->fy),
-            'carryover'        => $carry,
-            'cumulative_pl'    => $agg->netPl($this->fy) + $carry['value'],
+            'total_income'        => $agg->totalIncome($this->fy),
+            'cash_received'       => $agg->cashInflowFromRecoveries($this->fy),
+            'cash_outflow'        => $agg->cashOutflow($this->fy),
+            'non_cash_outflow'    => $agg->nonCashOutflow($this->fy),
+            'total_outflow'       => $agg->totalOutflow($this->fy),
+            'net_pl'              => $agg->netPl($this->fy),
+            'carryover'           => $carry,
+            'cumulative_pl'       => $agg->netPl($this->fy) + $carry['value'],
+            'loans_given_outstanding' => $this->loansOutstandingForSlug('loan'),
+            'loans_taken_outstanding' => $this->loansOutstandingForSlug('loans_taken'),
         ];
+    }
+
+    private function loansOutstandingForSlug(string $slug): float
+    {
+        $entries = Entry::where('fiscal_year_id', $this->fy->id)
+            ->whereHas('section', fn ($q) => $q->where('slug', $slug))
+            ->where('loan_amount', '>', 0)
+            ->get();
+
+        return (float) $entries->sum(fn ($e) => $slug === 'loans_taken'
+            ? (float) $e->loan_outstanding_taken
+            : (float) $e->loan_outstanding);
     }
 
     public function explainKpiAction(): \Filament\Actions\Action
@@ -179,12 +266,18 @@ class CompanyDashboard extends Page
                 // KPIs backed by actual payment events get a full record list.
                 if (in_array($key, ['cash_received', 'cash_outflow'], true)) {
                     $direction = $key === 'cash_received' ? 'in' : 'out';
-                    $payments = \App\Models\Book\EntryPayment::query()
+                    $query = \App\Models\Book\EntryPayment::query()
                         ->where('direction', $direction)
                         ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
                         ->with(['entry.section', 'createdBy'])
-                        ->orderBy('occurred_on')
-                        ->get();
+                        ->orderBy('occurred_on');
+                    if ($key === 'cash_received') {
+                        $query->whereHas('entry.section', fn ($s) => $s->whereIn(
+                            'slug',
+                            \App\Books\Services\FiscalYearAggregator::CASH_RECEIVED_SECTION_SLUGS
+                        ));
+                    }
+                    $payments = $query->get();
                     return view('filament.pages.book.partials.kpi-payments', [
                         'payments' => $payments,
                         'total' => (float) $payments->sum('amount'),
@@ -226,9 +319,9 @@ class CompanyDashboard extends Page
                     ],
                     'net_pl' => [
                         ['Total Income',                           $fmt($kpis['total_income'])],
-                        ['+ Cash Received (recoveries)',           $fmt($kpis['cash_received'])],
                         ['− Total Outflow',                        '−'.$fmt($kpis['total_outflow'])],
                         ['= Net P/L (this FY)',                    $fmt($kpis['net_pl']), true],
+                        ['Cash Received (recoveries) — info only', $fmt($kpis['cash_received'])],
                     ],
                     'carryover' => $kpis['carryover']['estimate']
                         ? [
@@ -300,15 +393,25 @@ class CompanyDashboard extends Page
     {
         return Entry::where('fiscal_year_id', $this->fy->id)
             ->where('loan_amount', '>', 0)->with('section')->get()
-            ->filter(fn ($e) => (float) $e->loan_outstanding > 0)
-            ->map(fn ($e) => [
-                'id'            => $e->id,
-                'title'         => $e->title,
-                'loan'          => (float) $e->loan_amount,
-                'received_back' => (float) $e->received_back,
-                'outstanding'   => (float) $e->loan_outstanding,
-                'section_slug'  => $e->section?->slug,
-            ])->values()->all();
+            ->filter(function ($e) {
+                $isTaken = $e->section?->slug === 'loans_taken';
+                $outstanding = $isTaken ? (float) $e->loan_outstanding_taken : (float) $e->loan_outstanding;
+                return $outstanding > 0;
+            })
+            ->map(function ($e) {
+                $isTaken = $e->section?->slug === 'loans_taken';
+                return [
+                    'id'            => $e->id,
+                    'title'         => $e->title,
+                    'kind'          => $isTaken ? 'taken' : 'given',
+                    'interest_rate' => $e->interest_rate,
+                    'loan'          => (float) $e->loan_amount,
+                    'received_back' => (float) $e->received_back,
+                    'repaid'        => (float) $e->repaid,
+                    'outstanding'   => $isTaken ? (float) $e->loan_outstanding_taken : (float) $e->loan_outstanding,
+                    'section_slug'  => $e->section?->slug,
+                ];
+            })->values()->all();
     }
 
     public function defaultGenericSection(): ?Section

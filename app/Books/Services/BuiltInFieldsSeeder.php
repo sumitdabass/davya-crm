@@ -11,11 +11,12 @@ class BuiltInFieldsSeeder
     public function seed(Company $company): void
     {
         $sections = [
-            ['slug' => 'salary',  'name' => 'Salary',       'kind' => 'generic', 'sort_order' => 1],
-            ['slug' => 'rent',    'name' => 'Rent',         'kind' => 'generic', 'sort_order' => 2],
-            ['slug' => 'loan',    'name' => 'Loan',         'kind' => 'generic', 'sort_order' => 3],
-            ['slug' => 'assets',  'name' => 'Depreciation', 'kind' => 'asset',   'sort_order' => 4],
-            ['slug' => 'expense', 'name' => 'Expense',      'kind' => 'generic', 'sort_order' => 5],
+            ['slug' => 'salary',       'name' => 'Salary',       'kind' => 'generic', 'sort_order' => 1],
+            ['slug' => 'rent',         'name' => 'Rent',         'kind' => 'generic', 'sort_order' => 2],
+            ['slug' => 'loan',         'name' => 'Loans Given',  'kind' => 'generic', 'sort_order' => 3],
+            ['slug' => 'loans_taken',  'name' => 'Loans Taken',  'kind' => 'generic', 'sort_order' => 4],
+            ['slug' => 'assets',       'name' => 'Depreciation', 'kind' => 'asset',   'sort_order' => 5],
+            ['slug' => 'expense',      'name' => 'Expense',      'kind' => 'generic', 'sort_order' => 6],
         ];
 
         foreach ($sections as $s) {

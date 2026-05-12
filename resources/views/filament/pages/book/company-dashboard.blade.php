@@ -26,11 +26,13 @@
                 @php
                     $tiles = [
                         ['key'=>'total_income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
-                        ['key'=>'cash_received',    'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of all received-back payments (loan recoveries + reimbursements)'],
+                        ['key'=>'cash_received',    'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of received-back / inbound payments (info-only — does not change Net P/L)'],
+                        ['key'=>'loans_given_outstanding', 'label'=>'Loans Given',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loan"),         'hint'=>'Outstanding · owed to us'],
+                        ['key'=>'loans_taken_outstanding', 'label'=>'Loans Taken',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loans_taken"), 'hint'=>'Outstanding · we owe'],
                         ['key'=>'cash_outflow',     'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
                         ['key'=>'non_cash_outflow', 'label'=>'Non-Cash (Dep)',   'href'=>$assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null, 'hint'=>$assetSlug ? 'View assets' : null],
                         ['key'=>'total_outflow',    'label'=>'Total Outflow',    'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>null],
-                        ['key'=>'net_pl',           'label'=>'Net P/L',          'href'=>null, 'tooltip'=>'Total Income + Recoveries − Total Outflow'],
+                        ['key'=>'net_pl',           'label'=>'Net P/L',          'href'=>null, 'tooltip'=>'Total Income − Total Outflow (recoveries shown separately as Cash Received)'],
                         ['key'=>'cumulative_pl',    'label'=>'Cumulative P/L',   'href'=>null, 'tooltip'=>'Net P/L + Carryover from prior FY'],
                     ];
                 @endphp
@@ -155,8 +157,12 @@
             <div class="davya-table-scroll">
                 <table class="davya-books-table">
                     <thead><tr>
-                        <th>Counterparty</th><th class="num">Loan</th>
-                        <th class="num">Received back</th><th class="num">Outstanding</th>
+                        <th>Counterparty</th>
+                        <th>Kind</th>
+                        <th>Interest</th>
+                        <th class="num">Principal</th>
+                        <th class="num">Movement</th>
+                        <th class="num">Outstanding</th>
                     </tr></thead>
                     <tbody>
                         @foreach ($loans as $l)
@@ -168,8 +174,17 @@
                                         {{ $l['title'] }}
                                     @endif
                                 </td>
+                                <td>
+                                    <span class="davya-books-badge davya-books-badge--{{ $l['kind'] === 'taken' ? 'warning' : 'success' }}">
+                                        {{ $l['kind'] === 'taken' ? 'Taken' : 'Given' }}
+                                    </span>
+                                </td>
+                                <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $l['interest_rate'] ?? '—' }}</td>
                                 <td class="num">{{ number_format($l['loan'], 2) }}</td>
-                                <td class="num">{{ number_format($l['received_back'], 2) }}</td>
+                                <td class="num">
+                                    {{ number_format($l['kind'] === 'taken' ? $l['repaid'] : $l['received_back'], 2) }}
+                                    <div style="font-size:var(--fs-10); color:var(--text-muted); font-weight:400;">{{ $l['kind'] === 'taken' ? 'Repaid' : 'Received' }}</div>
+                                </td>
                                 <td class="num"><strong>{{ number_format($l['outstanding'], 2) }}</strong></td>
                             </tr>
                         @endforeach

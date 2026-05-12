@@ -144,6 +144,55 @@ class EntryPaymentUITest extends TestCase
         $this->assertSame('TXN-001', $p->reference);
     }
 
+    public function test_add_payment_persists_source(): void
+    {
+        $c = Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'salary')->first();
+        $entry = Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Usha']);
+
+        Livewire::test(SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'salary'])
+            ->mountAction('addPayment', ['id' => $entry->id])
+            ->setActionData([
+                'direction' => 'out', 'amount' => 1000, 'mode' => 'bank',
+                'occurred_on' => '2025-06-01',
+                'source' => 'Vendor X',
+            ])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('Vendor X', $entry->fresh()->payments()->first()->source);
+    }
+
+    public function test_edit_payment_updates_source(): void
+    {
+        $c = Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'salary')->first();
+        $entry = Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Usha']);
+        $p = EntryPayment::create(['entry_id' => $entry->id, 'amount' => 100,
+            'direction' => 'out', 'mode' => 'cash', 'occurred_on' => '2025-06-01',
+            'source' => 'Old']);
+
+        Livewire::test(SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'salary'])
+            ->mountAction('editPayment', ['id' => $p->id])
+            ->setActionData([
+                'direction' => 'out', 'amount' => 100, 'mode' => 'cash',
+                'occurred_on' => '2025-06-01',
+                'source' => 'New Source',
+            ])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('New Source', $p->fresh()->source);
+    }
+
     public function test_edit_payment_blocked_when_fy_is_closed(): void
     {
         $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);

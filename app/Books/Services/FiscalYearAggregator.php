@@ -10,6 +10,13 @@ use App\Models\Book\IncomeEntry;
 
 class FiscalYearAggregator
 {
+    /**
+     * Sections whose inbound (direction=in) payments count as Cash Received.
+     * Salary/Expense/Rent/Assets inflows are almost always data-entry quirks
+     * and are excluded so the KPI reflects real receipts + loan settlements.
+     */
+    public const CASH_RECEIVED_SECTION_SLUGS = ['loan', 'loans_taken', 'receipts'];
+
     public function __construct(
         private ?DepreciationCalculator $dep = null,
     ) {
@@ -31,7 +38,8 @@ class FiscalYearAggregator
     public function cashInflowFromRecoveries(FiscalYear $fy): float
     {
         return (float) EntryPayment::whereHas('entry',
-                fn ($q) => $q->where('fiscal_year_id', $fy->id))
+                fn ($q) => $q->where('fiscal_year_id', $fy->id)
+                    ->whereHas('section', fn ($s) => $s->whereIn('slug', self::CASH_RECEIVED_SECTION_SLUGS)))
             ->where('direction', 'in')->sum('amount');
     }
 
@@ -59,9 +67,7 @@ class FiscalYearAggregator
 
     public function netPl(FiscalYear $fy): float
     {
-        return $this->totalIncome($fy)
-             + $this->cashInflowFromRecoveries($fy)
-             - $this->totalOutflow($fy);
+        return $this->totalIncome($fy) - $this->totalOutflow($fy);
     }
 
     public function carryover(FiscalYear $fy): array
