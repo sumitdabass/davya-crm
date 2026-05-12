@@ -28,6 +28,10 @@ class TopBar extends Component
             $tabs[] = ['key' => 'rank', 'label' => 'Rank', 'url' => '/admin/rank-lookup', 'match' => '/admin/rank'];
         }
 
+        if (config('books.enabled') && $user?->isSuperAdmin()) {
+            $tabs[] = ['key' => 'books', 'label' => 'Books', 'url' => '/admin/books', 'match' => '/admin/books'];
+        }
+
         return $tabs;
     }
 

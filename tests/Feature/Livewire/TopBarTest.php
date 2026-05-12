@@ -80,6 +80,38 @@ class TopBarTest extends TestCase
             ->assertDontSee('title="Settings"');
     }
 
+    public function test_books_tab_visible_for_super_admin_when_flag_on(): void
+    {
+        config()->set('books.enabled', true);
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        $admin->assignRole('super_admin');
+
+        Livewire::actingAs($admin)->test(TopBar::class)
+            ->assertSee('Books')
+            ->assertSee('/admin/books');
+    }
+
+    public function test_books_tab_hidden_when_flag_off(): void
+    {
+        config()->set('books.enabled', false);
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        $admin->assignRole('super_admin');
+
+        Livewire::actingAs($admin)->test(TopBar::class)
+            ->assertDontSee('>Books<');
+    }
+
+    public function test_books_tab_hidden_from_non_super_admin(): void
+    {
+        config()->set('books.enabled', true);
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first()); // head, not super_admin
+
+        Livewire::actingAs($sonam)->test(TopBar::class)
+            ->assertDontSee('>Books<');
+    }
+
     public function test_admin_sees_settings_gear_and_user_menu_actions(): void
     {
         $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
