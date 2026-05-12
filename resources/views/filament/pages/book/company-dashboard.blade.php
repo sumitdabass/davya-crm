@@ -105,18 +105,41 @@
                         <div class="davya-books-roll__name">{{ $r['section']->name }}</div>
                         <div class="davya-books-roll__count">{{ $r['count'] }} {{ $r['count'] === 1 ? 'entry' : 'entries' }}</div>
                         <div class="davya-books-roll__rows">
+                            @php
+                                $slug = $r['section']->slug;
+                                $isGivenSection = $slug === 'loan';
+                                $isTakenSection = $slug === 'loans_taken';
+                                $amountLabel = match ($slug) {
+                                    'salary' => 'Salary (ann)',
+                                    'rent'   => 'Rent (ann)',
+                                    default  => 'Amount (ann)',
+                                };
+                                $loanLabel = $isTakenSection ? 'Principal taken' : 'Loan';
+                                // Movement = the cash leg meaningful for this section.
+                                if ($isGivenSection) {
+                                    $movementLabel = 'Recovered';
+                                    $movementValue = $r['received_back_total'];
+                                } elseif ($isTakenSection) {
+                                    $movementLabel = 'Repaid';
+                                    $movementValue = $r['paid_total'];
+                                } else {
+                                    $movementLabel = 'Paid';
+                                    $movementValue = $r['paid_total'];
+                                }
+                                $balanceLabel = match (true) {
+                                    $isGivenSection => 'Outstanding (owed to us)',
+                                    $isTakenSection => 'Outstanding (we owe)',
+                                    default         => 'Balance',
+                                };
+                            @endphp
                             @if ($r['salary_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Salary (ann)</span><strong>&#8377;{{ number_format($r['salary_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>{{ $amountLabel }}</span><strong>&#8377;{{ number_format($r['salary_total'], 0) }}</strong></div>
                             @endif
                             @if ($r['loan_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Loan</span><strong>&#8377;{{ number_format($r['loan_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>{{ $loanLabel }}</span><strong>&#8377;{{ number_format($r['loan_total'], 0) }}</strong></div>
                             @endif
-                            @if ($r['paid_total'] > 0)
-                                <div class="davya-books-roll__row"><span>Paid</span><strong>&#8377;{{ number_format($r['paid_total'], 0) }}</strong></div>
-                            @endif
-                            @if ($r['balance_total'] != 0)
-                                <div class="davya-books-roll__row"><span>Balance</span><strong>&#8377;{{ number_format($r['balance_total'], 0) }}</strong></div>
-                            @endif
+                            <div class="davya-books-roll__row"><span>{{ $movementLabel }}</span><strong>&#8377;{{ number_format($movementValue, 0) }}</strong></div>
+                            <div class="davya-books-roll__row"><span>{{ $balanceLabel }}</span><strong style="{{ $r['balance_total'] < 0 ? 'color:var(--danger);' : '' }}">&#8377;{{ number_format($r['balance_total'], 0) }}</strong></div>
                         </div>
                     </a>
                 @endforeach
