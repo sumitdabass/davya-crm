@@ -71,7 +71,8 @@ class RoundHistoryRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('round_name')
             ->columns([
-                Tables\Columns\TextColumn::make('created_at')->dateTime('d M Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('created_at')->since()
+                    ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i'))->sortable(),
                 Tables\Columns\TextColumn::make('round_name')->badge(),
                 Tables\Columns\TextColumn::make('allotted_college'),
                 Tables\Columns\TextColumn::make('outcome')

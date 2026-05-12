@@ -3,9 +3,7 @@
         <button
             type="button"
             wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
-            style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: white; background: #059669; border: none; border-radius: 4px; cursor: pointer;"
-            onmouseover="this.style.background='#047857';"
-            onmouseout="this.style.background='#059669';"
+            class="davya-action davya-action--solid"
         >Customize</button>
     </div>
 
@@ -17,13 +15,13 @@
                     <button
                         type="button"
                         wire:click="$dispatch('reset-cards-to-defaults', { surface: 'dashboard' })"
-                        style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                        class="davya-action" style="text-decoration:underline;"
                     >Reset to defaults</button>
                     <span style="margin: 0 6px;">·</span>
                     <button
                         type="button"
                         wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
-                        style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                        class="davya-action" style="text-decoration:underline;"
                     >Customize &rarr;</button>
                 </div>
             </div>
@@ -48,13 +46,13 @@
                 <button
                     type="button"
                     wire:click="$dispatch('reset-cards-to-defaults', { surface: 'dashboard' })"
-                    style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                    class="davya-action" style="text-decoration:underline;"
                 >Reset to defaults</button>
                 <span style="margin: 0 6px;">·</span>
                 <button
                     type="button"
                     wire:click="$dispatch('open-customize-modal', { surface: 'dashboard' })"
-                    style="color: #059669; background: transparent; border: none; cursor: pointer; text-decoration: underline; padding: 0; font-size: inherit;"
+                    class="davya-action" style="text-decoration:underline;"
                 >Customize &rarr;</button>
             </div>
         @else
@@ -86,7 +84,7 @@
                 <span>Removed <span x-text="toast.cardId"></span>.</span>
                 <button
                     type="button"
-                    style="background: transparent; border: none; color: white; text-decoration: underline; cursor: pointer; font-size: 13px;"
+                    class="davya-action davya-action--ghost-light"
                     x-on:click="
                         $wire.dispatch('undo-remove', { surface: toast.surface, cardId: toast.cardId, position: toast.position });
                         toast = null;

@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" title="Leads" />
     @php
         $r = $this->getReport();
         $studentsBase = \App\Filament\Resources\StudentResource::getUrl('index');

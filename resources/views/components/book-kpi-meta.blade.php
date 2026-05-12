@@ -1,6 +1,7 @@
 @props([
     'delta' => null,
     'priorLabel' => null,
+    'priorPrefix' => 'vs FY',
     'series' => [],
     'color' => null,
 ])
@@ -17,9 +18,9 @@
 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:6px; min-height:18px;">
     @if ($hasDelta)
         <span style="font-size:10.5px; color:{{ $deltaColor }}; font-weight:500; line-height:1; letter-spacing:0.1px;"
-              title="{{ $arrow }} {{ $pct }} vs FY {{ $priorLabel }}">
+              title="{{ $arrow }} {{ $pct }} {{ $priorPrefix }} {{ $priorLabel }}">
             {{ $arrow }} {{ $pct }}
-            <span style="color:var(--text-muted); font-weight:400;">vs FY {{ $priorLabel }}</span>
+            <span style="color:var(--text-muted); font-weight:400;">{{ $priorPrefix }} {{ $priorLabel }}</span>
         </span>
     @else
         <span></span>

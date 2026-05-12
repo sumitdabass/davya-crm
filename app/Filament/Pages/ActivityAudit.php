@@ -59,7 +59,8 @@ class ActivityAudit extends Page implements HasForms, HasTable
                 return null;
             })
             ->columns([
-                TextColumn::make('created_at')->label('When')->dateTime('d M Y, H:i:s')->sortable(),
+                TextColumn::make('created_at')->label('When')->since()
+                    ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i:s'))->sortable(),
                 TextColumn::make('causer.name')->label('Who')->badge()->color('gray'),
                 TextColumn::make('description')->label('What')->wrap(),
                 TextColumn::make('subject_type')->label('Model')

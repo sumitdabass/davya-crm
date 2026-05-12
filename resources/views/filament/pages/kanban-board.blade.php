@@ -487,8 +487,7 @@
                                 }
                             }).catch(() => { submitting = false; });
                         "
-                        class="px-4 py-1.5 text-sm font-semibold text-white rounded disabled:opacity-60"
-                        style="background-color: #059669;">Save &amp; move</button>
+                        class="davya-action davya-action--solid disabled:opacity-60">Save &amp; move</button>
                 </div>
             </div>
         </div>

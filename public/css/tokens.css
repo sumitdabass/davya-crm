@@ -612,7 +612,12 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
     box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
 }
 
-/* In-row action buttons used in Books tables (Add Payment / Add Doc / counter pill). */
+/* Universal in-row / inline action buttons. Used across Books tables,
+ * custom dashboard chrome, Reports filter bars, and anywhere we need a
+ * tight ghost button. `.davya-books-action` is kept as an alias for
+ * backwards-compatibility with existing markup. Solid + outline variants
+ * cover primary actions; pill variant for counters / chip-style triggers. */
+.davya-action,
 .davya-books-action {
     background: transparent;
     border: 0;
@@ -622,10 +627,17 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
     font-weight: 500;
     padding: 2px 6px;
     border-radius: var(--r-sm);
-    transition: background-color 120ms ease;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.4;
 }
+.davya-action:hover,
 .davya-books-action:hover { background: var(--brand-50); }
 
+.davya-action--pill,
 .davya-books-action--pill {
     background: var(--border-muted);
     color: var(--text-sub);
@@ -634,7 +646,39 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
     margin-left: 4px;
     font-weight: 500;
 }
+.davya-action--pill:hover,
 .davya-books-action--pill:hover { background: var(--brand-50); color: var(--brand-700); }
+
+/* Solid primary — for "Customize", "Apply filters", "Recalculate" etc. */
+.davya-action--solid {
+    background: var(--brand-600, #059669);
+    color: #fff;
+    padding: 6px 12px;
+    font-size: var(--fs-12);
+    font-weight: 600;
+    border-radius: var(--r-md);
+}
+.davya-action--solid:hover { background: var(--brand-700, #047857); color: #fff; }
+
+/* Outline secondary — for "Reset to defaults", "Clear filters" etc. */
+.davya-action--outline {
+    border: 1px solid var(--border);
+    color: var(--text-sub);
+    padding: 5px 10px;
+    font-size: var(--fs-12);
+    border-radius: var(--r-md);
+}
+.davya-action--outline:hover { border-color: var(--brand-600); color: var(--brand-700); background: var(--brand-50); }
+
+/* Ghost-on-dark — used inside emerald toasts / dark overlays. */
+.davya-action--ghost-light {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    padding: 2px 4px;
+}
+.davya-action--ghost-light:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
 
 /* Books page header bar — breadcrumb + FY chip + meta actions. */
 .davya-books-header {

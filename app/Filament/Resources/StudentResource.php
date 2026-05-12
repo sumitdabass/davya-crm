@@ -392,6 +392,8 @@ class StudentResource extends Resource
     {
         $baseColumns = [
             TextColumn::make('name')->searchable()->weight('medium')->sortable()
+                ->formatStateUsing(fn ($state, $record) => \App\Support\Aging::dotHtml($record->updated_at).e($state))
+                ->html()
                 ->description(fn ($record) => $record->phone),
             TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
             TextColumn::make('stage')->badge()->color(fn ($state) => match ($state) {
@@ -407,11 +409,16 @@ class StudentResource extends Resource
                 'Closed' => 'danger',
                 default => 'gray',
             }),
-            TextColumn::make('deal_amount')->money('INR')->sortable()->default(0),
-            TextColumn::make('total_received')->money('INR')->label('Received')
-                ->color('success'),
-            TextColumn::make('pending_amount')->money('INR')->label('Pending')
-                ->color(fn ($state) => $state > 0 ? 'warning' : 'gray'),
+            TextColumn::make('deal_amount')->label('Deal')->sortable()->default(0)
+                ->formatStateUsing(fn ($state) => \App\Support\MoneyFormat::asInlineHtml((float) $state))->html(),
+            TextColumn::make('total_received')->label('Received')->sortable()
+                ->formatStateUsing(fn ($state) => $state > 0
+                    ? '<span style="color:var(--success,#10B981);">'.\App\Support\MoneyFormat::asInlineHtml((float) $state).'</span>'
+                    : \App\Support\MoneyFormat::asInlineHtml(0))->html(),
+            TextColumn::make('pending_amount')->label('Pending')->sortable()
+                ->formatStateUsing(fn ($state) => $state > 0
+                    ? '<span style="color:var(--warning,#F59E0B);">'.\App\Support\MoneyFormat::asInlineHtml((float) $state).'</span>'
+                    : \App\Support\MoneyFormat::asInlineHtml(0))->html(),
             TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
             TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),

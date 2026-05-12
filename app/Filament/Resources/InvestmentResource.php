@@ -65,10 +65,12 @@ class InvestmentResource extends Resource
                     ->badge()
                     ->color(fn (string $state) => $state === 'in' ? 'success' : 'warning'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->money('INR', locale: 'en_IN')
+                    ->formatStateUsing(fn ($state) => \App\Support\MoneyFormat::asInlineHtml((float) $state))
+                    ->html()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('transacted_at')
-                    ->dateTime('d M Y, H:i')
+                    ->since()
+                    ->tooltip(fn ($record) => $record->transacted_at?->format('d M Y, H:i'))
                     ->sortable(),
             ])
             ->defaultSort('transacted_at', 'desc')

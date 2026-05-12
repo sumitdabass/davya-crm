@@ -162,6 +162,108 @@ class PaymentReport extends Page implements HasForms
         ];
     }
 
+    /**
+     * Sparkline series + period-over-period delta per KPI tile.
+     * - series: daily cumulative running totals across the current filter range
+     *   (≥ 2 buckets — pads to two points if the range is one day so the spark
+     *   still renders as a flat line).
+     * - delta_pct: vs the immediately preceding range of the same length.
+     *
+     * @return array<string, array{series: array<int,float>, delta_pct: ?float, prior_label: ?string}>
+     */
+    public function getKpiMeta(): array
+    {
+        $filters = ! empty($this->applied) ? $this->applied : $this->data;
+
+        $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
+        $to   = Carbon::parse($filters['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
+        $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
+        $user = auth()->user();
+
+        $rangeDays = max(1, $from->copy()->startOfDay()->diffInDays($to->copy()->startOfDay()) + 1);
+        $priorTo = $from->copy()->subSecond();
+        $priorFrom = $priorTo->copy()->subDays($rangeDays - 1)->startOfDay();
+
+        $buildSeries = function (callable $scope, Carbon $rangeFrom, Carbon $rangeTo) use ($ownerIds, $user): array {
+            $base = Payment::query()
+                ->whereBetween('received_at', [$rangeFrom, $rangeTo])
+                ->whereHas('student', fn ($q) => $q->visibleTo($user));
+            if (! empty($ownerIds)) {
+                $base->whereHas('student', fn ($q) => $q->whereIn('owner_id', $ownerIds));
+            }
+            $scope($base);
+            $driver = $base->getModel()->getConnection()->getDriverName();
+            $expr = $driver === 'sqlite'
+                ? "strftime('%Y-%m-%d', received_at)"
+                : "DATE(received_at)";
+            $rows = $base->selectRaw("{$expr} AS d, SUM(amount) AS total, COUNT(*) AS c")
+                ->groupBy('d')->orderBy('d')
+                ->pluck('total', 'd')->map(fn ($v) => (float) $v)->all();
+
+            $buckets = [];
+            $cum = 0.0;
+            $cursor = $rangeFrom->copy()->startOfDay();
+            while ($cursor->lessThanOrEqualTo($rangeTo)) {
+                $key = $cursor->format('Y-m-d');
+                $cum += $rows[$key] ?? 0.0;
+                $buckets[] = $cum;
+                $cursor->addDay();
+            }
+            return $buckets ?: [0.0, 0.0];
+        };
+
+        $buildCountSeries = function (Carbon $rangeFrom, Carbon $rangeTo) use ($ownerIds, $user): array {
+            $base = Payment::query()
+                ->whereBetween('received_at', [$rangeFrom, $rangeTo])
+                ->whereHas('student', fn ($q) => $q->visibleTo($user));
+            if (! empty($ownerIds)) {
+                $base->whereHas('student', fn ($q) => $q->whereIn('owner_id', $ownerIds));
+            }
+            $driver = $base->getModel()->getConnection()->getDriverName();
+            $expr = $driver === 'sqlite'
+                ? "strftime('%Y-%m-%d', received_at)"
+                : "DATE(received_at)";
+            $rows = $base->selectRaw("{$expr} AS d, COUNT(*) AS c")
+                ->groupBy('d')->orderBy('d')
+                ->pluck('c', 'd')->map(fn ($v) => (int) $v)->all();
+
+            $buckets = [];
+            $cum = 0;
+            $cursor = $rangeFrom->copy()->startOfDay();
+            while ($cursor->lessThanOrEqualTo($rangeTo)) {
+                $key = $cursor->format('Y-m-d');
+                $cum += (int) ($rows[$key] ?? 0);
+                $buckets[] = (float) $cum;
+                $cursor->addDay();
+            }
+            return $buckets ?: [0.0, 0.0];
+        };
+
+        // Final totals for delta math — sum of the series == last cumulative value.
+        $currentReceived = $buildSeries(fn ($q) => $q->where('amount', '>', 0), $from, $to);
+        $priorReceived   = $buildSeries(fn ($q) => $q->where('amount', '>', 0), $priorFrom, $priorTo);
+        $currentRefunds  = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $from, $to));
+        $priorRefunds    = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $priorFrom, $priorTo));
+        $currentNet      = $buildSeries(fn ($q) => $q, $from, $to);
+        $priorNet        = $buildSeries(fn ($q) => $q, $priorFrom, $priorTo);
+        $currentCount    = $buildCountSeries($from, $to);
+        $priorCount      = $buildCountSeries($priorFrom, $priorTo);
+
+        $delta = function (array $now, array $then): ?float {
+            $a = end($now); $b = end($then);
+            if ($b === false || abs((float) $b) < 0.01) return null;
+            return (((float) $a - (float) $b) / abs((float) $b)) * 100.0;
+        };
+        $priorLabel = $priorFrom->format('d M') . '–' . $priorTo->format('d M');
+
+        return [
+            'received' => ['series' => $currentReceived, 'delta_pct' => $delta($currentReceived, $priorReceived), 'prior_label' => $priorLabel],
+            'refunds'  => ['series' => $currentRefunds,  'delta_pct' => $delta($currentRefunds, $priorRefunds),   'prior_label' => $priorLabel],
+            'net'      => ['series' => $currentNet,      'delta_pct' => $delta($currentNet, $priorNet),           'prior_label' => $priorLabel],
+            'count'    => ['series' => $currentCount,    'delta_pct' => $delta($currentCount, $priorCount),       'prior_label' => $priorLabel],
+        ];
+    }
+
     public function setTab(string $tab, ?int $ownerId = null, ?string $type = null): void
     {
         $this->activeTab = in_array($tab, ['report', 'today', 'detail'], true) ? $tab : 'report';

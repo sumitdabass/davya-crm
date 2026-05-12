@@ -29,7 +29,8 @@ class ActivityRelationManager extends RelationManager
                 ->latest())
             ->heading('Timeline')
             ->columns([
-                TextColumn::make('created_at')->label('When')->dateTime('d M Y, H:i')->sortable(),
+                TextColumn::make('created_at')->label('When')->since()
+                    ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i'))->sortable(),
                 TextColumn::make('causer.name')->label('Who')->badge()->color('gray'),
                 TextColumn::make('description')->label('What')->wrap(),
             ])

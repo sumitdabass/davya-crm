@@ -57,7 +57,8 @@ class MeetingsRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('scheduled_at')
                     ->label('When')
-                    ->dateTime('d M Y · H:i')
+                    ->since()
+                    ->tooltip(fn ($record) => $record->scheduled_at?->format('d M Y, H:i'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('mode')
                     ->badge()

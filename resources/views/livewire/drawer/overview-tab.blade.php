@@ -1,9 +1,9 @@
 <div>
     <div class="davya-section-card">
         <div class="davya-section-card-title">Deal</div>
-        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 4px 0;"><span style="color: var(--text-sub);">Deal amount</span><span>₹{{ number_format($deal) }}</span></div>
-        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 4px 0;"><span style="color: var(--text-sub);">Received</span><span>₹{{ number_format($received) }}</span></div>
-        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 4px 0;"><span style="color: var(--text-sub);">Pending</span><span style="color: var(--warning); font-weight: 700;">₹{{ number_format($pending) }}</span></div>
+        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 6px 0; align-items:start;"><span style="color: var(--text-sub); padding-top:2px;">Deal amount</span><x-book-amount :v="(float) $deal" inline /></div>
+        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 6px 0; align-items:start;"><span style="color: var(--text-sub); padding-top:2px;">Received</span><x-book-amount :v="(float) $received" inline /></div>
+        <div style="display: grid; grid-template-columns: 100px 1fr; gap: 10px; font-size: var(--fs-12); padding: 6px 0; align-items:start;"><span style="color: var(--text-sub); padding-top:2px;">Pending</span><x-book-amount :v="(float) $pending" inline :danger="$pending > 0" /></div>
         <div style="height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 6px 0 4px;">
             <div style="height: 100%; background: var(--success); width: {{ $pct }}%;"></div>
         </div>

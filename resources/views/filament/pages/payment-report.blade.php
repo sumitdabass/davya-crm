@@ -1,4 +1,5 @@
 <x-filament-panels::page>
+    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" title="Payments" />
     <div class="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
         <button type="button"
             wire:click="setTab('report')"
@@ -37,10 +38,7 @@
                 <button type="submit"
                     wire:loading.attr="disabled"
                     wire:target="apply"
-                    class="inline-flex items-center justify-center w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60"
-                    style="background-color: #059669;"
-                    onmouseover="this.style.backgroundColor='#047857'"
-                    onmouseout="this.style.backgroundColor='#059669'">
+                    class="davya-action davya-action--solid w-full sm:w-auto justify-center disabled:opacity-60">
                     <span wire:loading.remove wire:target="apply">Apply filters</span>
                     <span wire:loading wire:target="apply">Applying…</span>
                 </button>
@@ -50,33 +48,42 @@
         @php($r = $this->getReport())
 
         <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-3">
-            <button type="button" wire:click="setTab('detail')"
-                class="text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <div class="text-xs text-gray-500 dark:text-gray-400">Received</div>
-                <div class="text-2xl font-semibold text-emerald-600 dark:text-emerald-400 mt-1 tabular-nums">
-                    ₹{{ number_format($r['totals']['received'], 0, '.', ',') }}
-                </div>
+            @php($meta = method_exists($this, 'getKpiMeta') ? $this->getKpiMeta() : [])
+            <button type="button" wire:click="setTab('detail')" class="davya-books-kpi" style="cursor:pointer; text-align:left;">
+                <div class="davya-books-kpi__label">Received</div>
+                <x-book-amount :v="(float) $r['totals']['received']" big />
+                <x-book-kpi-meta prior-prefix="vs"
+                    :delta="$meta['received']['delta_pct'] ?? null"
+                    :prior-label="$meta['received']['prior_label'] ?? null"
+                    :series="$meta['received']['series'] ?? []"
+                    color="var(--brand-600,#059669)" />
             </button>
-            <button type="button" wire:click="setTab('detail', null, 'refund')"
-                class="text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <div class="text-xs text-gray-500 dark:text-gray-400">Refunds</div>
-                <div class="text-2xl font-semibold text-amber-600 dark:text-amber-400 mt-1 tabular-nums">
-                    ₹{{ number_format(abs($r['totals']['refunds']), 0, '.', ',') }}
-                </div>
+            <button type="button" wire:click="setTab('detail', null, 'refund')" class="davya-books-kpi" style="cursor:pointer; text-align:left;">
+                <div class="davya-books-kpi__label">Refunds</div>
+                <x-book-amount :v="abs((float) $r['totals']['refunds'])" big :danger="abs((float) $r['totals']['refunds']) > 0" />
+                <x-book-kpi-meta prior-prefix="vs"
+                    :delta="$meta['refunds']['delta_pct'] ?? null"
+                    :prior-label="$meta['refunds']['prior_label'] ?? null"
+                    :series="$meta['refunds']['series'] ?? []"
+                    color="var(--warning,#F59E0B)" />
             </button>
-            <button type="button" wire:click="setTab('detail')"
-                class="text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <div class="text-xs text-gray-500 dark:text-gray-400">Net collected</div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
-                    ₹{{ number_format($r['totals']['net'], 0, '.', ',') }}
-                </div>
+            <button type="button" wire:click="setTab('detail')" class="davya-books-kpi" style="cursor:pointer; text-align:left;">
+                <div class="davya-books-kpi__label">Net collected</div>
+                <x-book-amount :v="(float) $r['totals']['net']" big />
+                <x-book-kpi-meta prior-prefix="vs"
+                    :delta="$meta['net']['delta_pct'] ?? null"
+                    :prior-label="$meta['net']['prior_label'] ?? null"
+                    :series="$meta['net']['series'] ?? []"
+                    color="var(--brand-600,#059669)" />
             </button>
-            <button type="button" wire:click="setTab('detail')"
-                class="text-left rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <div class="text-xs text-gray-500 dark:text-gray-400">Payment count</div>
-                <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
-                    {{ $r['totals']['count'] }}
-                </div>
+            <button type="button" wire:click="setTab('detail')" class="davya-books-kpi" style="cursor:pointer; text-align:left;">
+                <div class="davya-books-kpi__label">Payment count</div>
+                <div style="font-size:24px; font-weight:600; font-variant-numeric:tabular-nums; margin-top:4px;">{{ $r['totals']['count'] }}</div>
+                <x-book-kpi-meta prior-prefix="vs"
+                    :delta="$meta['count']['delta_pct'] ?? null"
+                    :prior-label="$meta['count']['prior_label'] ?? null"
+                    :series="$meta['count']['series'] ?? []"
+                    color="var(--text-sub,#6B7280)" />
             </button>
         </div>
 

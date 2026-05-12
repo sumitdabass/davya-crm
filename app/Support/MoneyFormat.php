@@ -4,6 +4,28 @@ namespace App\Support;
 
 class MoneyFormat
 {
+    /**
+     * Stacked ₹figure + Indian-words subtext as an HTML string. For use in
+     * Filament TextColumn::formatStateUsing() (must be paired with ->html()).
+     * Pass $danger=true to color negatives in --danger. $inline=true switches
+     * the words to wrap naturally instead of nowrap (useful inside narrow cells).
+     */
+    public static function asInlineHtml(float|int|null $amount, bool $danger = false, bool $inline = false): string
+    {
+        $value = (float) ($amount ?? 0);
+        $isDanger = $danger || $value < 0;
+        $words = self::toIndianWords($value);
+        $wordsWrap = $inline ? 'white-space:normal;' : 'white-space:nowrap;';
+        $numColor = $isDanger ? 'color:var(--danger,#EF4444);' : '';
+        $figure = '&#8377;'.number_format($value, 2);
+        $wordsHtml = htmlspecialchars($words, ENT_QUOTES);
+
+        return '<span style="display:inline-block; line-height:1.15; vertical-align:top;">'
+            .'<span style="display:block; font-variant-numeric:tabular-nums; font-weight:500;'.$numColor.'">'.$figure.'</span>'
+            .'<span style="display:block; font-size:10px; color:var(--text-muted,#888); font-weight:400; line-height:1.2; margin-top:2px;'.$wordsWrap.'" title="'.$wordsHtml.'">'.$wordsHtml.'</span>'
+            .'</span>';
+    }
+
     /** Indian short: 1,25,000 → 1.25L, 80,000 → 80K, 2,00,00,000 → 2Cr. */
     public static function indianShort(float|int|null $amount): string
     {

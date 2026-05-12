@@ -58,7 +58,8 @@ class ExpenseResource extends Resource
                     ->state(fn (Expense $r) => $r->slack_message_id ? 'Slack' : 'Manual')
                     ->color(fn (string $state) => $state === 'Slack' ? 'info' : 'success'),
                 Tables\Columns\TextColumn::make('amount')
-                    ->money('INR', locale: 'en_IN')
+                    ->formatStateUsing(fn ($state) => \App\Support\MoneyFormat::asInlineHtml((float) $state))
+                    ->html()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('category')
                     ->searchable(),
@@ -66,7 +67,8 @@ class ExpenseResource extends Resource
                     ->limit(60)
                     ->searchable(),
                 Tables\Columns\TextColumn::make('paid_at')
-                    ->dateTime('d M Y, H:i')
+                    ->since()
+                    ->tooltip(fn ($record) => $record->paid_at?->format('d M Y, H:i'))
                     ->sortable(),
             ])
             ->defaultSort('paid_at', 'desc')

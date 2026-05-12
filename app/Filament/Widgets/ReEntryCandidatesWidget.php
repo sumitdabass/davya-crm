@@ -29,12 +29,15 @@ class ReEntryCandidatesWidget extends TableWidget
                 ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record->student_id])
                 : null)
             ->columns([
-                TextColumn::make('student.name')->label('Student')->searchable(),
+                TextColumn::make('student.name')->label('Student')->searchable()
+                    ->formatStateUsing(fn ($state, $record) => \App\Support\Aging::dotHtml($record->student?->updated_at).e($state ?? ''))
+                    ->html(),
                 TextColumn::make('student.phone')->label('Phone'),
                 TextColumn::make('round_name')->badge()->label('Last round'),
                 TextColumn::make('allotted_college')->label('Was allotted'),
                 TextColumn::make('student.owner.name')->label('Owner'),
-                TextColumn::make('created_at')->since()->label('Kicked out'),
+                TextColumn::make('created_at')->since()->label('Kicked out')
+                    ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i')),
             ])
             ->paginated([10, 25, 50])
             ->defaultSort('created_at', 'desc');

@@ -33,11 +33,14 @@ class StuckLeadsWidget extends TableWidget
                 ->with('owner'))
             ->recordUrl(fn (Student $record): string => \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record]))
             ->columns([
-                TextColumn::make('name')->searchable(),
+                TextColumn::make('name')->searchable()
+                    ->formatStateUsing(fn ($state, $record) => \App\Support\Aging::dotHtml($record->updated_at).e($state))
+                    ->html(),
                 TextColumn::make('phone'),
                 TextColumn::make('stage')->badge(),
                 TextColumn::make('owner.name')->label('Owner')->searchable(),
-                TextColumn::make('updated_at')->since()->label('Last update'),
+                TextColumn::make('updated_at')->since()->label('Last update')
+                    ->tooltip(fn ($record) => $record->updated_at?->format('d M Y, H:i')),
             ])
             ->paginated([10, 25, 50])
             ->defaultSort('updated_at', 'asc');

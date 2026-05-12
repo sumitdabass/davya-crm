@@ -22,9 +22,12 @@ class PaymentsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('type')
             ->columns([
-                Tables\Columns\TextColumn::make('received_at')->dateTime('d M Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('received_at')->since()
+                    ->tooltip(fn ($record) => $record->received_at?->format('d M Y, H:i'))->sortable(),
                 Tables\Columns\TextColumn::make('type')->badge(),
-                Tables\Columns\TextColumn::make('amount')->money('INR'),
+                Tables\Columns\TextColumn::make('amount')
+                    ->formatStateUsing(fn ($state) => \App\Support\MoneyFormat::asInlineHtml((float) $state))
+                    ->html(),
                 Tables\Columns\TextColumn::make('mode'),
                 Tables\Columns\TextColumn::make('recordedBy.name')->label('Recorded by'),
             ])

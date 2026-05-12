@@ -37,7 +37,8 @@ class NotesRelationManager extends RelationManager
             ->columns([
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Added')
-                    ->dateTime('d M Y, H:i')
+                    ->since()
+                    ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i'))
                     ->sortable(),
                 Tables\Columns\TextColumn::make('author.name')
                     ->label('By')
