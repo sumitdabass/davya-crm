@@ -33,7 +33,8 @@
                             <td class="actions">
                                 <button type="button" wire:click="mountAction('editPayment', { id: {{ $p->id }} })" data-variant="primary">Edit</button>
                                 <button type="button"
-                                    onclick="if (confirm('Delete this payment? This cannot be undone.')) { $wire.mountAction('deletePayment', { id: {{ $p->id }} }); }"
+                                    wire:click="mountAction('deletePayment', { id: {{ $p->id }} })"
+                                    wire:confirm="Delete this payment? This cannot be undone."
                                     data-variant="danger">Delete</button>
                             </td>
                         </tr>
