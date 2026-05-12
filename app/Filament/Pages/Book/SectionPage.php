@@ -52,6 +52,31 @@ class SectionPage extends Page
             ->get();
     }
 
+    /**
+     * Bridges for buttons rendered inside Filament's modalContent partials.
+     * wire:click directives inside an open Filament action modal don't get
+     * re-bound by Livewire (the modal is teleported out of the component DOM),
+     * so we fire global Livewire events from a plain onclick and re-mount the
+     * action here. Used by partials/payment-list + partials/attachment-list.
+     */
+    #[\Livewire\Attributes\On('book:open-edit-payment')]
+    public function openEditPayment(int $id): void
+    {
+        $this->mountAction('editPayment', ['id' => $id]);
+    }
+
+    #[\Livewire\Attributes\On('book:open-delete-payment')]
+    public function openDeletePayment(int $id): void
+    {
+        $this->mountAction('deletePayment', ['id' => $id]);
+    }
+
+    #[\Livewire\Attributes\On('book:open-delete-document')]
+    public function openDeleteDocument(int $id): void
+    {
+        $this->mountAction('deleteDocument', ['id' => $id]);
+    }
+
     public function getVisibleMoneyColumns(): array
     {
         return $this->sectionModel->visible_money_columns;

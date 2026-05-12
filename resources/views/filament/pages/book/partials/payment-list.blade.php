@@ -31,10 +31,11 @@
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->reference ?? '—' }}</td>
                             <td style="font-size:var(--fs-11); color:var(--text-muted);">{{ $p->createdBy?->email ?? '—' }}</td>
                             <td class="actions">
-                                <button type="button" wire:click="mountAction('editPayment', { id: {{ $p->id }} })" data-variant="primary">Edit</button>
                                 <button type="button"
-                                    wire:click="mountAction('deletePayment', { id: {{ $p->id }} })"
-                                    wire:confirm="Delete this payment? This cannot be undone."
+                                    onclick="Livewire.dispatch('book:open-edit-payment', { id: {{ $p->id }} })"
+                                    data-variant="primary">Edit</button>
+                                <button type="button"
+                                    onclick="if (confirm('Delete this payment? This cannot be undone.')) { Livewire.dispatch('book:open-delete-payment', { id: {{ $p->id }} }); }"
                                     data-variant="danger">Delete</button>
                             </td>
                         </tr>
