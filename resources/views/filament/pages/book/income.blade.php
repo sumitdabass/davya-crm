@@ -3,14 +3,7 @@
         $items = $this->getIncome();
     @endphp
 
-    <div class="davya-books-header">
-        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">{{ $companyModel->name }}</a>
-        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">FY {{ $fyModel->label }}</a>
-        <h1 class="davya-books-header__title">Income</h1>
-        @if ($fyModel->is_closed)
-            <span class="davya-books-badge davya-books-badge--warning">FY closed — read only</span>
-        @endif
-    </div>
+    <x-book-crumbs :company="$companyModel" :fy="$fyModel" title="Income" />
 
     <div class="davya-section-card">
         <div class="davya-section-card-title">{{ count($items) }} {{ count($items) === 1 ? 'entry' : 'entries' }}</div>
@@ -24,7 +17,7 @@
                         <tr>
                             <td style="white-space:nowrap; color:var(--text-sub);">{{ $i->occurred_on->format('d M Y') }}</td>
                             <td class="title">{{ $i->source }}</td>
-                            <td class="num">{{ number_format((float) $i->amount, 2) }}</td>
+                            <td class="num"><x-book-amount :v="(float) $i->amount" /></td>
                             <td style="color:var(--text-sub); font-size:var(--fs-12);">{{ $i->notes }}</td>
                             <td class="actions">
                                 <button type="button" wire:click="mountAction('editIncome', { id: {{ $i->id }} })" data-variant="primary">Edit</button>
@@ -39,7 +32,7 @@
                     <tfoot>
                         <tr>
                             <td colspan="2">Total</td>
-                            <td class="num">&#8377; {{ number_format($items->sum(fn ($i) => (float) $i->amount), 2) }}</td>
+                            <td class="num"><x-book-amount :v="$items->sum(fn ($i) => (float) $i->amount)" big inline /></td>
                             <td colspan="2"></td>
                         </tr>
                     </tfoot>

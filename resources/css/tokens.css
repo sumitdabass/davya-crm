@@ -600,6 +600,42 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
 .davya-books-badge--warning  { background: #FEF3C7;          color: #92400E; }
 .davya-books-badge--danger   { background: #FEE2E2;          color: #991B1B; }
 
+/* Aging dot on Kanban cards — visualizes days since updated_at without filtering. */
+.davya-age-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.04);
+}
+
+/* In-row action buttons used in Books tables (Add Payment / Add Doc / counter pill). */
+.davya-books-action {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    color: var(--brand-700);
+    font-size: var(--fs-11);
+    font-weight: 500;
+    padding: 2px 6px;
+    border-radius: var(--r-sm);
+    transition: background-color 120ms ease;
+}
+.davya-books-action:hover { background: var(--brand-50); }
+
+.davya-books-action--pill {
+    background: var(--border-muted);
+    color: var(--text-sub);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    margin-left: 4px;
+    font-weight: 500;
+}
+.davya-books-action--pill:hover { background: var(--brand-50); color: var(--brand-700); }
+
 /* Books page header bar — breadcrumb + FY chip + meta actions. */
 .davya-books-header {
     display: flex;

@@ -17,14 +17,7 @@
             + ($isAssetSection ? 4 : 0);
     @endphp
 
-    <div class="davya-books-header">
-        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">{{ $companyModel->name }}</a>
-        <a href="{{ url('/admin/books/'.$companyModel->slug.'/'.$fyModel->label) }}" class="davya-books-header__crumb">FY {{ $fyModel->label }}</a>
-        <h1 class="davya-books-header__title">{{ $sectionModel->name }}</h1>
-        @if ($fyModel->is_closed)
-            <span class="davya-books-badge davya-books-badge--warning">FY closed — read only</span>
-        @endif
-    </div>
+    <x-book-crumbs :company="$companyModel" :fy="$fyModel" :title="$sectionModel->name" />
 
     <div class="davya-section-card">
         <div class="davya-section-card-title">{{ count($entries) }} {{ count($entries) === 1 ? 'entry' : 'entries' }}</div>
@@ -112,18 +105,18 @@
                                 @php
                                     $pCount = $e->payments()->count();
                                 @endphp
-                                <button type="button" wire:click="mountAction('addPayment', { id: {{ $e->id }} })" data-variant="primary" style="background:transparent; border:0; cursor:pointer; color:var(--brand-700); font-size:var(--fs-11); padding:2px 6px;">+ Add</button>
+                                <button type="button" wire:click="mountAction('addPayment', { id: {{ $e->id }} })" class="davya-books-action">+ Add</button>
                                 @if ($pCount > 0)
-                                    <button type="button" wire:click="mountAction('viewPayments', { id: {{ $e->id }} })" style="background:var(--border-muted); border:0; cursor:pointer; color:var(--text-sub); font-size:var(--fs-11); padding:2px 8px; border-radius:9999px; margin-left:4px;">{{ $pCount }} payment{{ $pCount === 1 ? '' : 's' }}</button>
+                                    <button type="button" wire:click="mountAction('viewPayments', { id: {{ $e->id }} })" class="davya-books-action davya-books-action--pill">{{ $pCount }} payment{{ $pCount === 1 ? '' : 's' }}</button>
                                 @endif
                             </td>
                             <td>
                                 @php
                                     $count = $e->attachments()->count();
                                 @endphp
-                                <button type="button" wire:click="mountAction('uploadDocuments', { id: {{ $e->id }} })" data-variant="primary" style="background:transparent; border:0; cursor:pointer; color:var(--brand-700); font-size:var(--fs-11); padding:2px 6px;">+ Add</button>
+                                <button type="button" wire:click="mountAction('uploadDocuments', { id: {{ $e->id }} })" class="davya-books-action">+ Add</button>
                                 @if ($count > 0)
-                                    <button type="button" wire:click="mountAction('viewDocuments', { id: {{ $e->id }} })" style="background:var(--border-muted); border:0; cursor:pointer; color:var(--text-sub); font-size:var(--fs-11); padding:2px 8px; border-radius:9999px; margin-left:4px;">{{ $count }} doc{{ $count === 1 ? '' : 's' }}</button>
+                                    <button type="button" wire:click="mountAction('viewDocuments', { id: {{ $e->id }} })" class="davya-books-action davya-books-action--pill">{{ $count }} doc{{ $count === 1 ? '' : 's' }}</button>
                                 @endif
                             </td>
                             <td style="color:var(--text-sub); font-size:var(--fs-12); max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="{{ $e->notes }}">{{ $e->notes }}</td>

@@ -208,7 +208,12 @@
                                      data-edit-url="{{ \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $s['id']]) }}"
                                      wire:key="card-v2-{{ $s['id'] }}"
                                      wire:click="$dispatch('open-student-peek', { studentId: {{ $s['id'] }} })">
-                                    <div class="n">{{ $s['name'] }}</div>
+                                    @php($age = (int) ($s['days_in_stage'] ?? 0))
+                                    @php($ageDotColor = $age <= 3 ? 'var(--success, #10B981)' : ($age <= 14 ? 'var(--warning, #F59E0B)' : 'var(--danger, #EF4444)'))
+                                    @php($ageLabel = $age === 0 ? 'updated today' : ($age === 1 ? '1 day since update' : $age.' days since update'))
+                                    <div class="n">
+                                        <span class="davya-age-dot" style="background: {{ $ageDotColor }};" title="{{ $ageLabel }}" aria-label="{{ $ageLabel }}"></span>{{ $s['name'] }}
+                                    </div>
                                     <div class="chips">{{ $s['course'] ?? '—' }}@if($s['current_round']) · R{{ $s['current_round'] }}@endif</div>
                                     <div class="amt" data-zero="{{ ($s['received'] ?? 0) == 0 ? 'true' : 'false' }}">₹{{ \App\Support\MoneyFormat::indianShort($s['received'] ?? 0) }}</div>
                                     <div class="av" style="background: {{ \App\Support\AvatarColor::forUserId((int) ($s['owner_id'] ?? 0)) }};">

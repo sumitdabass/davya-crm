@@ -2,6 +2,7 @@
      @click.outside="visible = false"
      @focusin="visible = true"
      @keydown.escape.window="visible = false"
+     @keydown.window="(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); $el.querySelector('input').focus(); $el.querySelector('input').select(); visible = true; } }"
      style="flex: 1; position: relative;">
     <div style="display: flex; align-items: center; gap: 8px; background: var(--border-muted); border-radius: var(--r-md); padding: 6px 10px;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--text-muted); flex-shrink: 0;"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
@@ -9,6 +10,7 @@
                wire:model.live.debounce.200ms="query"
                placeholder="Search students by name, phone, email…"
                style="flex: 1; border: 0; background: transparent; outline: 0; color: var(--text); font-size: var(--fs-12);">
+        <kbd style="font-family: var(--font-display, system-ui); font-size: 10px; color: var(--text-muted); background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 1px 5px; flex-shrink: 0;">⌘K</kbd>
         @if (strlen(trim($query)) > 0)
             <button type="button"
                     wire:click="$set('query', '')"

@@ -416,6 +416,7 @@ class StudentResource extends Resource
             TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
             TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
             TextColumn::make('updated_at')->since()->label('Last update')->sortable()
+                ->tooltip(fn ($record) => $record->updated_at?->format('d M Y, H:i'))
                 ->toggleable(),
         ];
 

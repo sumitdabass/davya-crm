@@ -190,4 +190,54 @@ class FiscalYearAggregatorTest extends TestCase
         $agg = new \App\Books\Services\FiscalYearAggregator();
         $this->assertSame(60000.0, (float) $agg->nonCashOutflow($fy));
     }
+
+    public function test_monthly_series_total_income_is_cumulative_across_12_buckets(): void
+    {
+        [$c, $fy] = $this->makeFyWithRows();
+        // Add a second income in month 3 of the FY so we can see the curve grow.
+        IncomeEntry::create([
+            'company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'occurred_on' => '2025-07-01', 'source' => 'B', 'amount' => 500000,
+        ]);
+
+        $series = (new FiscalYearAggregator())->monthlySeries($fy, 'total_income');
+
+        $this->assertCount(12, $series);
+        // Apr (first bucket) = base income 1.25 Cr from makeFyWithRows()
+        $this->assertSame(12500000.0, $series[0]);
+        // May, June (still 1.25 Cr — no new income yet)
+        $this->assertSame(12500000.0, $series[1]);
+        $this->assertSame(12500000.0, $series[2]);
+        // July = 1.25 Cr + 5 L
+        $this->assertSame(13000000.0, $series[3]);
+        // March (last bucket) still 1.30 Cr (cumulative monotonic)
+        $this->assertSame(13000000.0, $series[11]);
+    }
+
+    public function test_prior_year_kpis_returns_null_when_no_prior_fy(): void
+    {
+        [, $fy] = $this->makeFyWithRows();
+        $this->assertNull((new FiscalYearAggregator())->priorYearKpis($fy));
+    }
+
+    public function test_prior_year_kpis_returns_dict_with_label_when_prior_exists(): void
+    {
+        [$c, $fyCurrent] = $this->makeFyWithRows();
+        $priorFy = FiscalYear::factory()->create([
+            'company_id' => $c->id,
+            'start_date' => '2024-04-01', 'end_date' => '2025-03-31', 'label' => '2024-25',
+        ]);
+        IncomeEntry::create([
+            'company_id' => $c->id, 'fiscal_year_id' => $priorFy->id,
+            'occurred_on' => '2024-06-01', 'source' => 'old', 'amount' => 1000000,
+        ]);
+
+        $prior = (new FiscalYearAggregator())->priorYearKpis($fyCurrent);
+
+        $this->assertNotNull($prior);
+        $this->assertSame('2024-25', $prior['label']);
+        $this->assertSame(1000000.0, (float) $prior['total_income']);
+        $this->assertArrayHasKey('cash_outflow', $prior);
+        $this->assertArrayHasKey('net_pl', $prior);
+    }
 }

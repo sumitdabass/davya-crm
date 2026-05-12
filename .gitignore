@@ -36,3 +36,6 @@ yarn-error.log
 
 # Nested rank-predictor sub-project (own repo)
 /rank/
+
+# One-shot prod-only seeders with real PII / financial data
+/database/seeders/Book/EduSpreadsheetSeeder.php

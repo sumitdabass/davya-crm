@@ -243,6 +243,37 @@ class CompanyDashboard extends Page
         ];
     }
 
+    /**
+     * Per-tile sparkline series + period-over-period delta vs prior FY.
+     * Keyed by KPI key. Each entry: ['series' => float[], 'delta_pct' => ?float, 'prior_label' => ?string].
+     * delta_pct null = no prior FY or prior was zero (no meaningful comparison).
+     */
+    public function getKpiMeta(): array
+    {
+        $agg = new FiscalYearAggregator();
+        $prior = $agg->priorYearKpis($this->fy);
+        $current = $this->getKpis();
+        $priorLabel = $prior['label'] ?? null;
+
+        $delta = function (?float $now, ?float $then) {
+            if ($then === null || abs($then) < 0.01) {
+                return null;
+            }
+            return (($now - $then) / abs($then)) * 100.0;
+        };
+
+        $meta = [];
+        $sparkableKeys = ['total_income', 'cash_outflow', 'cash_received', 'salary_paid', 'non_cash_outflow', 'total_outflow', 'net_pl'];
+        foreach ($sparkableKeys as $key) {
+            $meta[$key] = [
+                'series'      => $agg->monthlySeries($this->fy, $key),
+                'delta_pct'   => $prior ? $delta((float) $current[$key], (float) ($prior[$key] ?? 0)) : null,
+                'prior_label' => $priorLabel,
+            ];
+        }
+        return $meta;
+    }
+
     private function paidTotalForSlug(string $slug): float
     {
         return (float) \App\Models\Book\EntryPayment::query()

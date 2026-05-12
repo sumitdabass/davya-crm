@@ -37,26 +37,33 @@
                         ['key'=>'cumulative_pl',    'label'=>'Cumulative P/L',   'href'=>null, 'tooltip'=>'Net P/L + Carryover from prior FY'],
                     ];
                 @endphp
+                @php $kpiMeta = $this->getKpiMeta(); @endphp
                 @foreach ($tiles as $tile)
                     @php
                         $value = $kpis[$tile['key']];
-                        $valueClass = $value < 0 ? 'davya-books-kpi__value davya-books-kpi__value--danger' : 'davya-books-kpi__value';
+                        $meta  = $kpiMeta[$tile['key']] ?? null;
+                        $delta = $meta['delta_pct'] ?? null;
+                        $sparkSeries = $meta['series'] ?? [];
+                        $sparkColor = $value < 0
+                            ? 'var(--danger, #EF4444)'
+                            : ($delta !== null && $delta < 0 ? 'var(--warning, #F59E0B)' : 'var(--brand-600, #059669)');
                     @endphp
                     @if ($tile['href'])
                         <a href="{{ $tile['href'] }}" class="davya-books-kpi">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
                             <x-book-amount :v="$value" big :danger="$value < 0" />
+                            <x-book-kpi-meta :delta="$delta" :prior-label="$meta['prior_label'] ?? null" :series="$sparkSeries" :color="$sparkColor" />
                             @if (! empty($tile['hint']))
                                 <div class="davya-books-kpi__hint">{{ $tile['hint'] }}</div>
                             @endif
                         </a>
                     @else
-                        {{-- Non-href tiles (Net P/L / Cumulative P/L / Cash Received) open an explain modal --}}
                         <a class="davya-books-kpi" style="cursor:pointer;"
                            wire:click.prevent="mountAction('explainKpi', { key: '{{ $tile['key'] }}', label: '{{ $tile['label'] }}' })"
                            title="{{ $tile['tooltip'] ?? 'Click to see the math' }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
                             <x-book-amount :v="$value" big :danger="$value < 0" />
+                            <x-book-kpi-meta :delta="$delta" :prior-label="$meta['prior_label'] ?? null" :series="$sparkSeries" :color="$sparkColor" />
                             <div class="davya-books-kpi__hint">See math</div>
                         </a>
                     @endif

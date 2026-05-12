@@ -6,10 +6,7 @@
         $causers = $this->getCauserOptions();
     @endphp
 
-    <div class="davya-books-header">
-        <a href="{{ url('/admin/books') }}" class="davya-books-header__crumb">Books</a>
-        <h1 class="davya-books-header__title">Activity history</h1>
-    </div>
+    <x-book-crumbs title="Activity history" />
 
     <div class="davya-section-card">
         <div class="davya-section-card-title">Filters</div>
