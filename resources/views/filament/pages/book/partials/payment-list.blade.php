@@ -32,7 +32,9 @@
                             <td style="font-size:var(--fs-11); color:var(--text-muted);">{{ $p->createdBy?->email ?? '—' }}</td>
                             <td class="actions">
                                 <button type="button" wire:click="mountAction('editPayment', { id: {{ $p->id }} })" data-variant="primary">Edit</button>
-                                <button type="button" wire:click="mountAction('deletePayment', { id: {{ $p->id }} })" data-variant="danger">Delete</button>
+                                <button type="button"
+                                    onclick="if (confirm('Delete this payment? This cannot be undone.')) { $wire.mountAction('deletePayment', { id: {{ $p->id }} }); }"
+                                    data-variant="danger">Delete</button>
                             </td>
                         </tr>
                     @endforeach

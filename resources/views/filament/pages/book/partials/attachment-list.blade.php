@@ -12,7 +12,7 @@
                 </div>
             </div>
             <button type="button"
-                wire:click="mountAction('deleteDocument', { id: {{ $a->id }} })"
+                onclick="if (confirm('Delete this document? This cannot be undone.')) { $wire.mountAction('deleteDocument', { id: {{ $a->id }} }); }"
                 style="background:transparent; border:0; cursor:pointer; color:var(--danger); font-size:var(--fs-11); padding:4px 8px; border-radius:var(--r-sm);"
                 onmouseover="this.style.background='#FEE2E2';"
                 onmouseout="this.style.background='transparent';">Delete</button>

@@ -296,8 +296,9 @@ class SectionPage extends Page
 
     public function deleteDocumentAction(): Action
     {
+        // No requiresConfirmation() — called from inside viewDocuments modal.
+        // Confirmation is done via native confirm() in the blade button.
         return Action::make('deleteDocument')
-            ->requiresConfirmation()
             ->color('danger')
             ->action(function (array $arguments): void {
                 if ($this->fyModel->is_closed) {
@@ -306,6 +307,11 @@ class SectionPage extends Page
                 $attachment = \App\Models\Book\Attachment::findOrFail($arguments['id']);
                 \Illuminate\Support\Facades\Storage::disk($attachment->disk)->delete($attachment->path);
                 $attachment->delete();
+
+                \Filament\Notifications\Notification::make()
+                    ->title('Document deleted')
+                    ->success()
+                    ->send();
             });
     }
 
@@ -397,8 +403,11 @@ class SectionPage extends Page
 
     public function deletePaymentAction(): Action
     {
+        // No requiresConfirmation() — this action is called from inside the
+        // viewPayments modal, and Filament 3 doesn't stack a confirmation modal
+        // on top of an open one. The blade button does a native confirm() prompt
+        // before mounting this action; we just delete + flash a notification.
         return Action::make('deletePayment')
-            ->requiresConfirmation()
             ->color('danger')
             ->action(function (array $arguments): void {
                 $payment = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
@@ -407,6 +416,11 @@ class SectionPage extends Page
                     throw new \DomainException('FY is closed');
                 }
                 $payment->delete();
+
+                \Filament\Notifications\Notification::make()
+                    ->title('Payment deleted')
+                    ->success()
+                    ->send();
             });
     }
 
