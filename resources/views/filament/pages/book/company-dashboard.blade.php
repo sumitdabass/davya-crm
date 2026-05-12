@@ -45,7 +45,7 @@
                     @if ($tile['href'])
                         <a href="{{ $tile['href'] }}" class="davya-books-kpi">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
-                            <div class="{{ $valueClass }}">&#8377;{{ number_format($value, 2) }}</div>
+                            <x-book-amount :v="$value" big :danger="$value < 0" />
                             @if (! empty($tile['hint']))
                                 <div class="davya-books-kpi__hint">{{ $tile['hint'] }}</div>
                             @endif
@@ -56,7 +56,7 @@
                            wire:click.prevent="mountAction('explainKpi', { key: '{{ $tile['key'] }}', label: '{{ $tile['label'] }}' })"
                            title="{{ $tile['tooltip'] ?? 'Click to see the math' }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
-                            <div class="{{ $valueClass }}">&#8377;{{ number_format($value, 2) }}</div>
+                            <x-book-amount :v="$value" big :danger="$value < 0" />
                             <div class="davya-books-kpi__hint">See math</div>
                         </a>
                     @endif
@@ -74,7 +74,7 @@
                                 <span class="davya-books-badge davya-books-badge--warning">estimate</span>
                             @endif
                         </div>
-                        <div class="davya-books-kpi__value">&#8377;{{ number_format($kpis['carryover']['value'], 2) }}</div>
+                        <x-book-amount :v="$kpis['carryover']['value']" big />
                         <div class="davya-books-kpi__hint">View prior FY</div>
                     </a>
                 @else
@@ -86,7 +86,7 @@
                                 <span class="davya-books-badge davya-books-badge--warning">estimate</span>
                             @endif
                         </div>
-                        <div class="davya-books-kpi__value davya-books-kpi__value--muted">&#8377;{{ number_format($kpis['carryover']['value'], 2) }}</div>
+                        <x-book-amount :v="$kpis['carryover']['value']" big />
                         <div class="davya-books-kpi__hint">See math</div>
                     </a>
                 @endif
@@ -134,13 +134,13 @@
                                 };
                             @endphp
                             @if ($r['salary_total'] > 0)
-                                <div class="davya-books-roll__row"><span>{{ $amountLabel }}</span><strong>&#8377;{{ number_format($r['salary_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>{{ $amountLabel }}</span><x-book-amount :v="$r['salary_total']" /></div>
                             @endif
                             @if ($r['loan_total'] > 0)
-                                <div class="davya-books-roll__row"><span>{{ $loanLabel }}</span><strong>&#8377;{{ number_format($r['loan_total'], 0) }}</strong></div>
+                                <div class="davya-books-roll__row"><span>{{ $loanLabel }}</span><x-book-amount :v="$r['loan_total']" /></div>
                             @endif
-                            <div class="davya-books-roll__row"><span>{{ $movementLabel }}</span><strong>&#8377;{{ number_format($movementValue, 0) }}</strong></div>
-                            <div class="davya-books-roll__row"><span>{{ $balanceLabel }}</span><strong style="{{ $r['balance_total'] < 0 ? 'color:var(--danger);' : '' }}">&#8377;{{ number_format($r['balance_total'], 0) }}</strong></div>
+                            <div class="davya-books-roll__row"><span>{{ $movementLabel }}</span><x-book-amount :v="$movementValue" /></div>
+                            <div class="davya-books-roll__row"><span>{{ $balanceLabel }}</span><x-book-amount :v="$r['balance_total']" /></div>
                         </div>
                     </a>
                 @endforeach
@@ -162,10 +162,10 @@
                         @foreach ($assets as $a)
                             <tr>
                                 <td class="title"><a href="{{ url('/admin/books/'.$companySlug.'/'.$fyLabel.'/section/'.$a['section_slug']) }}">{{ $a['name'] }}</a></td>
-                                <td class="num">{{ number_format($a['original'], 2) }}</td>
-                                <td class="num">{{ number_format($a['this_year'], 2) }}</td>
-                                <td class="num">{{ number_format($a['accumulated'], 2) }}</td>
-                                <td class="num">{{ number_format($a['book_value'], 2) }}</td>
+                                <td class="num"><x-book-amount :v="$a['original']" /></td>
+                                <td class="num"><x-book-amount :v="$a['this_year']" /></td>
+                                <td class="num"><x-book-amount :v="$a['accumulated']" /></td>
+                                <td class="num"><x-book-amount :v="$a['book_value']" /></td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -204,12 +204,12 @@
                                     </span>
                                 </td>
                                 <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $l['interest_rate'] ?? '—' }}</td>
-                                <td class="num">{{ number_format($l['loan'], 2) }}</td>
+                                <td class="num"><x-book-amount :v="$l['loan']" /></td>
                                 <td class="num">
-                                    {{ number_format($l['kind'] === 'taken' ? $l['repaid'] : $l['received_back'], 2) }}
-                                    <div style="font-size:var(--fs-10); color:var(--text-muted); font-weight:400;">{{ $l['kind'] === 'taken' ? 'Repaid' : 'Received' }}</div>
+                                    <x-book-amount :v="$l['kind'] === 'taken' ? $l['repaid'] : $l['received_back']" />
+                                    <div style="font-size:var(--fs-10); color:var(--text-muted); font-weight:400; margin-top:4px;">{{ $l['kind'] === 'taken' ? 'Repaid' : 'Received' }}</div>
                                 </td>
-                                <td class="num"><strong>{{ number_format($l['outstanding'], 2) }}</strong></td>
+                                <td class="num"><x-book-amount :v="$l['outstanding']" /></td>
                             </tr>
                         @endforeach
                     </tbody>

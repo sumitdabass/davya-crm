@@ -23,16 +23,16 @@
                         <td>
                             <span class="davya-books-badge">{{ $r['method'] === 'wdv' ? 'WDV' : 'Straight Line' }}</span>
                         </td>
-                        <td class="num">{{ number_format($r['original'], 2) }}</td>
+                        <td class="num"><x-book-amount :v="$r['original']" /></td>
                         <td class="num">{{ number_format($r['percent'], 2) }}%</td>
-                        <td class="num"><strong>&#8377;{{ number_format($r['this_year'], 2) }}</strong></td>
+                        <td class="num"><x-book-amount :v="$r['this_year']" /></td>
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="4">Total Non-Cash Outflow</td>
-                    <td class="num"><strong>&#8377;{{ number_format($total, 2) }}</strong></td>
+                    <td class="num"><x-book-amount :v="$total" /></td>
                 </tr>
             </tfoot>
         </table>

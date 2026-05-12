@@ -29,14 +29,14 @@
                         <td>
                             <span class="davya-books-badge">{{ ucfirst($p->mode) }}</span>
                         </td>
-                        <td class="num"><strong>&#8377;{{ number_format((float) $p->amount, 2) }}</strong></td>
+                        <td class="num"><x-book-amount :v="(float)$p->amount" /></td>
                     </tr>
                 @endforeach
             </tbody>
             <tfoot>
                 <tr>
                     <td colspan="5">Total &mdash; {{ $label }}</td>
-                    <td class="num"><strong>&#8377;{{ number_format($total, 2) }}</strong></td>
+                    <td class="num"><x-book-amount :v="$total" /></td>
                 </tr>
             </tfoot>
         </table>

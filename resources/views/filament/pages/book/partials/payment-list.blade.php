@@ -26,7 +26,7 @@
                             <td>
                                 <span class="davya-books-badge">{{ ucfirst($p->mode) }}</span>
                             </td>
-                            <td class="num"><strong>&#8377; {{ number_format((float) $p->amount, 2) }}</strong></td>
+                            <td class="num"><x-book-amount :v="(float)$p->amount" /></td>
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->source ?? '—' }}</td>
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->reference ?? '—' }}</td>
                             <td style="font-size:var(--fs-11); color:var(--text-muted);">{{ $p->createdBy?->email ?? '—' }}</td>
@@ -50,9 +50,7 @@
                                 $outSum = $payments->where('direction', 'out')->sum('amount');
                                 $net = $inSum - $outSum;
                             @endphp
-                            <strong style="color:{{ $net >= 0 ? 'var(--brand-700)' : 'var(--danger)' }};">
-                                &#8377; {{ number_format($net, 2) }}
-                            </strong>
+                            <x-book-amount :v="$net" :danger="$net < 0" />
                         </td>
                         <td colspan="4"></td>
                     </tr>

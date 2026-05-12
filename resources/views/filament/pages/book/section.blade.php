@@ -62,13 +62,13 @@
                             <td class="title">{{ $e->title }}</td>
                             @if (in_array('salary',$cols))
                                 <td class="num">
-                                    {{ number_format((float)$e->salary_amount, 2) }}
+                                    <x-book-amount :v="(float)$e->salary_amount" />
                                     @if ($e->frequency !== 'one_time')
-                                        <div style="font-size:var(--fs-10); color:var(--text-muted); font-weight:400;">{{ \App\Models\Book\Entry::FREQUENCIES[$e->frequency] }} &middot; ann &#8377;{{ number_format($e->annualized_salary_amount, 0) }}</div>
+                                        <div style="font-size:var(--fs-10); color:var(--text-muted); font-weight:400; margin-top:4px;">{{ \App\Models\Book\Entry::FREQUENCIES[$e->frequency] }} &middot; ann &#8377;{{ number_format($e->annualized_salary_amount, 0) }}</div>
                                     @endif
                                 </td>
                             @endif
-                            @if (in_array('loan',$cols))<td class="num">{{ number_format((float)$e->loan_amount, 2) }}</td>@endif
+                            @if (in_array('loan',$cols))<td class="num"><x-book-amount :v="(float)$e->loan_amount" /></td>@endif
                             @if ($isLoanSection)<td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $e->interest_rate ?? '—' }}</td>@endif
                             @if ($isLoanSection)
                                 <td style="font-size:var(--fs-12); color:var(--text-sub); white-space:nowrap;">
@@ -84,23 +84,23 @@
                                     @endif
                                 </td>
                             @endif
-                            @if (in_array('paid',$cols))<td class="num">{{ number_format((float)$e->paid, 2) }}</td>@endif
-                            @if (in_array('received_back',$cols))<td class="num">{{ number_format((float)$e->received_back, 2) }}</td>@endif
-                            @if (in_array('repaid',$cols))<td class="num">{{ number_format((float)$e->repaid, 2) }}</td>@endif
-                            @if (in_array('balance',$cols))<td class="num">{{ number_format((float)$e->balance, 2) }}</td>@endif
-                            @if (in_array('loan_outstanding',$cols))<td class="num">{{ number_format((float)$e->loan_outstanding, 2) }}</td>@endif
-                            @if (in_array('loan_outstanding_taken',$cols))<td class="num">{{ number_format((float)$e->loan_outstanding_taken, 2) }}</td>@endif
+                            @if (in_array('paid',$cols))<td class="num"><x-book-amount :v="(float)$e->paid" /></td>@endif
+                            @if (in_array('received_back',$cols))<td class="num"><x-book-amount :v="(float)$e->received_back" /></td>@endif
+                            @if (in_array('repaid',$cols))<td class="num"><x-book-amount :v="(float)$e->repaid" /></td>@endif
+                            @if (in_array('balance',$cols))<td class="num"><x-book-amount :v="(float)$e->balance" /></td>@endif
+                            @if (in_array('loan_outstanding',$cols))<td class="num"><x-book-amount :v="(float)$e->loan_outstanding" /></td>@endif
+                            @if (in_array('loan_outstanding_taken',$cols))<td class="num"><x-book-amount :v="(float)$e->loan_outstanding_taken" /></td>@endif
                             @if ($isAssetSection)
                                 @php
                                     $a = $assetsByEntry[$e->id] ?? null;
                                 @endphp
                                 @if ($a)
-                                    <td class="num">{{ number_format((float)$a->original_value, 0) }}</td>
+                                    <td class="num"><x-book-amount :v="(float)$a->original_value" /></td>
                                     <td style="font-size:var(--fs-11); color:var(--text-sub); white-space:nowrap;">
                                         {{ rtrim(rtrim(number_format((float)$a->dep_percent,2),'0'),'.') }}% · {{ $a->method === 'wdv' ? 'WDV' : 'SL' }} · {{ $a->dep_years }}y
                                     </td>
-                                    <td class="num">{{ number_format((float)$assetCalc->yearlyDepFor($a, $fyModel), 0) }}</td>
-                                    <td class="num">{{ number_format((float)$assetCalc->bookValueAtEndOf($a, $fyModel), 0) }}</td>
+                                    <td class="num"><x-book-amount :v="(float)$assetCalc->yearlyDepFor($a, $fyModel)" /></td>
+                                    <td class="num"><x-book-amount :v="(float)$assetCalc->bookValueAtEndOf($a, $fyModel)" /></td>
                                 @else
                                     <td colspan="4" style="color:var(--danger); font-size:var(--fs-11); text-align:center;">No asset record &mdash; click Edit to set depreciation.</td>
                                 @endif
