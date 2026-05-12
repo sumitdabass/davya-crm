@@ -33,7 +33,7 @@
                 <thead><tr>
                     <th style="width:32px;">#</th>
                     <th>Title</th>
-                    @if (in_array('salary',$cols))<th class="num">Salary</th>@endif
+                    @if (in_array('salary',$cols))<th class="num">{{ $sectionModel->periodicAmountLabel() }}</th>@endif
                     @if (in_array('loan',$cols))<th class="num">{{ $loanLabel }}</th>@endif
                     @if ($isLoanSection)<th>Interest</th>@endif
                     @if ($isLoanSection)<th>EMI · Tenure</th>@endif

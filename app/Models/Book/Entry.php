@@ -128,10 +128,14 @@ class Entry extends Model
 
     public function getBalanceAttribute(): string
     {
-        return (string) (
-            (float) $this->salary_amount + (float) $this->loan_amount
-            - (float) $this->paid - (float) $this->received_back
-        );
+        $obligation = (float) $this->salary_amount + (float) $this->loan_amount;
+        // Rent/expense/receipt entries carry no upfront obligation — paid is
+        // just the expense recorded, so balance is zero, not -paid.
+        if ($obligation == 0.0) {
+            return '0';
+        }
+
+        return (string) ($obligation - (float) $this->paid - (float) $this->received_back);
     }
 
     public function getRepaidAttribute(): string

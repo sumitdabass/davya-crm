@@ -17,11 +17,23 @@ class Section extends Model
         'salary' => ['salary', 'paid', 'balance'],
         'loan' => ['loan', 'received_back', 'loan_outstanding'],
         'loans_taken' => ['loan', 'repaid', 'loan_outstanding_taken'],
-        'rent' => ['paid'],
+        // Rent reuses the salary_amount column as "expected periodic amount" so
+        // we can compute balance = expected - paid (and surface a Rent amount field).
+        'rent' => ['salary', 'paid', 'balance'],
         'expense' => ['paid'],
         'asset' => ['original_value', 'this_year_dep', 'accumulated_dep', 'book_value'],
         'assets' => ['original_value', 'this_year_dep', 'accumulated_dep', 'book_value'],
     ];
+
+    /** Section-aware label for the salary_amount column. */
+    public function periodicAmountLabel(): string
+    {
+        return match ($this->slug) {
+            'rent' => 'Rent amount',
+            'salary' => 'Salary amount',
+            default => 'Amount',
+        };
+    }
 
     protected $table = 'book_sections';
 

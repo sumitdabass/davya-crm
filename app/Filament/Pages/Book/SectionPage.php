@@ -134,7 +134,11 @@ class SectionPage extends Page
         $form = [TextInput::make('title')->required()];
 
         if (in_array('salary', $cols, true)) {
-            $form[] = TextInput::make('salary_amount')->numeric()->default(0);
+            $form[] = TextInput::make('salary_amount')
+                ->label($this->sectionModel->periodicAmountLabel())
+                ->numeric()
+                ->default(0)
+                ->prefix('₹');
         }
         if (in_array('loan', $cols, true)) {
             $isTaken = $this->sectionModel->slug === 'loans_taken';
