@@ -2,9 +2,19 @@
     @php
         $cols = $this->getVisibleMoneyColumns();
         $entries = $this->getEntries();
-        $colsCount = 4 + (in_array('salary',$cols)?1:0) + (in_array('loan',$cols)?1:0) + (in_array('paid',$cols)?1:0) + (in_array('received_back',$cols)?1:0) + (in_array('repaid',$cols)?1:0) + (in_array('balance',$cols)?1:0) + (in_array('loan_outstanding',$cols)?1:0) + (in_array('loan_outstanding_taken',$cols)?1:0);
         $isLoanSection = in_array($sectionModel->slug, ['loan', 'loans_taken'], true);
         $loanLabel = $sectionModel->slug === 'loans_taken' ? 'Principal taken' : 'Principal lent';
+        $isAssetSection = $sectionModel->kind === 'asset';
+        $assetCalc = $isAssetSection ? new \App\Books\Services\DepreciationCalculator() : null;
+        $assetsByEntry = $isAssetSection
+            ? \App\Models\Book\Asset::whereIn('entry_id', $entries->pluck('id'))->get()->keyBy('entry_id')
+            : collect();
+        $colsCount = 4
+            + (in_array('salary',$cols)?1:0) + (in_array('loan',$cols)?1:0)
+            + (in_array('paid',$cols)?1:0) + (in_array('received_back',$cols)?1:0)
+            + (in_array('repaid',$cols)?1:0) + (in_array('balance',$cols)?1:0)
+            + (in_array('loan_outstanding',$cols)?1:0) + (in_array('loan_outstanding_taken',$cols)?1:0)
+            + ($isAssetSection ? 4 : 0);
     @endphp
 
     <div class="davya-books-header">
@@ -33,6 +43,12 @@
                     @if (in_array('balance',$cols))<th class="num">Balance</th>@endif
                     @if (in_array('loan_outstanding',$cols))<th class="num">Outstanding (owed to us)</th>@endif
                     @if (in_array('loan_outstanding_taken',$cols))<th class="num">Outstanding (we owe)</th>@endif
+                    @if ($isAssetSection)
+                        <th class="num">Original</th>
+                        <th>% · Method · Life</th>
+                        <th class="num">This year dep</th>
+                        <th class="num">Book value</th>
+                    @endif
                     <th>Frequency</th>
                     <th>Payments</th>
                     <th>Docs</th>
@@ -74,6 +90,21 @@
                             @if (in_array('balance',$cols))<td class="num">{{ number_format((float)$e->balance, 2) }}</td>@endif
                             @if (in_array('loan_outstanding',$cols))<td class="num">{{ number_format((float)$e->loan_outstanding, 2) }}</td>@endif
                             @if (in_array('loan_outstanding_taken',$cols))<td class="num">{{ number_format((float)$e->loan_outstanding_taken, 2) }}</td>@endif
+                            @if ($isAssetSection)
+                                @php
+                                    $a = $assetsByEntry[$e->id] ?? null;
+                                @endphp
+                                @if ($a)
+                                    <td class="num">{{ number_format((float)$a->original_value, 0) }}</td>
+                                    <td style="font-size:var(--fs-11); color:var(--text-sub); white-space:nowrap;">
+                                        {{ rtrim(rtrim(number_format((float)$a->dep_percent,2),'0'),'.') }}% · {{ $a->method === 'wdv' ? 'WDV' : 'SL' }} · {{ $a->dep_years }}y
+                                    </td>
+                                    <td class="num">{{ number_format((float)$assetCalc->yearlyDepFor($a, $fyModel), 0) }}</td>
+                                    <td class="num">{{ number_format((float)$assetCalc->bookValueAtEndOf($a, $fyModel), 0) }}</td>
+                                @else
+                                    <td colspan="4" style="color:var(--danger); font-size:var(--fs-11); text-align:center;">No asset record &mdash; click Edit to set depreciation.</td>
+                                @endif
+                            @endif
                             <td>
                                 <span class="davya-books-badge {{ $e->frequency === 'one_time' ? '' : 'davya-books-badge--brand' }}">{{ \App\Models\Book\Entry::FREQUENCIES[$e->frequency] ?? $e->frequency }}</span>
                             </td>

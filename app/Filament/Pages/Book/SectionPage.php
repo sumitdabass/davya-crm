@@ -82,9 +82,55 @@ class SectionPage extends Page
         return $this->sectionModel->visible_money_columns;
     }
 
+    public function isAssetSection(): bool
+    {
+        return $this->sectionModel->kind === 'asset';
+    }
+
+    private function assetFormFields(): array
+    {
+        return [
+            TextInput::make('original_value')
+                ->label('Original value')
+                ->numeric()
+                ->required()
+                ->minValue(1)
+                ->prefix('₹')
+                ->helperText('Purchase price / capitalised cost.'),
+            TextInput::make('dep_percent')
+                ->label('Depreciation % per year')
+                ->numeric()
+                ->required()
+                ->minValue(0.01)
+                ->maxValue(100)
+                ->suffix('%')
+                ->helperText('e.g. 20 for a 5-year straight-line asset.'),
+            TextInput::make('dep_years')
+                ->label('Useful life (years)')
+                ->numeric()
+                ->required()
+                ->minValue(1)
+                ->maxValue(50)
+                ->helperText('Used to cap accumulated depreciation.'),
+            \Filament\Forms\Components\DatePicker::make('dep_started_at')
+                ->label('Depreciation start date')
+                ->required()
+                ->helperText('When the asset was put into use. Prorated within the FY.'),
+            Select::make('method')
+                ->label('Method')
+                ->required()
+                ->default('straight_line')
+                ->options([
+                    'straight_line' => 'Straight-line (same % every year)',
+                    'wdv' => 'Written-down value (declining balance)',
+                ]),
+        ];
+    }
+
     protected function getHeaderActions(): array
     {
         $cols = $this->getVisibleMoneyColumns();
+        $isAsset = $this->isAssetSection();
         $form = [TextInput::make('title')->required()];
 
         if (in_array('salary', $cols, true)) {
@@ -111,6 +157,9 @@ class SectionPage extends Page
                 ->maxValue(600)
                 ->helperText('Total number of monthly EMIs. e.g. 60 for a 5-year loan.');
         }
+        if ($isAsset) {
+            $form = array_merge($form, $this->assetFormFields());
+        }
         $form[] = Select::make('frequency')
             ->label('Frequency')
             ->options(Entry::FREQUENCIES)
@@ -123,11 +172,11 @@ class SectionPage extends Page
             Action::make('createEntry')
                 ->label('+ Add Row')
                 ->form($form)
-                ->action(function (array $data) {
+                ->action(function (array $data) use ($isAsset) {
                     if ($this->fyModel->is_closed) {
                         throw new \DomainException('FY is closed');
                     }
-                    Entry::create([
+                    $entry = Entry::create([
                         'company_id' => $this->companyModel->id,
                         'fiscal_year_id' => $this->fyModel->id,
                         'section_id' => $this->sectionModel->id,
@@ -140,6 +189,16 @@ class SectionPage extends Page
                         'frequency' => $data['frequency'] ?? 'one_time',
                         'notes' => $data['notes'] ?? null,
                     ]);
+                    if ($isAsset) {
+                        \App\Models\Book\Asset::create([
+                            'entry_id'        => $entry->id,
+                            'original_value'  => $data['original_value'],
+                            'dep_percent'     => $data['dep_percent'],
+                            'dep_years'       => $data['dep_years'],
+                            'dep_started_at'  => $data['dep_started_at'],
+                            'method'          => $data['method'] ?? 'straight_line',
+                        ]);
+                    }
                 }),
         ];
     }
@@ -150,8 +209,7 @@ class SectionPage extends Page
             ->label('Edit Entry')
             ->fillForm(function (array $arguments): array {
                 $entry = Entry::findOrFail($arguments['id']);
-
-                return [
+                $base = [
                     'title' => $entry->title,
                     'salary_amount' => (float) $entry->salary_amount,
                     'loan_amount' => (float) $entry->loan_amount,
@@ -161,9 +219,23 @@ class SectionPage extends Page
                     'frequency' => $entry->frequency ?? 'one_time',
                     'notes' => $entry->notes,
                 ];
+                if ($this->isAssetSection()) {
+                    $asset = \App\Models\Book\Asset::where('entry_id', $entry->id)->first();
+                    if ($asset) {
+                        $base += [
+                            'original_value' => (float) $asset->original_value,
+                            'dep_percent'    => (float) $asset->dep_percent,
+                            'dep_years'      => $asset->dep_years,
+                            'dep_started_at' => $asset->dep_started_at?->toDateString(),
+                            'method'         => $asset->method,
+                        ];
+                    }
+                }
+                return $base;
             })
             ->form(function (): array {
                 $cols = $this->getVisibleMoneyColumns();
+                $isAsset = $this->isAssetSection();
                 $form = [TextInput::make('title')->required()];
 
                 if (in_array('salary', $cols, true)) {
@@ -171,6 +243,14 @@ class SectionPage extends Page
                 }
                 if (in_array('loan', $cols, true)) {
                     $form[] = TextInput::make('loan_amount')->numeric()->default(0);
+                    $form[] = TextInput::make('interest_rate')
+                        ->label('Interest rate')
+                        ->placeholder('e.g. "8.5% pa" or "0% — interest-free"');
+                    $form[] = TextInput::make('emi_amount')->label('Monthly EMI')->numeric()->minValue(0)->prefix('₹');
+                    $form[] = TextInput::make('tenure_months')->label('Tenure (months)')->numeric()->minValue(1)->maxValue(600);
+                }
+                if ($isAsset) {
+                    $form = array_merge($form, $this->assetFormFields());
                 }
                 $form[] = Select::make('frequency')
                     ->label('Frequency')
@@ -197,6 +277,18 @@ class SectionPage extends Page
                     'frequency' => $data['frequency'] ?? 'one_time',
                     'notes' => $data['notes'] ?? null,
                 ]);
+                if ($this->isAssetSection() && isset($data['original_value'])) {
+                    \App\Models\Book\Asset::updateOrCreate(
+                        ['entry_id' => $entry->id],
+                        [
+                            'original_value' => $data['original_value'],
+                            'dep_percent'    => $data['dep_percent'],
+                            'dep_years'      => $data['dep_years'],
+                            'dep_started_at' => $data['dep_started_at'],
+                            'method'         => $data['method'] ?? 'straight_line',
+                        ]
+                    );
+                }
             });
     }
 
