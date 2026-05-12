@@ -239,7 +239,17 @@ class CompanyDashboard extends Page
             'cumulative_pl'       => $agg->netPl($this->fy) + $carry['value'],
             'loans_given_outstanding' => $this->loansOutstandingForSlug('loan'),
             'loans_taken_outstanding' => $this->loansOutstandingForSlug('loans_taken'),
+            'salary_paid'             => $this->paidTotalForSlug('salary'),
         ];
+    }
+
+    private function paidTotalForSlug(string $slug): float
+    {
+        return (float) \App\Models\Book\EntryPayment::query()
+            ->where('direction', 'out')
+            ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id)
+                ->whereHas('section', fn ($s) => $s->where('slug', $slug)))
+            ->sum('amount');
     }
 
     private function loansOutstandingForSlug(string $slug): float

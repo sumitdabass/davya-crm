@@ -27,6 +27,7 @@
                     $tiles = [
                         ['key'=>'total_income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
                         ['key'=>'cash_received',    'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of received-back / inbound payments (info-only — does not change Net P/L)'],
+                        ['key'=>'salary_paid',             'label'=>'Salary Paid',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/salary"),       'hint'=>'Total paid this FY'],
                         ['key'=>'loans_given_outstanding', 'label'=>'Loans Given',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loan"),         'hint'=>'Outstanding · owed to us'],
                         ['key'=>'loans_taken_outstanding', 'label'=>'Loans Taken',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loans_taken"), 'hint'=>'Outstanding · we owe'],
                         ['key'=>'cash_outflow',     'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
