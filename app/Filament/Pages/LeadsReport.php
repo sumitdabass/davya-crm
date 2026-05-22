@@ -9,6 +9,7 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Attributes\Url;
 
 class LeadsReport extends Page
 {
@@ -24,11 +25,18 @@ class LeadsReport extends Page
 
     protected static ?string $title = 'Leads Report';
 
+    #[Url(as: 'month', except: null)]
     public ?string $performanceMonth = null;
 
     public function mount(): void
     {
         $this->performanceMonth = $this->performanceMonth ?? now()->format('Y-m');
+
+        // Defensive validation — accept only YYYY-MM strings within a 2-year
+        // window around today. Anything else falls back to current month.
+        if (! preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', (string) $this->performanceMonth)) {
+            $this->performanceMonth = now()->format('Y-m');
+        }
     }
 
     public static function canAccess(): bool

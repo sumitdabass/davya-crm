@@ -11,6 +11,7 @@ use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\Url;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PaymentReport extends Page implements HasForms
@@ -33,31 +34,57 @@ class PaymentReport extends Page implements HasForms
 
     public ?array $applied = [];
 
+    #[Url(except: 'report')]
     public string $activeTab = 'report';
 
+    #[Url(as: 'owner', except: null)]
     public ?int $detailOwnerId = null;
 
+    #[Url(as: 'type', except: null)]
     public ?string $detailType = null;
+
+    #[Url(as: 'from', except: '')]
+    public string $urlFrom = '';
+
+    #[Url(as: 'to', except: '')]
+    public string $urlTo = '';
+
+    /** @var array<int,int> */
+    #[Url(as: 'owners', except: [])]
+    public array $urlOwnerIds = [];
 
     public function mount(): void
     {
-        $defaults = [
-            'from' => now('Asia/Kolkata')->startOfMonth()->toDateString(),
-            'to'   => now('Asia/Kolkata')->endOfDay()->toDateString(),
-            'owner_ids' => [],
-        ];
-        $this->form->fill($defaults);
-        $this->applied = $defaults;
+        $today = now('Asia/Kolkata');
+        $from = $this->urlFrom !== '' ? $this->urlFrom : $today->copy()->startOfMonth()->toDateString();
+        $to   = $this->urlTo   !== '' ? $this->urlTo   : $today->endOfDay()->toDateString();
 
-        $requested = request()->query('activeTab');
-        $this->activeTab = in_array($requested, ['report', 'today', 'detail'], true)
-            ? $requested
-            : 'report';
+        $this->applied = [
+            'from' => $from,
+            'to'   => $to,
+            'owner_ids' => $this->urlOwnerIds,
+        ];
+        $this->form->fill($this->applied);
+
+        // Validate URL-bound values that could be tampered with.
+        if (! in_array($this->activeTab, ['report', 'today', 'detail'], true)) {
+            $this->activeTab = 'report';
+        }
+        if ($this->detailType !== null && ! in_array($this->detailType, ['advance', 'partial', 'full', 'refund'], true)) {
+            $this->detailType = null;
+        }
     }
 
     public function apply(): void
     {
-        $this->applied = $this->form->getState();
+        $state = $this->form->getState();
+        $this->urlFrom = $state['from'] ?? '';
+        $this->urlTo   = $state['to']   ?? '';
+        $this->urlOwnerIds = array_values(array_filter(
+            (array) ($state['owner_ids'] ?? []),
+            fn ($v) => $v !== null && $v !== '',
+        ));
+        $this->applied = $state;
     }
 
     public function form(Form $form): Form

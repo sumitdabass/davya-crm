@@ -67,4 +67,30 @@ class LeadsReportPageTest extends TestCase
 
         $this->assertFalse(LeadsReport::canAccess());
     }
+
+    public function test_mount_hydrates_performance_month_from_query_param(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['month' => '2026-03'])
+            ->test(LeadsReport::class)
+            ->assertSet('performanceMonth', '2026-03');
+    }
+
+    public function test_mount_rejects_invalid_month_format(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['month' => 'bogus'])
+            ->test(LeadsReport::class)
+            ->assertSet('performanceMonth', now()->format('Y-m'));
+
+        Livewire::withQueryParams(['month' => '2026-13'])
+            ->test(LeadsReport::class)
+            ->assertSet('performanceMonth', now()->format('Y-m'));
+    }
 }

@@ -98,6 +98,50 @@ class PaymentReportTabsTest extends TestCase
         $this->assertArrayHasKey('byType', $report);
     }
 
+    public function test_mount_hydrates_from_and_to_from_query_params(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['from' => '2026-04-01', 'to' => '2026-04-30'])
+            ->test(PaymentReport::class)
+            ->assertSet('applied.from', '2026-04-01')
+            ->assertSet('applied.to', '2026-04-30');
+    }
+
+    public function test_apply_writes_form_state_to_url_props(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::test(PaymentReport::class)
+            ->set('data.from', '2026-03-01')
+            ->set('data.to', '2026-03-31')
+            ->set('data.owner_ids', [$sumit->id])
+            ->call('apply')
+            ->assertSet('urlFrom', '2026-03-01')
+            ->assertSet('urlTo', '2026-03-31')
+            ->assertSet('urlOwnerIds', [$sumit->id])
+            ->assertSet('applied.from', '2026-03-01');
+    }
+
+    public function test_mount_rejects_bogus_detail_type(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['type' => 'bogus'])
+            ->test(PaymentReport::class)
+            ->assertSet('detailType', null);
+
+        Livewire::withQueryParams(['type' => 'advance'])
+            ->test(PaymentReport::class)
+            ->assertSet('detailType', 'advance');
+    }
+
     public function test_today_csv_download_returns_streamed_response(): void
     {
         $this->seed();
