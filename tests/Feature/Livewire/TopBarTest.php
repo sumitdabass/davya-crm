@@ -51,6 +51,28 @@ class TopBarTest extends TestCase
             ->assertDontSee('Finance');
     }
 
+    public function test_rank_tab_points_to_landing_for_admin_and_rank_admin_roles(): void
+    {
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        Livewire::actingAs($admin)->test(TopBar::class)
+            ->assertSee('Rank')
+            ->assertSee('/admin/rank')
+            ->assertDontSee('"/admin/rank-lookup"');
+
+        Role::firstOrCreate(['name' => 'rank-admin', 'guard_name' => 'web']);
+        $rankUser = User::factory()->create();
+        $rankUser->assignRole('rank-admin');
+        $this->unblock($rankUser);
+        Livewire::actingAs($rankUser)->test(TopBar::class)
+            ->assertSee('Rank')
+            ->assertSee('/admin/rank');
+
+        // Head without rank-admin gets no Rank tab.
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first());
+        Livewire::actingAs($sonam)->test(TopBar::class)
+            ->assertDontSee('>Rank<');
+    }
+
     public function test_finance_tab_points_to_landing_for_admin_and_finance_roles(): void
     {
         $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());

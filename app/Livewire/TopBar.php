@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Filament\Pages\FinanceLanding;
+use App\Filament\Pages\RankLanding;
 use App\Filament\Pages\ReportsLanding;
 use Livewire\Component;
 
@@ -26,8 +27,8 @@ class TopBar extends Component
             $tabs[] = ['key' => 'finance', 'label' => 'Finance', 'url' => '/admin/finance', 'match' => '/admin/finance'];
         }
 
-        if ($user?->hasAnyRole(['admin', 'rank-admin'])) {
-            $tabs[] = ['key' => 'rank', 'label' => 'Rank', 'url' => '/admin/rank-lookup', 'match' => '/admin/rank'];
+        if (RankLanding::canAccess()) {
+            $tabs[] = ['key' => 'rank', 'label' => 'Rank', 'url' => '/admin/rank', 'match' => '/admin/rank'];
         }
 
         if (config('books.enabled') && $user?->isSuperAdmin()) {
