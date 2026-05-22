@@ -96,6 +96,23 @@ class InvestmentResourceTest extends TestCase
         $this->assertSame('in', $i->direction);
     }
 
+    public function test_can_view_any_gates_finance_resource_at_route_level(): void
+    {
+        $this->seed();
+        $this->assertFalse(\App\Filament\Resources\InvestmentResource::canViewAny(),
+            'guest must not see InvestmentResource');
+
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+        $this->assertTrue(\App\Filament\Resources\InvestmentResource::canViewAny(),
+            'admin can see InvestmentResource');
+
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->firstOrFail());
+        $this->actingAs($sonam);
+        $this->assertFalse(\App\Filament\Resources\InvestmentResource::canViewAny(),
+            'head without finance role cannot see InvestmentResource');
+    }
+
     public function test_admin_cannot_delete_investment(): void
     {
         // Policy intent (2026-05-02 sprint): finance deletes are super_admin-only.

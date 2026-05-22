@@ -27,13 +27,14 @@ class SettingsLanding extends Page
 
     public function getTiles(): array
     {
+        // Duplicate review + Activity audit moved to /admin/reports landing
+        // (where they belong semantically). Settings now keeps only true admin
+        // tasks: schema, pipeline rules, users, and lead intake.
         return [
             ['label' => 'Fields',           'icon' => 'heroicon-o-rectangle-stack',  'desc' => 'Student schema: sections, fields, required flags.', 'url' => '/admin/student-fields'],
             ['label' => 'Stages',           'icon' => 'heroicon-o-arrows-right-left','desc' => 'Pipeline stages, transition rules, Won/Lost.',       'url' => '/admin/pipeline-config'],
-            ['label' => 'Duplicate review', 'icon' => 'heroicon-o-document-duplicate','desc' => 'Resolve flagged duplicate leads.',                   'url' => '/admin/duplicate-flags'],
             ['label' => 'Users & roles',    'icon' => 'heroicon-o-users',            'desc' => 'Counsellors, heads, permissions.',                   'url' => '/admin/users'],
             ['label' => 'Lead import',      'icon' => 'heroicon-o-arrow-up-tray',    'desc' => 'CSV import with dedup + re-parent.',                 'url' => '/admin/lead-import'],
-            ['label' => 'Activity audit',   'icon' => 'heroicon-o-clipboard-document-list','desc' => 'Every password reveal, field change, stage move.', 'url' => '/admin/activity-audit'],
         ];
     }
 }

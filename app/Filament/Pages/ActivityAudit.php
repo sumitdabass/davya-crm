@@ -36,28 +36,53 @@ class ActivityAudit extends Page implements HasForms, HasTable
         return auth()->user()?->hasRole('admin') ?? false;
     }
 
+    public static function resolveRecordUrl(Activity $record): ?string
+    {
+        if ($record->subject_id === null) {
+            return null;
+        }
+        if ($record->subject_type === \App\Models\Student::class) {
+            return \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record->subject_id]);
+        }
+        if ($record->subject_type === \App\Models\User::class) {
+            return \App\Filament\Resources\UserResource::getUrl('edit', ['record' => $record->subject_id]);
+        }
+        if ($record->subject_type === \App\Models\Payment::class) {
+            $studentId = \App\Models\Payment::query()->whereKey($record->subject_id)->value('student_id');
+            return $studentId
+                ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $studentId])
+                : null;
+        }
+        // Meeting rows link to the meeting's student so admins can dig into
+        // context without a separate Meeting page.
+        if ($record->subject_type === \App\Models\Meeting::class) {
+            $studentId = \App\Models\Meeting::query()->whereKey($record->subject_id)->value('student_id');
+            return $studentId
+                ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $studentId])
+                : null;
+        }
+        // EntryPayment rows link to the Books section page for context.
+        if ($record->subject_type === \App\Models\Book\EntryPayment::class) {
+            $payment = \App\Models\Book\EntryPayment::query()
+                ->whereKey($record->subject_id)
+                ->with('entry.section.company', 'entry.fiscalYear')
+                ->first();
+            if ($payment?->entry?->section?->company && $payment?->entry?->fiscalYear) {
+                return sprintf('/admin/books/%s/%s/section/%s',
+                    $payment->entry->section->company->slug,
+                    $payment->entry->fiscalYear->label,
+                    $payment->entry->section->slug,
+                );
+            }
+        }
+        return null;
+    }
+
     public function table(Table $table): Table
     {
         return $table
             ->query(fn (): Builder => Activity::query()->latest())
-            ->recordUrl(function (Activity $record): ?string {
-                if ($record->subject_id === null) {
-                    return null;
-                }
-                if ($record->subject_type === \App\Models\Student::class) {
-                    return \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $record->subject_id]);
-                }
-                if ($record->subject_type === \App\Models\User::class) {
-                    return \App\Filament\Resources\UserResource::getUrl('edit', ['record' => $record->subject_id]);
-                }
-                if ($record->subject_type === \App\Models\Payment::class) {
-                    $studentId = \App\Models\Payment::query()->whereKey($record->subject_id)->value('student_id');
-                    return $studentId
-                        ? \App\Filament\Resources\StudentResource::getUrl('edit', ['record' => $studentId])
-                        : null;
-                }
-                return null;
-            })
+            ->recordUrl(fn (Activity $record): ?string => self::resolveRecordUrl($record))
             ->columns([
                 TextColumn::make('created_at')->label('When')->since()
                     ->tooltip(fn ($record) => $record->created_at?->format('d M Y, H:i:s'))->sortable(),
@@ -77,9 +102,11 @@ class ActivityAudit extends Page implements HasForms, HasTable
             ->filters([
                 SelectFilter::make('subject_type')->label('Model')
                     ->options([
-                        'App\\Models\\Student' => 'Student',
-                        'App\\Models\\User'    => 'User',
-                        'App\\Models\\Payment' => 'Payment',
+                        'App\\Models\\Student'           => 'Student',
+                        'App\\Models\\User'              => 'User',
+                        'App\\Models\\Payment'           => 'Payment',
+                        'App\\Models\\Meeting'           => 'Meeting',
+                        'App\\Models\\Book\\EntryPayment' => 'Book payment',
                     ]),
                 SelectFilter::make('event')->options([
                     'created' => 'created',

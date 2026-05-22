@@ -95,6 +95,25 @@ class ExpenseResourceTest extends TestCase
         $this->assertSame('after', $e->description);
     }
 
+    public function test_can_view_any_gates_finance_resource_at_route_level(): void
+    {
+        // Defense-in-depth: ExpenseResource::canViewAny now delegates to the
+        // policy, so even discovering the resource requires admin/finance.
+        $this->seed();
+        $this->assertFalse(\App\Filament\Resources\ExpenseResource::canViewAny(),
+            'guest must not see ExpenseResource');
+
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+        $this->assertTrue(\App\Filament\Resources\ExpenseResource::canViewAny(),
+            'admin can see ExpenseResource');
+
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->firstOrFail());
+        $this->actingAs($sonam);
+        $this->assertFalse(\App\Filament\Resources\ExpenseResource::canViewAny(),
+            'head without finance role cannot see ExpenseResource');
+    }
+
     public function test_admin_cannot_delete_expense(): void
     {
         // Policy intent (2026-05-02 sprint): finance deletes are super_admin-only.

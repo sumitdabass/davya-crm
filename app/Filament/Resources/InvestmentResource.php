@@ -22,6 +22,11 @@ class InvestmentResource extends Resource
 
     protected static ?int $navigationSort = 20;
 
+    public static function canViewAny(): bool
+    {
+        return auth()->user()?->can('viewAny', Investment::class) ?? false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form->schema([
