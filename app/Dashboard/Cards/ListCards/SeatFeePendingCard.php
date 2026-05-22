@@ -22,7 +22,7 @@ class SeatFeePendingCard implements Card
     public function drillDown(User $viewer): ?DrillDownPayload { return null; }
     public function viewAllHref(User $viewer): ?string
     {
-        return route('filament.admin.resources.students.index').'?tableFilters[seat_fee_pending][isActive]=1';
+        return url(\App\Filters\FilterKeys::studentsListUrl(\App\Filters\FilterKeys::SEAT_FEE_PENDING));
     }
     public function isAvailableFor(User $viewer): bool { return true; }
 }

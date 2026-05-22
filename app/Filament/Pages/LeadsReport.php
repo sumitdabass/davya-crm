@@ -86,6 +86,52 @@ class LeadsReport extends Page
     }
 
     /**
+     * 30-day daily cumulative count of past-capture leads (i.e. students no
+     * longer in 'Lead Captured' stage) + delta vs the preceding 30-day window.
+     * Feeds the sparkline on the Total tile.
+     *
+     * @return array{series: list<float>, delta_pct: ?float, prior_label: string}
+     */
+    public function getPastCaptureSpark(): array
+    {
+        $tz = 'Asia/Kolkata';
+        $end = now($tz)->endOfDay();
+        $windowDays = 30;
+
+        $currentStart = $end->copy()->subDays($windowDays - 1)->startOfDay();
+        $priorEnd = $currentStart->copy()->subDay()->endOfDay();
+        $priorStart = $priorEnd->copy()->subDays($windowDays - 1)->startOfDay();
+
+        $countWindow = fn ($from, $to) => \App\Models\Student::query()
+            ->where('stage', '!=', 'Lead Captured')
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
+
+        // Daily cumulative series for the current window.
+        $series = [];
+        $running = 0;
+        for ($i = 0; $i < $windowDays; $i++) {
+            $dayStart = $currentStart->copy()->addDays($i)->startOfDay();
+            $dayEnd   = $dayStart->copy()->endOfDay();
+            $running += $countWindow($dayStart, $dayEnd);
+            $series[] = (float) $running;
+        }
+
+        $currentTotal = (float) end($series);
+        $priorTotal = (float) $countWindow($priorStart, $priorEnd);
+
+        $delta = $priorTotal > 0
+            ? round((($currentTotal - $priorTotal) / $priorTotal) * 100, 1)
+            : null;
+
+        return [
+            'series' => $series,
+            'delta_pct' => $delta,
+            'prior_label' => $priorStart->format('d M').'–'.$priorEnd->format('d M'),
+        ];
+    }
+
+    /**
      * @return array{rows: list<array<string,mixed>>, periodStart: string, periodEnd: string}
      */
     public function getPerformanceReport(): array

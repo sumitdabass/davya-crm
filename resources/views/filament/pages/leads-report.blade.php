@@ -16,6 +16,7 @@
         Counts exclude students still in the <strong>Lead Captured</strong> stage, showing only leads that have progressed past initial capture.
     </p>
 
+    @php $spark = $this->getPastCaptureSpark(); @endphp
     <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
         <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
             class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
@@ -23,6 +24,7 @@
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['past_capture'] }}
             </div>
+            <x-book-kpi-meta :delta="$spark['delta_pct']" :prior-label="$spark['prior_label']" :series="$spark['series']" />
         </a>
         <div class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
             <div class="text-xs text-gray-500 dark:text-gray-400">Owners with activity</div>

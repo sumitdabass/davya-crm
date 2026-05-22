@@ -22,7 +22,7 @@ class StuckLeadsCard implements Card
     public function drillDown(User $viewer): ?DrillDownPayload { return null; }
     public function viewAllHref(User $viewer): ?string
     {
-        return route('filament.admin.resources.students.index').'?tableFilters[stuck][isActive]=1';
+        return url(\App\Filters\FilterKeys::studentsListUrl(\App\Filters\FilterKeys::STUCK));
     }
     public function isAvailableFor(User $viewer): bool { return true; }
 }

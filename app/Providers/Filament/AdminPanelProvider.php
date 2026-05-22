@@ -89,6 +89,16 @@ class AdminPanelProvider extends PanelProvider
                         window.__davyaInstallPrompt = null;
                     });
 
+                    // Apply persisted density preference before first paint.
+                    try {
+                        if (localStorage.getItem('davya-density') === 'compact') {
+                            document.documentElement.classList.add('davya-compact');
+                            document.addEventListener('DOMContentLoaded', () => {
+                                document.body && document.body.classList.add('davya-compact');
+                            });
+                        }
+                    } catch (e) {}
+
                     if ('serviceWorker' in navigator) {
                         window.addEventListener('load', () => {
                             navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});

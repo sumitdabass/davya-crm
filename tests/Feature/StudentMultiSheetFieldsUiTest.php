@@ -53,8 +53,12 @@ class StudentMultiSheetFieldsUiTest extends TestCase
         $this->assertSame('Haryana', $student->state);
     }
 
-    public function test_create_form_accepts_null_name(): void
+    public function test_create_form_requires_name_for_manual_entry(): void
     {
+        // The Filament admin form requires name (TextInput->required()) so
+        // manual entries always have a name. Null-name leads still come in via
+        // the n8n /api/leads webhook bypassing this gate — that path is tested
+        // elsewhere and is not what the admin form is responsible for.
         Livewire::test(CreateStudent::class)
             ->fillForm([
                 'phone'         => '9100000778',
@@ -63,12 +67,13 @@ class StudentMultiSheetFieldsUiTest extends TestCase
                 'lead_source'   => 'Sumit',
                 'stage'         => 'Lead Captured',
                 'preference_r1' => 'ABC College',
+                // name intentionally omitted — should trigger required validation.
             ])
             ->call('create')
-            ->assertHasNoFormErrors();
+            ->assertHasFormErrors(['name']);
 
-        $student = Student::where('phone', '9100000778')->firstOrFail();
-        $this->assertNull($student->name);
+        $this->assertNull(Student::where('phone', '9100000778')->first(),
+            'student must not be created when name is missing');
     }
 
     public function test_edit_form_loads_rank_state_email(): void

@@ -717,3 +717,60 @@ a.davya-books-kpi .davya-books-kpi__hint::after {
     .davya-books-table thead th,
     .davya-books-table tbody td { padding: 8px 10px; font-size: var(--fs-12); }
 }
+
+/* Compact-density mode — toggled from user menu, persisted in localStorage. */
+body.davya-compact .fi-ta-table tbody td,
+body.davya-compact .fi-ta-table thead th,
+body.davya-compact .davya-books-table tbody td,
+body.davya-compact .davya-books-table thead th {
+    padding-top: 4px;
+    padding-bottom: 4px;
+}
+body.davya-compact .fi-ta-row {
+    line-height: 1.25;
+}
+body.davya-compact .davya-books-roll__rows {
+    gap: 1px;
+}
+
+/* Mobile column-shedding — hide non-critical columns on phones so the most
+ * important data (name, owner, key amounts) stays visible without horizontal
+ * scrolling. Applies to Filament resource tables and the LeadsReport tables.
+ */
+@media (max-width: 640px) {
+    /* StudentResource list: keep name + stage + amounts; hide rank/state/email/updated. */
+    .fi-resource-students .fi-ta-table th.fi-table-cell-rank,
+    .fi-resource-students .fi-ta-table td.fi-table-cell-rank,
+    .fi-resource-students .fi-ta-table th.fi-table-cell-state,
+    .fi-resource-students .fi-ta-table td.fi-table-cell-state,
+    .fi-resource-students .fi-ta-table th.fi-table-cell-email,
+    .fi-resource-students .fi-ta-table td.fi-table-cell-email,
+    .fi-resource-students .fi-ta-table th.fi-table-cell-updated_at,
+    .fi-resource-students .fi-ta-table td.fi-table-cell-updated_at {
+        display: none;
+    }
+    /* LeadsReport By-owner/By-referrer tables — drop the small Closed column on phones. */
+    .fi-page-leads-report table th:nth-child(4),
+    .fi-page-leads-report table td:nth-child(4) {
+        display: none;
+    }
+}
+
+/* Sticky form rails on Student create/edit — keep the Stage section + the
+ * bottom Save row visible while the user scrolls through the long tabbed form.
+ */
+.fi-resource-students .fi-fo-section.davya-section:first-of-type {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: #FAFBFC;
+}
+.fi-resource-students .fi-form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding-top: var(--s-3);
+    margin-top: var(--s-3);
+}

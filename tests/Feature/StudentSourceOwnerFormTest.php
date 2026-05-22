@@ -38,8 +38,13 @@ class StudentSourceOwnerFormTest extends TestCase
         $this->assertFalse($ownerIds->contains($nisha->id), 'members must not appear as owners');
     }
 
-    public function test_referrer_name_saves_as_plain_text(): void
+    public function test_referrer_id_is_required_post_2026_05_02_refactor(): void
     {
+        // Replaces the old test_referrer_name_saves_as_plain_text — that test
+        // predates the 2026-05-02 sprint which removed the free-text
+        // referrer_name TextInput from the admin form and replaced it with a
+        // required referrer_id Select (Lead Owner). The referrer_name DB column
+        // still exists but it's no longer driven by the manual form.
         $this->seed();
         $sumit = User::where('email', 'sumit@davya.local')->first();
         $sumit->update(['must_change_password' => false]);
@@ -50,16 +55,12 @@ class StudentSourceOwnerFormTest extends TestCase
                 'phone' => '9999900100',
                 'name' => 'Test',
                 'owner_id' => $sumit->id,
-                'referrer_name' => 'Rahul Sharma (2023)',
-                'lead_source' => $sumit->name,
+                // referrer_id intentionally omitted — should fail validation.
+                'lead_source' => 'Sumit',
                 'stage' => 'Lead Captured',
                 'preference_r1' => 'IPEM',
             ])
             ->call('create')
-            ->assertHasNoFormErrors();
-
-        $s = Student::where('phone', '9999900100')->first();
-        $this->assertSame('Rahul Sharma (2023)', $s->referrer_name);
-        $this->assertNull($s->referrer_id, 'referrer_id should not be set from the form');
+            ->assertHasFormErrors(['referrer_id']);
     }
 }

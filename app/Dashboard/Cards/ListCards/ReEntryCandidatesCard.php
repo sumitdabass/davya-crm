@@ -22,7 +22,7 @@ class ReEntryCandidatesCard implements Card
     public function drillDown(User $viewer): ?DrillDownPayload { return null; }
     public function viewAllHref(User $viewer): ?string
     {
-        return route('filament.admin.resources.students.index').'?tableFilters[re_entry][isActive]=1';
+        return url(\App\Filters\FilterKeys::studentsListUrl(\App\Filters\FilterKeys::RE_ENTRY));
     }
     public function isAvailableFor(User $viewer): bool { return true; }
 }

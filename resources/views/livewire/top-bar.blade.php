@@ -57,6 +57,21 @@
                 Toggle dark mode
             </button>
             <button type="button"
+                    @click="
+                        const html = document.documentElement;
+                        const body = document.body;
+                        const on = !html.classList.contains('davya-compact');
+                        html.classList.toggle('davya-compact', on);
+                        body && body.classList.toggle('davya-compact', on);
+                        try { localStorage.setItem('davya-density', on ? 'compact' : 'comfortable'); } catch(e) {}
+                        open = false;
+                    "
+                    style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; width: 100%; text-align: left; border: 0; background: transparent; color: var(--text); font-size: var(--fs-12); cursor: pointer;"
+                    onmouseover="this.style.background='var(--border-muted)'" onmouseout="this.style.background=''">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+                Toggle compact rows
+            </button>
+            <button type="button"
                     x-data="{
                         install() {
                             const p = window.__davyaInstallPrompt;

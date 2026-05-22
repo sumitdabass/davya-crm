@@ -27,6 +27,7 @@
         $strokeColor = $color ?? 'var(--brand-600, #059669)';
         $fillColor = $fill ?? 'none';
         $polyline = implode(' ', $coords);
+        $area = null;
         if ($fillColor !== 'none') {
             $first = explode(',', $coords[0]);
             $last = explode(',', $coords[$n - 1]);
