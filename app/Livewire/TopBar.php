@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Filament\Pages\FinanceLanding;
 use App\Filament\Pages\ReportsLanding;
 use Livewire\Component;
 
@@ -21,8 +22,8 @@ class TopBar extends Component
             $tabs[] = ['key' => 'reports', 'label' => 'Reports', 'url' => '/admin/reports', 'match' => '/admin/reports'];
         }
 
-        if ($user?->hasAnyRole(['admin', 'finance'])) {
-            $tabs[] = ['key' => 'finance', 'label' => 'Finance', 'url' => '/admin/expenses', 'match' => '/admin/expenses'];
+        if (FinanceLanding::canAccess()) {
+            $tabs[] = ['key' => 'finance', 'label' => 'Finance', 'url' => '/admin/finance', 'match' => '/admin/finance'];
         }
 
         if ($user?->hasAnyRole(['admin', 'rank-admin'])) {

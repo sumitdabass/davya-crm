@@ -51,6 +51,23 @@ class TopBarTest extends TestCase
             ->assertDontSee('Finance');
     }
 
+    public function test_finance_tab_points_to_landing_for_admin_and_finance_roles(): void
+    {
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        Livewire::actingAs($admin)->test(TopBar::class)
+            ->assertSee('Finance')
+            ->assertSee('/admin/finance')
+            ->assertDontSee('"/admin/expenses"');
+
+        Role::firstOrCreate(['name' => 'finance', 'guard_name' => 'web']);
+        $financeUser = User::factory()->create();
+        $financeUser->assignRole('finance');
+        $this->unblock($financeUser);
+        Livewire::actingAs($financeUser)->test(TopBar::class)
+            ->assertSee('Finance')
+            ->assertSee('/admin/finance');
+    }
+
     public function test_reports_tab_points_to_landing_for_any_report_access(): void
     {
         // Reports tab now always routes to /admin/reports (the landing).
