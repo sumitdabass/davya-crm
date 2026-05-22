@@ -49,6 +49,11 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Gate::policy(
+            \App\Models\AiConversation::class,
+            \App\Policies\AiConversationPolicy::class,
+        );
+
         Event::listen(Login::class, [HandleAuthEvents::class, 'handleLogin']);
         Event::listen(Logout::class, [HandleAuthEvents::class, 'handleLogout']);
         Event::listen(Failed::class, [HandleAuthEvents::class, 'handleFailed']);
