@@ -100,6 +100,13 @@ class CompanyDashboard extends Page
                             'cheque' => 'Cheque',
                             'other' => 'Other',
                         ]),
+                    \Filament\Forms\Components\TextInput::make('reference')
+                        ->label('Reference')
+                        ->placeholder('e.g. cheque no., UTR, txn id'),
+                    \Filament\Forms\Components\Textarea::make('notes')
+                        ->label('Notes')
+                        ->rows(2)
+                        ->placeholder('Optional — any context that helps later reconciliation'),
                 ])
                 ->action(function (array $data): void {
                     if ($this->fy->is_closed) {
@@ -130,6 +137,8 @@ class CompanyDashboard extends Page
                         'direction' => 'in',
                         'mode' => $data['mode'] ?? 'bank',
                         'source' => $source,
+                        'reference' => $data['reference'] ?? null,
+                        'notes' => $data['notes'] ?? null,
                         'created_by' => auth()->id(),
                     ]);
                 }),

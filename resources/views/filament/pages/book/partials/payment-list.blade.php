@@ -39,6 +39,13 @@
                                     data-variant="danger">Delete</button>
                             </td>
                         </tr>
+                        @if (! empty($p->notes))
+                            <tr class="davya-books-payment-notes">
+                                <td colspan="8" style="padding-top:0; padding-bottom:8px; color:var(--text-sub); font-size:var(--fs-12); font-style:italic; border-top:none;">
+                                    <span style="color:var(--text-muted); font-style:normal; font-weight:500; margin-right:4px;">Note:</span>{{ $p->notes }}
+                                </td>
+                            </tr>
+                        @endif
                     @endforeach
                 </tbody>
                 <tfoot>

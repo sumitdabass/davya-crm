@@ -87,6 +87,26 @@ class CashReceivedActionTest extends TestCase
         $this->assertSame('Sumit Loan back', $payment->source);
     }
 
+    public function test_action_persists_notes_and_reference_on_payment(): void
+    {
+        [$c, $fy] = $this->makeCompanyAndFy();
+
+        Livewire::test(CompanyDashboard::class, ['company' => 'a', 'fy' => '2025-26'])
+            ->callAction('cashReceived', data: [
+                'source' => 'Kyne loan back',
+                'amount' => 400000,
+                'occurred_on' => '2026-05-22',
+                'mode' => 'cash',
+                'reference' => 'TXN-9001',
+                'notes' => 'Partial repayment against original ₹6 lakh principal',
+            ])
+            ->assertHasNoActionErrors();
+
+        $payment = EntryPayment::latest('id')->first();
+        $this->assertSame('TXN-9001', $payment->reference);
+        $this->assertSame('Partial repayment against original ₹6 lakh principal', $payment->notes);
+    }
+
     public function test_action_reuses_existing_receipts_section(): void
     {
         [$c, $fy] = $this->makeCompanyAndFy();
