@@ -17,12 +17,14 @@ class GroqProvider implements LlmProvider
     public function chat(array $messages, array $tools = []): LlmResponse
     {
         $payload = [
-            'model'    => $this->model,
-            'messages' => $messages,
+            'model'       => $this->model,
+            'messages'    => $messages,
+            'temperature' => 0.2,
         ];
         if ($tools !== []) {
             $payload['tools'] = $tools;
             $payload['tool_choice'] = 'auto';
+            $payload['parallel_tool_calls'] = false;
         }
 
         $start = microtime(true);
