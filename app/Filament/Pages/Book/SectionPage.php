@@ -442,9 +442,14 @@ class SectionPage extends Page
             ->modalHeading(fn (array $arguments) => 'Record payment — '
                 .\App\Models\Book\Entry::find($arguments['id'])->title)
             ->fillForm(function (array $arguments): array {
-                $entry = \App\Models\Book\Entry::findOrFail($arguments['id']);
-                $defaultDirection = ((float) $entry->loan_amount > 0 && (float) $entry->salary_amount == 0)
-                    ? 'in' : 'out';
+                // Default direction is driven by the section's slug, not the
+                // entry's amount fields — a Loans Given row with a yet-to-be-
+                // recorded principal still needs payments to default to 'in'
+                // (money coming back from the borrower).
+                $defaultDirection = match ($this->sectionModel->slug) {
+                    'loan', 'receipts' => 'in',
+                    default            => 'out',
+                };
 
                 return [
                     'direction' => $defaultDirection,

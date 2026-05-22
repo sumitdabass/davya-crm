@@ -193,6 +193,56 @@ class EntryPaymentUITest extends TestCase
         $this->assertSame('New Source', $p->fresh()->source);
     }
 
+    public function test_add_payment_default_direction_is_in_on_loans_given_section(): void
+    {
+        // Regression: previously the default direction was computed from
+        // entry.loan_amount, so a Loans Given row with principal=0 would
+        // default to 'out'. Now driven by section.kind — should always be 'in'
+        // on a Loans Given (slug='loan') section regardless of entry amount.
+        $c = Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'loan')->first();
+        $entry = Entry::create([
+            'company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Kyne',
+            'loan_amount' => 0, 'salary_amount' => 0,
+        ]);
+
+        Livewire::test(SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'loan'])
+            ->mountAction('addPayment', ['id' => $entry->id])
+            ->setActionData(['amount' => 1000, 'mode' => 'bank',
+                'occurred_on' => '2025-06-01'])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('in', $entry->fresh()->payments()->first()->direction);
+    }
+
+    public function test_add_payment_default_direction_is_out_on_loans_taken_section(): void
+    {
+        $c = Company::create(['name' => 'A', 'slug' => 'a']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $s = $c->sections()->where('slug', 'loans_taken')->first();
+        $entry = Entry::create([
+            'company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $s->id, 'title' => 'Bank Loan',
+            'loan_amount' => 500000,
+        ]);
+
+        Livewire::test(SectionPage::class,
+            ['company' => 'a', 'fy' => '2025-26', 'section' => 'loans_taken'])
+            ->mountAction('addPayment', ['id' => $entry->id])
+            ->setActionData(['amount' => 5000, 'mode' => 'bank',
+                'occurred_on' => '2025-06-01'])
+            ->callMountedAction()
+            ->assertHasNoActionErrors();
+
+        $this->assertSame('out', $entry->fresh()->payments()->first()->direction);
+    }
+
     public function test_edit_payment_blocked_when_fy_is_closed(): void
     {
         $c = \App\Models\Book\Company::create(['name' => 'A', 'slug' => 'a']);
