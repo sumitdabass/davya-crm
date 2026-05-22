@@ -26,12 +26,11 @@
     @if (auth()->user()?->can('use ai-agent'))
         <button type="button"
                 data-ai-drawer-trigger
-                class="davya-topbar-btn"
-                title="Knowledge agent"
-                onclick="document.dispatchEvent(new CustomEvent('ai-drawer:open'))"
-                style="border: 0; background: transparent; color: var(--text-sub); cursor: pointer; padding: 2px 4px; font-size: var(--fs-14); line-height: 1; display: flex; align-items: center;">
+                class="davya-ai-trigger"
+                title="Knowledge agent — ask about ipu.co.in"
+                onclick="window.dispatchEvent(new CustomEvent('ai-drawer:open'))">
             <span aria-hidden="true">&#10022;</span>
-            <span class="sr-only">Open AI assistant</span>
+            <span class="sr-only">Open knowledge agent</span>
         </button>
         <livewire:ai-assistant-drawer />
     @endif

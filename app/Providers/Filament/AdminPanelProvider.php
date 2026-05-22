@@ -67,6 +67,12 @@ class AdminPanelProvider extends PanelProvider
                 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
                 {{-- SortableJS: single global include for pipeline-config + kanban (+ future pages). --}}
                 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js" defer></script>
+                @if (auth()->user()?->can('use ai-agent'))
+                    {{-- Fraunces serif for the Knowledge Agent drawer identity moment --}}
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,500&display=swap">
+                @endif
                 @if (config('davyas.visual_v2'))
                     <link rel="stylesheet" href="{{ asset('css/tokens.css') }}?v={{ @filemtime(public_path('css/tokens.css')) ?: time() }}" id="davya-tokens">
                 @endif

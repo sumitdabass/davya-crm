@@ -51,11 +51,15 @@ class AiAssistantDrawer extends Component
         }
 
         // Optimistic UI: show the user turn immediately; AssistantService persists it.
-        $this->thread[] = ['role' => 'user', 'content' => $question];
+        $this->thread[] = ['role' => 'user', 'content' => $question, 'citations' => []];
 
         try {
             $msg = $svc->ask($conv, $question);
-            $this->thread[] = ['role' => 'assistant', 'content' => $msg->content];
+            $this->thread[] = [
+                'role'      => 'assistant',
+                'content'   => $msg->content,
+                'citations' => $msg->citations ?? [],
+            ];
         } catch (GroqException $e) {
             // Service already rolled back the user message in DB; drop optimistic row too.
             array_pop($this->thread);

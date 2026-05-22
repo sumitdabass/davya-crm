@@ -1,30 +1,85 @@
-<div class="davya-ai-drawer" x-data="{ open: $wire.entangle('open').defer ?? false }">
-    <div class="davya-ai-thread" style="max-height:60vh; overflow-y:auto; padding:1rem;">
-        @forelse ($thread as $m)
-            <div class="davya-ai-msg davya-ai-msg--{{ $m['role'] }}">
-                <div class="davya-ai-msg-role">{{ ucfirst($m['role']) }}</div>
-                <div class="davya-ai-msg-content">{!! nl2br(e($m['content'])) !!}</div>
+<div class="davya-ai-drawer"
+     x-data="{ open: false }"
+     x-on:ai-drawer:open.window="open = true; $nextTick(() => $refs.textarea && $refs.textarea.focus())"
+     x-on:keydown.escape.window="open = false">
+
+    <div class="davya-ai-backdrop" :data-open="open" x-on:click="open = false"></div>
+
+    <aside class="davya-ai-drawer-root"
+           :data-open="open"
+           role="dialog"
+           aria-label="Knowledge agent"
+           aria-modal="true">
+
+        <header class="davya-ai-head">
+            <div class="davya-ai-head-row">
+                <h2 class="davya-ai-title">Knowledge agent</h2>
+                <button type="button" class="davya-ai-close" x-on:click="open = false" aria-label="Close">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+                </button>
             </div>
-        @empty
-            <div class="davya-ai-empty">Ask a question about ipu.co.in admissions.</div>
-        @endforelse
+            <div class="davya-ai-sub">grounded in ipu.co.in</div>
+        </header>
 
-        @if ($busy)
-            <div class="davya-ai-busy" wire:loading.delay>Thinking…</div>
-        @endif
-        @if ($error)
-            <div class="davya-ai-error" role="alert">{{ $error }}</div>
-        @endif
-    </div>
+        <div class="davya-ai-thread" x-ref="thread">
+            @forelse ($thread as $m)
+                @php
+                    $content = $m['content'] ?? '';
+                    $cites   = $m['citations'] ?? [];
+                    // Strip the auto-appended Source line from the text (rendered as badges instead).
+                    $content = preg_replace('/\n*Source:.*$/s', '', $content);
+                    $content = trim($content);
+                @endphp
+                <div class="davya-ai-msg davya-ai-msg--{{ $m['role'] }}">
+                    <div class="davya-ai-role">{{ $m['role'] === 'user' ? 'You' : 'Assistant' }}</div>
+                    @if ($content !== '')
+                        <div class="davya-ai-text">{!! nl2br(e($content)) !!}</div>
+                    @endif
+                    @if (! empty($cites))
+                        <div class="davya-ai-cites">
+                            @foreach ($cites as $slug)
+                                <a class="davya-ai-cite"
+                                   href="https://ipu.co.in/{{ $slug }}"
+                                   target="_blank"
+                                   rel="noopener noreferrer">{{ $slug }}</a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <div class="davya-ai-empty">
+                    <div class="davya-ai-empty-mark" aria-hidden="true">✦</div>
+                    <div class="davya-ai-empty-line">What can I help you find?</div>
+                    <div class="davya-ai-empty-hint">ask about admissions, fees, hostels, cutoffs</div>
+                </div>
+            @endforelse
 
-    <form wire:submit.prevent="ask" class="davya-ai-form" style="display:flex; gap:.5rem; padding:1rem;">
-        <textarea wire:model.live="input"
-                  placeholder="e.g. BBA fee at VIPS-TC?"
-                  rows="2"
-                  style="flex:1; resize:vertical;"
-                  @keydown.cmd.enter="$wire.ask()"
-                  @keydown.ctrl.enter="$wire.ask()"></textarea>
-        <button type="submit" class="davya-action davya-action--solid" wire:loading.attr="disabled">Send</button>
-        <button type="button" class="davya-action davya-action--ghost-light" wire:click="newChat">New chat</button>
-    </form>
+            @if ($busy)
+                <div class="davya-ai-busy" wire:loading.delay.class.remove="is-hidden">reading the source…</div>
+            @endif
+
+            @if ($error)
+                <div class="davya-ai-error" role="alert">{{ $error }}</div>
+            @endif
+        </div>
+
+        <form class="davya-ai-foot" wire:submit.prevent="ask">
+            <textarea x-ref="textarea"
+                      class="davya-ai-textarea"
+                      wire:model.live.debounce.150ms="input"
+                      placeholder="BBA fee at VIPS-TC? MAIT hostel? cutoffs for AIDS?"
+                      rows="3"
+                      x-on:keydown.cmd.enter.prevent="$wire.ask()"
+                      x-on:keydown.ctrl.enter.prevent="$wire.ask()"></textarea>
+            <div class="davya-ai-foot-row">
+                <div class="davya-ai-hint"><kbd>⌘</kbd> <kbd>↵</kbd> to ask</div>
+                <div class="davya-ai-foot-actions">
+                    @if (! empty($thread))
+                        <button type="button" class="davya-ai-reset" wire:click="newChat">↻ new chat</button>
+                    @endif
+                    <button type="submit" class="davya-ai-send" wire:loading.attr="disabled">Ask</button>
+                </div>
+            </div>
+        </form>
+    </aside>
 </div>

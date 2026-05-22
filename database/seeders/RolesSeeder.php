@@ -14,11 +14,12 @@ class RolesSeeder extends Seeder
             Role::firstOrCreate(['name' => $role, 'guard_name' => 'web']);
         }
 
-        // Grant use ai-agent permission to admin role if it exists
+        // Grant `use ai-agent` to admin AND super_admin (super_admin role is created by its own
+        // migration in 2026_05_02_000300_create_super_admin_role, so it may exist independently).
         if (Permission::where('name', 'use ai-agent')->exists()) {
-            $adminRole = Role::where('name', 'admin')->first();
-            if ($adminRole) {
-                $adminRole->givePermissionTo('use ai-agent');
+            foreach (['admin', 'super_admin'] as $name) {
+                $role = Role::where('name', $name)->first();
+                $role?->givePermissionTo('use ai-agent');
             }
         }
     }
