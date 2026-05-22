@@ -515,6 +515,9 @@ class SectionPage extends Page
         return Action::make('viewPayments')
             ->modalHeading(fn (array $arguments) => 'Payments — '
                 .\App\Models\Book\Entry::find($arguments['id'])->title)
+            // Default Filament modal width (~2xl/672px) couldn't fit the 8-col
+            // payment table — Edit/Delete buttons overflowed off-screen.
+            ->modalWidth('7xl')
             ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
                 $entry = Entry::findOrFail($arguments['id']);
 

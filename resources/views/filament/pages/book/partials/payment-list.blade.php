@@ -29,7 +29,10 @@
                             <td class="num"><x-book-amount :v="(float)$p->amount" /></td>
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->source ?? '—' }}</td>
                             <td style="font-size:var(--fs-12); color:var(--text-sub);">{{ $p->reference ?? '—' }}</td>
-                            <td style="font-size:var(--fs-11); color:var(--text-muted);">{{ $p->createdBy?->email ?? '—' }}</td>
+                            <td style="font-size:var(--fs-11); color:var(--text-muted); white-space:nowrap;"
+                                @if ($p->createdBy?->email) title="{{ $p->createdBy->email }}" @endif>
+                                {{ $p->createdBy ? \Illuminate\Support\Str::before($p->createdBy->email, '@') : '—' }}
+                            </td>
                             <td class="actions">
                                 <button type="button"
                                     onclick="Livewire.dispatch('book:open-edit-payment', { id: {{ $p->id }} })"
