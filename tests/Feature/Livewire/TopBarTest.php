@@ -51,22 +51,22 @@ class TopBarTest extends TestCase
             ->assertDontSee('Finance');
     }
 
-    public function test_reports_tab_points_to_first_accessible_report(): void
+    public function test_reports_tab_points_to_landing_for_any_report_access(): void
     {
-        // Admin can access LeadsReport (first in priority order).
+        // Reports tab now always routes to /admin/reports (the landing).
+        // The landing filters cards by each viewer's canAccess gates.
         $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
         Livewire::actingAs($admin)->test(TopBar::class)
             ->assertSee('Reports')
-            ->assertSee('/admin/leads-report');
+            ->assertSee('/admin/reports');
 
-        // Heads can't access LeadsReport but can access PaymentReport — tab now
-        // surfaces for them and routes to payments-report (was a v2 reachability
-        // gap; PaymentReport::canAccess allows head).
+        // Heads still see the tab (PaymentReport::canAccess allows head) — they
+        // land on the same /admin/reports URL but the page renders only the
+        // Payment Report card for them.
         $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first());
         Livewire::actingAs($sonam)->test(TopBar::class)
             ->assertSee('Reports')
-            ->assertSee('/admin/payments-report')
-            ->assertDontSee('/admin/leads-report');
+            ->assertSee('/admin/reports');
 
         // Members and freelancers can't access any report — no tab.
         $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->first());

@@ -2,10 +2,7 @@
 
 namespace App\Livewire;
 
-use App\Filament\Pages\ActivityAudit;
-use App\Filament\Pages\DuplicateFlagsReview;
-use App\Filament\Pages\LeadsReport;
-use App\Filament\Pages\PaymentReport;
+use App\Filament\Pages\ReportsLanding;
 use Livewire\Component;
 
 class TopBar extends Component
@@ -20,9 +17,8 @@ class TopBar extends Component
             ['key' => 'today',    'label' => 'Today',    'url' => '/admin/today',          'match' => '/admin/today'],
         ];
 
-        $reportsUrl = $this->primaryReportsUrl();
-        if ($reportsUrl !== null) {
-            $tabs[] = ['key' => 'reports', 'label' => 'Reports', 'url' => $reportsUrl, 'match' => $reportsUrl];
+        if (ReportsLanding::canAccess()) {
+            $tabs[] = ['key' => 'reports', 'label' => 'Reports', 'url' => '/admin/reports', 'match' => '/admin/reports'];
         }
 
         if ($user?->hasAnyRole(['admin', 'finance'])) {
@@ -38,24 +34,6 @@ class TopBar extends Component
         }
 
         return $tabs;
-    }
-
-    private function primaryReportsUrl(): ?string
-    {
-        $candidates = [
-            LeadsReport::class           => '/admin/leads-report',
-            PaymentReport::class         => '/admin/payments-report',
-            DuplicateFlagsReview::class  => '/admin/duplicate-flags',
-            ActivityAudit::class         => '/admin/activity-audit',
-        ];
-
-        foreach ($candidates as $page => $url) {
-            if ($page::canAccess()) {
-                return $url;
-            }
-        }
-
-        return null;
     }
 
     public function render()
