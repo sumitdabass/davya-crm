@@ -26,15 +26,29 @@ final class SearchPagesTool
         ];
     }
 
+    private const STOPWORDS = [
+        'the','a','an','of','in','at','on','for','to','and','or','is','are','was','were',
+        'by','with','from','as','this','that','what','which','how','when','where','why',
+        'i','you','we','they','it','my','your','our','their','do','does','can','will',
+    ];
+
     /** @return array<int, array{slug:string,title:string,snippet:string}> */
     public function execute(string $query): array
     {
         if (!is_dir($this->docroot)) return [];
 
-        $needle = strtolower($query);
-        if ($needle === '') return [];
+        $query = trim($query);
+        if ($query === '') return [];
 
-        $results = [];
+        $tokens = array_values(array_filter(
+            array_map('strtolower', preg_split('/[\s,]+/', $query) ?: []),
+            fn ($t) => strlen($t) >= 2 && !in_array($t, self::STOPWORDS, true),
+        ));
+        if ($tokens === []) {
+            $tokens = [strtolower($query)];
+        }
+
+        $scored = [];
         foreach ($this->iterPhpFiles($this->docroot) as $file) {
             $rel = ltrim(str_replace($this->docroot, '', $file), '/');
             $top = explode('/', $rel)[0] ?? '';
@@ -42,18 +56,32 @@ final class SearchPagesTool
 
             $contents = @file_get_contents($file);
             if ($contents === false) continue;
+            $haystack = strtolower($contents);
 
-            $pos = stripos($contents, $needle);
-            if ($pos === false) continue;
+            $score = 0;
+            $firstHit = null;
+            foreach ($tokens as $tok) {
+                $pos = strpos($haystack, $tok);
+                if ($pos !== false) {
+                    $score++;
+                    if ($firstHit === null) $firstHit = $pos;
+                }
+            }
+            if ($score === 0) continue;
 
-            $results[] = [
+            $scored[] = [
                 'slug'    => basename($file),
                 'title'   => $this->extractTitle($contents, basename($file)),
-                'snippet' => $this->snippet($contents, $pos),
+                'snippet' => $this->snippet($contents, $firstHit ?? 0),
+                'score'   => $score,
             ];
-            if (count($results) >= 10) break;
         }
-        return $results;
+
+        usort($scored, fn ($a, $b) => $b['score'] <=> $a['score']);
+        return array_map(
+            fn ($r) => ['slug' => $r['slug'], 'title' => $r['title'], 'snippet' => $r['snippet']],
+            array_slice($scored, 0, 10),
+        );
     }
 
     /** @return iterable<string> */
