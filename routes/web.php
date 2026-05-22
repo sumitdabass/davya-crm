@@ -25,3 +25,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/dashboard/drill-csv', DashboardDrillDownCsvController::class)
         ->name('admin.dashboard.drill-csv');
 });
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::post('/ai/ask', [\App\Http\Controllers\AiAssistantController::class, 'ask'])
+        ->name('ai.ask');
+});
