@@ -45,6 +45,31 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(AssistantAnswerer::class);
+
+        $this->app->singleton(\App\Services\Ai\Tools\SearchPagesTool::class, fn() => new \App\Services\Ai\Tools\SearchPagesTool(
+            config('ai.ipu_docroot'),
+            config('ai.excluded_dirs'),
+        ));
+        $this->app->singleton(\App\Services\Ai\Tools\ReadPageTool::class, fn() => new \App\Services\Ai\Tools\ReadPageTool(
+            config('ai.ipu_docroot'),
+            (int) config('ai.read_page_byte_cap'),
+        ));
+        $this->app->bind(\App\Services\Ai\LlmProvider::class, function () {
+            $cfg = config('ai.providers.groq');
+            return new \App\Services\Ai\Providers\GroqProvider(
+                apiKey: $cfg['key'] ?? '',
+                model: $cfg['model'],
+                baseUrl: $cfg['base_url'],
+                timeoutSeconds: $cfg['timeout_seconds'],
+            );
+        });
+        $this->app->bind(\App\Services\Ai\AssistantService::class, fn($app) => new \App\Services\Ai\AssistantService(
+            provider: $app->make(\App\Services\Ai\LlmProvider::class),
+            search: $app->make(\App\Services\Ai\Tools\SearchPagesTool::class),
+            read: $app->make(\App\Services\Ai\Tools\ReadPageTool::class),
+            maxRoundTrips: (int) config('ai.max_tool_roundtrips'),
+            historyTurns: (int) config('ai.max_history_turns'),
+        ));
     }
 
     public function boot(): void

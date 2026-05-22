@@ -5,14 +5,6 @@ use App\Services\Ai\LlmProvider;
 use App\Services\Ai\LlmResponse;
 use Illuminate\Support\Facades\Http;
 
-class GroqException extends \RuntimeException
-{
-    public function __construct(string $message, public readonly int $status = 0)
-    {
-        parent::__construct($message);
-    }
-}
-
 class GroqProvider implements LlmProvider
 {
     public function __construct(
