@@ -195,7 +195,7 @@
                             <span class="davya-kanban-col-count">{{ $col['count'] }}</span>
                         </div>
                         <div class="davya-kanban-col-agg">
-                            ₹{{ \App\Support\MoneyFormat::indianShort($col['received_total']) }} received · ₹{{ \App\Support\MoneyFormat::indianShort($col['pending_total']) }} pending
+                            ₹{{ \App\Support\MoneyFormat::indianShort($col['deal']) }} total · ₹{{ \App\Support\MoneyFormat::indianShort($col['received_total']) }} received · ₹{{ \App\Support\MoneyFormat::indianShort($col['pending_total']) }} pending
                         </div>
 
                         <div class="fi-kanban-col-items"
