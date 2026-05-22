@@ -152,8 +152,10 @@ class StudentPolicyTest extends TestCase
         $this->assertTrue($sonam->can('update', $s), 'head edits any team lead');
     }
 
-    public function test_admin_can_delete_student(): void
+    public function test_only_super_admin_can_delete_student(): void
     {
+        // Policy intent (2026-05-02): deletes are super_admin-only — admin
+        // gets read/write but can't permanently destroy a lead.
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
         $nikhil = User::where('email', 'nikhil@davya.local')->firstOrFail();
         $s = Student::create([
@@ -163,7 +165,12 @@ class StudentPolicyTest extends TestCase
             'referrer_id' => $nikhil->id,
             'lead_source' => 'Nikhil',
         ]);
-        $this->assertTrue($sumit->can('delete', $s), 'admin deletes any lead');
+        $this->assertFalse($sumit->can('delete', $s), 'admin (no super_admin) must NOT delete');
+
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $sumit->assignRole('super_admin');
+        $sumit->refresh();
+        $this->assertTrue($sumit->can('delete', $s), 'super_admin deletes any lead');
     }
 
     public function test_head_cannot_delete_team_lead(): void

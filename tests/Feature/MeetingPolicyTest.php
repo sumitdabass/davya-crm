@@ -49,8 +49,10 @@ class MeetingPolicyTest extends TestCase
         ]);
     }
 
-    public function test_admin_can_do_everything(): void
+    public function test_admin_can_view_create_update_but_not_delete(): void
     {
+        // Policy intent (2026-05-02): deletes moved to super_admin-only.
+        // Admin keeps every other permission.
         $this->seed();
         $sumit = $this->sumit();
         $m = $this->meetingFor($this->studentOwnedBy($this->sonam()), $this->sonam());
@@ -59,7 +61,12 @@ class MeetingPolicyTest extends TestCase
         $this->assertTrue($sumit->can('view', $m));
         $this->assertTrue($sumit->can('create', Meeting::class));
         $this->assertTrue($sumit->can('update', $m));
-        $this->assertTrue($sumit->can('delete', $m));
+        $this->assertFalse($sumit->can('delete', $m), 'admin must NOT delete; super_admin only');
+
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $sumit->assignRole('super_admin');
+        $sumit->refresh();
+        $this->assertTrue($sumit->can('delete', $m), 'super_admin deletes any meeting');
     }
 
     public function test_head_cannot_see_other_heads_team_meeting_e1(): void
@@ -74,13 +81,14 @@ class MeetingPolicyTest extends TestCase
 
     public function test_head_can_update_own_team_meeting(): void
     {
+        // Heads can view + update their team's meetings; delete is super_admin-only.
         $this->seed();
         $nikhil = $this->nikhil();
         $m = $this->meetingFor($this->studentOwnedBy($this->nisha()), $this->nisha());
 
         $this->assertTrue($nikhil->can('view', $m));
         $this->assertTrue($nikhil->can('update', $m));
-        $this->assertTrue($nikhil->can('delete', $m));
+        $this->assertFalse($nikhil->can('delete', $m), 'head must NOT delete; super_admin only');
     }
 
     public function test_member_cannot_update_teammates_meeting_e4(): void

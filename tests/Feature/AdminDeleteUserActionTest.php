@@ -24,6 +24,13 @@ class AdminDeleteUserActionTest extends TestCase
         $this->sumit = User::where('email', 'sumit@davya.local')->first();
         $this->sumit->must_change_password = false;
         $this->sumit->save();
+
+        // delete_user action is gated on isSuperAdmin() (2026-05-02 sprint
+        // moved every Filament DeleteAction to super_admin-only). Seed
+        // sumit@davya.local with the role so these tests stay focused on
+        // the reassign-then-delete logic rather than role plumbing.
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $this->sumit->assignRole('super_admin');
     }
 
     public function test_admin_can_delete_user_with_no_owned_records_without_reassignment(): void
