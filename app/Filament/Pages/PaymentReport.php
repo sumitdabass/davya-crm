@@ -48,7 +48,11 @@ class PaymentReport extends Page implements HasForms
         ];
         $this->form->fill($defaults);
         $this->applied = $defaults;
-        $this->activeTab = 'report';
+
+        $requested = request()->query('activeTab');
+        $this->activeTab = in_array($requested, ['report', 'today', 'detail'], true)
+            ? $requested
+            : 'report';
     }
 
     public function apply(): void

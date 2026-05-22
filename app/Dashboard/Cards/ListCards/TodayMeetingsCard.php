@@ -20,6 +20,9 @@ class TodayMeetingsCard implements Card
     }
 
     public function drillDown(User $viewer): ?DrillDownPayload { return null; }
-    public function viewAllHref(User $viewer): ?string { return null; }
+    public function viewAllHref(User $viewer): ?string
+    {
+        return route('filament.admin.pages.today');
+    }
     public function isAvailableFor(User $viewer): bool { return true; }
 }

@@ -51,18 +51,29 @@ class TopBarTest extends TestCase
             ->assertDontSee('Finance');
     }
 
-    public function test_reports_tab_is_admin_only(): void
+    public function test_reports_tab_points_to_first_accessible_report(): void
     {
-        // Reports tab is admin-only. Heads can still reach Payment Report via
-        // the command palette or direct URL (their policy allows it), but the
-        // top-bar tab would point at either a 403 (leads-report) or create
-        // duplicate-looking navigation, so we drop it for every non-admin.
-        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first()); // head
-        $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->first()); // member
-        $kapil = $this->unblock(User::where('email', 'kapil@davya.local')->first()); // freelancer
+        // Admin can access LeadsReport (first in priority order).
+        $admin = $this->unblock(User::where('email', 'sumit@davya.local')->first());
+        Livewire::actingAs($admin)->test(TopBar::class)
+            ->assertSee('Reports')
+            ->assertSee('/admin/leads-report');
 
-        foreach ([$sonam, $nisha, $kapil] as $nonAdmin) {
-            Livewire::actingAs($nonAdmin)->test(TopBar::class)
+        // Heads can't access LeadsReport but can access PaymentReport — tab now
+        // surfaces for them and routes to payments-report (was a v2 reachability
+        // gap; PaymentReport::canAccess allows head).
+        $sonam = $this->unblock(User::where('email', 'sonam@davya.local')->first());
+        Livewire::actingAs($sonam)->test(TopBar::class)
+            ->assertSee('Reports')
+            ->assertSee('/admin/payments-report')
+            ->assertDontSee('/admin/leads-report');
+
+        // Members and freelancers can't access any report — no tab.
+        $nisha = $this->unblock(User::where('email', 'nisha@davya.local')->first());
+        $kapil = $this->unblock(User::where('email', 'kapil@davya.local')->first());
+
+        foreach ([$nisha, $kapil] as $nonAccess) {
+            Livewire::actingAs($nonAccess)->test(TopBar::class)
                 ->assertSee('Pipeline')
                 ->assertDontSee('Reports');
         }

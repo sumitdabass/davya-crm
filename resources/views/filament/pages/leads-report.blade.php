@@ -24,20 +24,18 @@
                 {{ $r['totals']['past_capture'] }}
             </div>
         </a>
-        <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
-            class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
+        <div class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
             <div class="text-xs text-gray-500 dark:text-gray-400">Owners with activity</div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['owners_counted'] }}
             </div>
-        </a>
-        <a href="{{ $studentsUrl(['pipeline_status' => 'past_capture']) }}"
-            class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 hover:border-primary-400 hover:shadow-sm transition">
+        </div>
+        <div class="block rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
             <div class="text-xs text-gray-500 dark:text-gray-400">Referrers with activity</div>
             <div class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1 tabular-nums">
                 {{ $r['totals']['referrers_counted'] }}
             </div>
-        </a>
+        </div>
     </div>
 
     <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">

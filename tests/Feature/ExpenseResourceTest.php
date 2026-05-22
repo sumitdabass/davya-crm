@@ -95,9 +95,30 @@ class ExpenseResourceTest extends TestCase
         $this->assertSame('after', $e->description);
     }
 
-    public function test_admin_can_delete_expense(): void
+    public function test_admin_cannot_delete_expense(): void
     {
+        // Policy intent (2026-05-02 sprint): finance deletes are super_admin-only.
+        // Admin gets viewAny/view/create/update but NOT delete — preserves an
+        // audit trail unless explicitly nuked by super_admin.
         $this->actingAsAdmin();
+        $e = Expense::create([
+            'amount' => 999,
+            'description' => 'admin tries to delete',
+            'paid_at' => now(),
+            'slack_message_id' => null,
+        ]);
+
+        $this->assertFalse(auth()->user()->can('delete', $e), 'policy must reject admin delete');
+    }
+
+    public function test_super_admin_can_delete_expense(): void
+    {
+        $this->seed();
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $sumit->assignRole('super_admin');
+        $this->actingAs($sumit);
+
         $e = Expense::create([
             'amount' => 999,
             'description' => 'to be deleted',
@@ -105,7 +126,7 @@ class ExpenseResourceTest extends TestCase
             'slack_message_id' => null,
         ]);
 
-        $this->assertTrue(auth()->user()->can('delete', $e), 'policy must allow admin delete');
+        $this->assertTrue(auth()->user()->can('delete', $e), 'policy must allow super_admin delete');
         $e->delete();
         $this->assertNull(Expense::find($e->id), 'row must be gone');
     }

@@ -96,9 +96,29 @@ class InvestmentResourceTest extends TestCase
         $this->assertSame('in', $i->direction);
     }
 
-    public function test_admin_can_delete_investment(): void
+    public function test_admin_cannot_delete_investment(): void
     {
+        // Policy intent (2026-05-02 sprint): finance deletes are super_admin-only.
         $this->actingAsAdmin();
+        $i = Investment::create([
+            'asset_name' => 'Admin attempt',
+            'amount' => 1,
+            'direction' => 'out',
+            'transacted_at' => now(),
+            'slack_message_id' => null,
+        ]);
+
+        $this->assertFalse(auth()->user()->can('delete', $i), 'policy must reject admin delete');
+    }
+
+    public function test_super_admin_can_delete_investment(): void
+    {
+        $this->seed();
+        \Spatie\Permission\Models\Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $sumit->assignRole('super_admin');
+        $this->actingAs($sumit);
+
         $i = Investment::create([
             'asset_name' => 'Garbage',
             'amount' => 1,
@@ -107,7 +127,7 @@ class InvestmentResourceTest extends TestCase
             'slack_message_id' => null,
         ]);
 
-        $this->assertTrue(auth()->user()->can('delete', $i), 'policy must allow admin delete');
+        $this->assertTrue(auth()->user()->can('delete', $i), 'policy must allow super_admin delete');
         $i->delete();
         $this->assertNull(Investment::find($i->id));
     }

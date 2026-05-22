@@ -31,6 +31,28 @@ class PaymentReportTabsTest extends TestCase
             ->assertSet('activeTab', 'report');
     }
 
+    public function test_mount_respects_active_tab_query_param(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['activeTab' => 'today'])
+            ->test(PaymentReport::class)
+            ->assertSet('activeTab', 'today');
+    }
+
+    public function test_mount_ignores_unknown_active_tab_query_param(): void
+    {
+        $this->seed();
+        $sumit = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
+        $this->actingAs($sumit);
+
+        Livewire::withQueryParams(['activeTab' => 'bogus'])
+            ->test(PaymentReport::class)
+            ->assertSet('activeTab', 'report');
+    }
+
     public function test_can_switch_to_today_tab_and_it_shows_today_rows_only(): void
     {
         $this->seed();
