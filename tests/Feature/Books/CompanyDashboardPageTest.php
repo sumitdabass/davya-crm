@@ -88,4 +88,45 @@ class CompanyDashboardPageTest extends TestCase
         $this->get("/admin/books/{$c->slug}/{$fy->label}")
             ->assertSee('estimate');
     }
+
+    public function test_company_fiscal_years_helper_returns_all_fys_newest_first(): void
+    {
+        $c = Company::create(['name' => 'X', 'slug' => 'x']);
+        $fy1 = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2024-04-01',
+            'end_date' => '2025-03-31', 'label' => '2024-25']);
+        $fy2 = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        $fy3 = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2026-04-01',
+            'end_date' => '2027-03-31', 'label' => '2026-27']);
+
+        $page = \Livewire\Livewire::test(\App\Filament\Pages\Book\CompanyDashboard::class,
+            ['company' => 'x', 'fy' => '2025-26'])->instance();
+
+        $labels = $page->companyFiscalYears()->pluck('label')->all();
+        $this->assertSame(['2026-27', '2025-26', '2024-25'], $labels);
+    }
+
+    public function test_dashboard_renders_year_switcher_when_multiple_fys_exist(): void
+    {
+        $c = Company::create(['name' => 'Y', 'slug' => 'y']);
+        FiscalYear::create(['company_id' => $c->id, 'start_date' => '2024-04-01',
+            'end_date' => '2025-03-31', 'label' => '2024-25']);
+        $fy2 = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+
+        $this->get("/admin/books/{$c->slug}/{$fy2->label}")
+            ->assertSee('davya-fy-switcher', false)
+            ->assertSee('2024-25')
+            ->assertSee('2025-26');
+    }
+
+    public function test_dashboard_omits_switcher_when_only_one_fy(): void
+    {
+        $c = Company::create(['name' => 'Z', 'slug' => 'z']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+
+        $this->get("/admin/books/{$c->slug}/{$fy->label}")
+            ->assertDontSee('davya-fy-switcher', false);
+    }
 }

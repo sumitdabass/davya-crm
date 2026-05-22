@@ -43,6 +43,20 @@ class CompanyDashboard extends Page
             ->firstOrFail();
     }
 
+    /**
+     * All FYs for the current company, newest first — feeds the header
+     * year-switcher dropdown so super_admins can hop between years without
+     * detouring through the Companies landing.
+     *
+     * @return \Illuminate\Support\Collection<int, FiscalYear>
+     */
+    public function companyFiscalYears(): \Illuminate\Support\Collection
+    {
+        return FiscalYear::where('company_id', $this->company->id)
+            ->orderByDesc('start_date')
+            ->get();
+    }
+
     public function getVisibleRegions(): array
     {
         $prefs = auth()->user()?->books_dashboard_prefs ?? null;

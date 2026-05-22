@@ -15,7 +15,28 @@
     <div class="davya-books-header">
         <a href="{{ url('/admin/books') }}" class="davya-books-header__crumb">Books</a>
         <h1 class="davya-books-header__title">{{ $company->name }}</h1>
-        <span class="davya-owner-pill" style="background:var(--brand-50); border-color:var(--brand-100); color:var(--brand-700);">FY {{ $fyLabel }}{{ $fy->is_closed ? ' · closed' : '' }}</span>
+        @php $companyFiscalYears = $this->companyFiscalYears(); @endphp
+        @if ($companyFiscalYears->count() > 1)
+            <label class="davya-owner-pill" for="davya-fy-switcher"
+                   style="background:var(--brand-50); border-color:var(--brand-100); color:var(--brand-700); padding:0; display:inline-flex; align-items:center; cursor:pointer; overflow:hidden;">
+                <span style="padding:4px 0 4px 10px;">FY</span>
+                <select id="davya-fy-switcher"
+                        onchange="if(this.value && this.value !== window.location.pathname) window.location.href=this.value"
+                        aria-label="Switch fiscal year"
+                        style="appearance:none; -webkit-appearance:none; background:transparent; border:none; color:inherit; font:inherit; padding:4px 22px 4px 6px; cursor:pointer;
+                               background-image:url('data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;10&quot; height=&quot;6&quot; viewBox=&quot;0 0 10 6&quot;><path fill=&quot;none&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;1.5&quot; d=&quot;M1 1l4 4 4-4&quot;/></svg>');
+                               background-repeat:no-repeat; background-position:right 6px center;">
+                    @foreach ($companyFiscalYears as $f)
+                        <option value="{{ url('/admin/books/'.$company->slug.'/'.$f->label) }}"
+                                @selected($f->id === $fy->id)>
+                            {{ $f->label }}{{ $f->is_closed ? ' · closed' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </label>
+        @else
+            <span class="davya-owner-pill" style="background:var(--brand-50); border-color:var(--brand-100); color:var(--brand-700);">FY {{ $fyLabel }}{{ $fy->is_closed ? ' · closed' : '' }}</span>
+        @endif
     </div>
 
     {{-- KPI tiles --}}
