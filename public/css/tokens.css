@@ -427,12 +427,20 @@ body.davya-v2 .davya-stat-number {
     display: block;
     background: var(--surface);
     border: 1px solid var(--border);
+    border-top: 3px solid var(--brand-500);
     border-radius: var(--r-lg);
     padding: var(--s-4);
     box-shadow: var(--elev-1);
     text-decoration: none;
     color: inherit;
 }
+.davya-books-kpi[data-kind="income"]       { border-top-color: var(--brand-500); }
+.davya-books-kpi[data-kind="salary"]       { border-top-color: var(--brand-500); }
+.davya-books-kpi[data-kind="loan"]         { border-top-color: var(--stage-meeting); }
+.davya-books-kpi[data-kind="loans_taken"]  { border-top-color: var(--warning); }
+.davya-books-kpi[data-kind="expense"]      { border-top-color: var(--text-sub); }
+.davya-books-kpi[data-kind="asset"]        { border-top-color: var(--info); }
+.davya-books-kpi[data-kind="summary"]      { border-top-color: var(--text-muted); }
 .davya-books-kpi__label {
     font-size: var(--fs-11);
     font-weight: 600;

@@ -22,19 +22,20 @@
     @if ($visibleRegions['kpis'])
         <div class="davya-section-card">
             <div class="davya-section-card-title">Year at a glance</div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px;">
                 @php
+                    // 'kind' drives the colored top border (mirrors .davya-books-roll[data-kind]).
                     $tiles = [
-                        ['key'=>'total_income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
-                        ['key'=>'cash_received',    'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of received-back / inbound payments (info-only — does not change Net P/L)'],
-                        ['key'=>'salary_paid',             'label'=>'Salary Paid',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/salary"),       'hint'=>'Total paid this FY'],
-                        ['key'=>'loans_given_outstanding', 'label'=>'Loans Given',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loan"),         'hint'=>'Outstanding · owed to us'],
-                        ['key'=>'loans_taken_outstanding', 'label'=>'Loans Taken',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loans_taken"), 'hint'=>'Outstanding · we owe'],
-                        ['key'=>'cash_outflow',     'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
-                        ['key'=>'non_cash_outflow', 'label'=>'Non-Cash (Dep)',   'href'=>$assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null, 'hint'=>$assetSlug ? 'View assets' : null],
-                        ['key'=>'total_outflow',    'label'=>'Total Outflow',    'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>null],
-                        ['key'=>'net_pl',           'label'=>'Net P/L',          'href'=>null, 'tooltip'=>'Total Income − Total Outflow (recoveries shown separately as Cash Received)'],
-                        ['key'=>'cumulative_pl',    'label'=>'Cumulative P/L',   'href'=>null, 'tooltip'=>'Net P/L + Carryover from prior FY'],
+                        ['key'=>'total_income',     'kind'=>'income',     'label'=>'Total Income',     'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/income"), 'hint'=>'View income'],
+                        ['key'=>'cash_received',    'kind'=>'income',     'label'=>'Cash Received',    'href'=>null, 'tooltip'=>'Sum of received-back / inbound payments (info-only — does not change Net P/L)'],
+                        ['key'=>'salary_paid',             'kind'=>'salary',     'label'=>'Salary Paid',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/salary"),       'hint'=>'Total paid this FY'],
+                        ['key'=>'loans_given_outstanding', 'kind'=>'loan',       'label'=>'Loans Given',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loan"),         'hint'=>'Outstanding · owed to us'],
+                        ['key'=>'loans_taken_outstanding', 'kind'=>'loans_taken','label'=>'Loans Taken',   'href'=>url("/admin/books/{$companySlug}/{$fyLabel}/section/loans_taken"), 'hint'=>'Outstanding · we owe'],
+                        ['key'=>'cash_outflow',     'kind'=>'expense',    'label'=>'Cash Outflow',     'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>$defaultGenericSlug ? 'View spend' : null],
+                        ['key'=>'non_cash_outflow', 'kind'=>'asset',      'label'=>'Non-Cash (Dep)',   'href'=>$assetSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$assetSlug}") : null, 'hint'=>$assetSlug ? 'View assets' : null],
+                        ['key'=>'total_outflow',    'kind'=>'expense',    'label'=>'Total Outflow',    'href'=>$defaultGenericSlug ? url("/admin/books/{$companySlug}/{$fyLabel}/section/{$defaultGenericSlug}") : null, 'hint'=>null],
+                        ['key'=>'net_pl',           'kind'=>'summary',    'label'=>'Net P/L',          'href'=>null, 'tooltip'=>'Total Income − Total Outflow (recoveries shown separately as Cash Received)'],
+                        ['key'=>'cumulative_pl',    'kind'=>'summary',    'label'=>'Cumulative P/L',   'href'=>null, 'tooltip'=>'Net P/L + Carryover from prior FY'],
                     ];
                 @endphp
                 @php $kpiMeta = $this->getKpiMeta(); @endphp
@@ -49,7 +50,7 @@
                             : ($delta !== null && $delta < 0 ? 'var(--warning, #F59E0B)' : 'var(--brand-600, #059669)');
                     @endphp
                     @if ($tile['href'])
-                        <a href="{{ $tile['href'] }}" class="davya-books-kpi">
+                        <a href="{{ $tile['href'] }}" class="davya-books-kpi" data-kind="{{ $tile['kind'] }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
                             <x-book-amount :v="$value" big :danger="$value < 0" />
                             <x-book-kpi-meta :delta="$delta" :prior-label="$meta['prior_label'] ?? null" :series="$sparkSeries" :color="$sparkColor" />
@@ -58,7 +59,7 @@
                             @endif
                         </a>
                     @else
-                        <a class="davya-books-kpi" style="cursor:pointer;"
+                        <a class="davya-books-kpi" data-kind="{{ $tile['kind'] }}" style="cursor:pointer;"
                            wire:click.prevent="mountAction('explainKpi', { key: '{{ $tile['key'] }}', label: '{{ $tile['label'] }}' })"
                            title="{{ $tile['tooltip'] ?? 'Click to see the math' }}">
                             <div class="davya-books-kpi__label">{{ $tile['label'] }}</div>
@@ -74,7 +75,7 @@
                     $carryHref = $priorFy ? url("/admin/books/{$companySlug}/{$priorFy}") : null;
                 @endphp
                 @if ($carryHref)
-                    <a href="{{ $carryHref }}" class="davya-books-kpi">
+                    <a href="{{ $carryHref }}" class="davya-books-kpi" data-kind="summary">
                         <div class="davya-books-kpi__label">
                             Carryover
                             @if ($kpis['carryover']['estimate'])
@@ -85,7 +86,7 @@
                         <div class="davya-books-kpi__hint">View prior FY</div>
                     </a>
                 @else
-                    <a class="davya-books-kpi" style="cursor:pointer;"
+                    <a class="davya-books-kpi" data-kind="summary" style="cursor:pointer;"
                        wire:click.prevent="mountAction('explainKpi', { key: 'carryover', label: 'Carryover' })">
                         <div class="davya-books-kpi__label">
                             Carryover
