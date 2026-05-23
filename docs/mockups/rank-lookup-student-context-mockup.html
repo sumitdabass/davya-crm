@@ -1,0 +1,942 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FAF7EE">
+<title>Rank Lookup · davya-crm F1 mock (mobile-first)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═════════════════════════════════════════════════════════════
+   davya-crm  ·  visual v3 candidate
+   Mobile-first.  Base styles target ≥360px viewports.
+   Enhancements layered upward at 640 / 960 / 1180.
+   ═════════════════════════════════════════════════════════════ */
+
+:root {
+  --paper: #FAF7EE;
+  --paper-2: #F2EEDF;
+  --ink: #1B1E1A;
+  --ink-soft: #3E4339;
+  --ink-mute: #756F5C;
+  --rule: #D9D2BB;
+  --rule-soft: #E8E2CB;
+  --brand: #0E7C5C;
+  --brand-deep: #0A5B43;
+  --brand-wash: #E2EDDF;
+  --vermilion: #B6391A;
+  --vermilion-wash: #F2E2D8;
+  --amber: #B4811A;
+  --amber-wash: #F1E8CE;
+
+  --font-display: 'Instrument Serif', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, monospace;
+
+  /* touch-target minimum (Apple HIG) — every tappable ≥44px on mobile */
+  --tap: 44px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(182,57,26,0.04) 0, transparent 36%),
+    radial-gradient(circle at 88% 92%, rgba(14,124,92,0.05) 0, transparent 42%);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  font-feature-settings: 'ss01', 'cv11';
+  padding-bottom: calc(96px + var(--safe-bottom));   /* room for sticky action bar */
+}
+
+/* ─── 1. top chrome ─────────────────────────────────────────── */
+
+.chrome {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--rule);
+  background: rgba(250,247,238,0.94);
+  position: sticky; top: 0; z-index: 30;
+  backdrop-filter: saturate(140%) blur(8px);
+}
+.chrome .left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.chrome .wordmark {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--ink);
+  font-weight: 400;
+}
+.chrome .wordmark em { color: var(--brand-deep); }
+.chrome nav { display: none; }                       /* hidden on phone, see nav-strip below */
+.chrome .right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-mute); }
+.chrome .seal {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--vermilion); color: var(--paper);
+  display: grid; place-items: center;
+  font-family: var(--font-display);
+  font-style: italic; font-size: 16px;
+}
+
+/* horizontal-scroll tab strip on phone */
+.nav-strip {
+  display: flex; gap: 18px;
+  padding: 10px 18px 12px;
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--paper);
+}
+.nav-strip::-webkit-scrollbar { display: none; }
+.nav-strip a {
+  flex: 0 0 auto;
+  color: var(--ink-mute); text-decoration: none;
+  font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 6px 0 4px;
+  border-bottom: 1.5px solid transparent;
+  transition: color 160ms, border-color 160ms;
+}
+.nav-strip a.active { color: var(--ink); border-color: var(--vermilion); }
+
+/* ─── 2. banner (the dedication block) ──────────────────────── */
+
+.banner {
+  padding: 22px 18px 20px;
+  border-bottom: 1px solid var(--rule);
+  position: relative;
+  background: var(--paper);
+}
+.banner::before {
+  content: "";
+  position: absolute; left: 18px; top: 24px; bottom: 22px;
+  width: 1px; background: var(--brand); opacity: 0.5;
+}
+.banner-tag {
+  padding-left: 14px;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--ink-mute);
+  margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.banner-tag::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: var(--brand); }
+.banner-headline {
+  padding-left: 14px;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(34px, 7.6vw, 56px);
+  line-height: 1.04;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.banner-headline .for { color: var(--ink-mute); padding-right: 4px; }
+.banner-headline .name { color: var(--vermilion); }
+.banner-meta {
+  padding-left: 14px;
+  margin-top: 14px;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px;
+}
+.banner-meta .label {
+  font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.banner-meta .rank-num {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: 32px;
+  color: var(--vermilion);
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+.banner-back {
+  display: inline-flex; align-items: center; gap: 6px;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--rule);
+  min-height: var(--tap);
+  padding-right: 4px;
+}
+.banner-back::after { content: "↗"; font-family: var(--font-mono); }
+.banner-back:hover { color: var(--brand-deep); border-color: var(--brand); }
+
+/* ─── 3. filter strip (collapsed to a single chip-row on phone) ─ */
+
+.filter-strip {
+  padding: 14px 18px 16px;
+  border-bottom: 1px dashed var(--rule);
+  display: flex; gap: 10px; align-items: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-strip::-webkit-scrollbar { display: none; }
+.filter-strip .chip {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 9px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: 12px;
+  color: var(--ink);
+  min-height: 36px;
+  transition: border-color 160ms;
+  cursor: pointer;
+}
+.filter-strip .chip:hover { border-color: var(--ink-soft); }
+.filter-strip .chip .k { color: var(--ink-mute); text-transform: uppercase; font-size: 9px; letter-spacing: 0.16em; }
+.filter-strip .chip .v { font-weight: 500; }
+.filter-strip .chip.rank .v {
+  font-family: var(--font-mono);
+  color: var(--vermilion);
+  font-size: 14px;
+}
+.filter-strip .more {
+  flex: 0 0 auto;
+  min-height: 36px; min-width: 36px;
+  display: inline-grid; place-items: center;
+  border: 1px dashed var(--rule);
+  border-radius: 999px;
+  color: var(--ink-mute);
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+/* ─── 4. section head ──────────────────────────────────────── */
+
+main { padding: 22px 18px 32px; max-width: 1180px; margin: 0 auto; }
+
+.section-head {
+  display: flex; flex-direction: column; gap: 4px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+.section-head h2 {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.section-head .meta {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.section-head .meta b { color: var(--vermilion); font-weight: 600; }
+
+/* ─── 5. entry (mobile-first card) ─────────────────────────── */
+
+.entry {
+  padding: 18px 4px 18px 16px;
+  border-bottom: 1px solid var(--rule-soft);
+  position: relative;
+  transition: background 220ms;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.entry::before {
+  content: "";
+  position: absolute; left: 0; top: 18px; bottom: 18px;
+  width: 2px; background: transparent;
+  transition: background 200ms;
+}
+.entry:hover::before, .entry.saved::before { background: var(--brand); }
+.entry.saved { background: linear-gradient(90deg, rgba(14,124,92,0.045), transparent 70%); }
+
+.entry-head {
+  display: flex; gap: 10px; align-items: baseline;
+}
+.entry-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--ink-mute);
+  font-size: 22px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
+.entry-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.entry-name .institute {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
+}
+.entry-name .branch {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.2;
+}
+.entry-name .meta-row {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.entry-name .meta-row .chip {
+  padding: 2px 8px;
+  background: var(--paper-2);
+  border-radius: 999px;
+}
+.entry-name .meta-row .chip.tight {
+  background: var(--vermilion-wash);
+  color: var(--vermilion);
+}
+
+/* round cells — 4 in a row, but on phone they squeeze to 2x2 */
+.rounds {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+  font-family: var(--font-mono);
+}
+.round {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+}
+.round.predicted {
+  border-color: var(--brand);
+  background: var(--brand-wash);
+}
+.round .label {
+  font-family: var(--font-body);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.round.predicted .label { color: var(--brand-deep); }
+.round .v {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.round.empty .v { color: var(--ink-mute); }
+
+.entry-tail {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.cushion-row {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.cushion-row .seats,
+.cushion-row .cushion {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); color: var(--ink);
+  font-weight: 500; font-size: 13px;
+  letter-spacing: 0; text-transform: none;
+}
+.cushion-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 3px var(--brand-wash); }
+.cushion-dot.amber { background: var(--amber); box-shadow: 0 0 0 3px var(--amber-wash); }
+.cushion-dot.vermilion { background: var(--vermilion); box-shadow: 0 0 0 3px var(--vermilion-wash); }
+
+/* save pill — full width on phone, segmented into 3 thumb-targets */
+.save-pill {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--paper);
+  box-shadow: 0 1px 0 var(--rule), 0 18px 40px -28px rgba(27,30,26,0.18);
+}
+.save-pill button {
+  appearance: none; border: 0; background: transparent;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 17px;
+  color: var(--ink-soft);
+  min-height: var(--tap);
+  cursor: pointer;
+  position: relative;
+  transition: background 160ms, color 160ms;
+}
+.save-pill button:not(:last-child)::after {
+  content: "";
+  position: absolute; right: 0; top: 9px; bottom: 9px;
+  width: 1px; background: var(--rule);
+}
+.save-pill button:hover { background: var(--paper-2); color: var(--ink); }
+.save-pill button:active { background: var(--rule-soft); }
+.save-pill button.saved {
+  background: var(--brand); color: var(--paper);
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.save-pill button.saved::after { background: var(--brand-deep); }
+.save-pill button.conflicted { color: var(--vermilion); }
+.save-confirm-mark { font-family: var(--font-mono); font-size: 13px; margin-left: 6px; }
+
+/* ─── 6. sticky bottom action bar (mobile native pattern) ──── */
+
+.action-bar {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: 0;
+  background: rgba(250,247,238,0.94);
+  border-top: 1px solid var(--rule);
+  padding: 10px 14px calc(10px + var(--safe-bottom));
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+  z-index: 40;
+  backdrop-filter: saturate(140%) blur(10px);
+}
+.action-bar .count {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+  display: flex; align-items: center; gap: 8px;
+}
+.action-bar .count .num {
+  font-family: var(--font-mono);
+  font-style: normal;
+  color: var(--brand-deep);
+  font-size: 16px;
+  font-weight: 500;
+}
+.action-bar .ghost {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-mute);
+  padding: 0 4px;
+  text-align: center;
+}
+.action-bar .done {
+  appearance: none; border: 0;
+  background: var(--ink); color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0 22px;
+  height: var(--tap); min-width: 120px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 160ms;
+}
+.action-bar .done:hover { background: var(--vermilion); }
+
+/* ─── 7. toast ─────────────────────────────────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: calc(80px + var(--safe-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(120px);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 11px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  display: inline-flex; align-items: center; gap: 10px;
+  box-shadow: 0 24px 60px -20px rgba(0,0,0,0.4);
+  z-index: 100;
+  opacity: 0;
+  transition: transform 360ms cubic-bezier(0.16,1,0.3,1), opacity 240ms;
+  white-space: nowrap;
+  max-width: calc(100vw - 36px);
+}
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.toast em { font-family: var(--font-display); font-style: italic; color: var(--brand-wash); }
+.toast .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); }
+
+/* ─── 8. conflict modal (mobile bottom-sheet → desktop dialog) ─ */
+
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(27,30,26,0.32);
+  backdrop-filter: blur(2px);
+  display: none;
+  align-items: flex-end; justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  transition: opacity 200ms;
+}
+.modal-backdrop.show { display: flex; opacity: 1; }
+.modal {
+  background: var(--paper);
+  width: 100%;
+  border-top-left-radius: 22px;
+  border-top-right-radius: 22px;
+  border: 1px solid var(--ink);
+  border-bottom: 0;
+  box-shadow: 0 -22px 0 -1px var(--vermilion), 0 -30px 60px -20px rgba(0,0,0,0.3);
+  position: relative;
+  transform: translateY(100%);
+  transition: transform 360ms cubic-bezier(0.16,1,0.3,1);
+}
+.modal::before {
+  content: "";
+  display: block;
+  width: 38px; height: 4px;
+  background: var(--rule);
+  border-radius: 999px;
+  margin: 10px auto 4px;
+}
+.modal-backdrop.show .modal { transform: translateY(0); }
+.modal-head { padding: 14px 22px 8px; border-bottom: 1px solid var(--rule); }
+.modal-eyebrow { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--vermilion); font-weight: 500; margin-bottom: 4px; }
+.modal-title { font-family: var(--font-display); font-style: italic; font-size: 26px; margin: 0 0 10px; line-height: 1.1; }
+.modal-body { padding: 14px 22px 18px; font-size: 14px; color: var(--ink-soft); }
+.diff { display: flex; flex-direction: column; gap: 6px; margin: 12px 0 14px; font-family: var(--font-mono); font-size: 13px; }
+.diff .row { display: flex; gap: 10px; align-items: center; padding: 9px 12px; border: 1px solid var(--rule-soft); }
+.diff .row .tag { font-family: var(--font-body); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+.diff .row.old { background: var(--vermilion-wash); color: var(--vermilion); }
+.diff .row.old .tag { background: var(--vermilion); color: var(--paper); }
+.diff .row.old .text { text-decoration: line-through; }
+.diff .row.new { background: var(--brand-wash); color: var(--brand-deep); border-color: var(--brand); }
+.diff .row.new .tag { background: var(--brand); color: var(--paper); }
+.modal-actions {
+  padding: 12px 22px calc(20px + var(--safe-bottom));
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  border-top: 1px dashed var(--rule);
+}
+.modal-actions button {
+  appearance: none; border: 0;
+  font-family: var(--font-body);
+  font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+  min-height: var(--tap);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 160ms, color 160ms;
+}
+.modal-actions .cancel { background: transparent; color: var(--ink-soft); border: 1px solid var(--rule); }
+.modal-actions .cancel:hover { color: var(--ink); border-color: var(--ink-soft); }
+.modal-actions .confirm { background: var(--vermilion); color: var(--paper); }
+.modal-actions .confirm:hover { background: var(--ink); }
+
+/* ─── 9. focus ring (a11y) ─────────────────────────────────── */
+button:focus-visible, a:focus-visible, .chip:focus-visible {
+  outline: 2px solid var(--vermilion);
+  outline-offset: 3px;
+}
+
+/* ─── 10. page-load stagger ────────────────────────────────── */
+.banner-tag, .banner-headline, .banner-meta, .section-head, .entry {
+  opacity: 0; transform: translateY(8px);
+  animation: rise 600ms cubic-bezier(0.16,1,0.3,1) forwards;
+}
+.banner-tag { animation-delay: 60ms; }
+.banner-headline { animation-delay: 120ms; }
+.banner-meta { animation-delay: 180ms; }
+.section-head { animation-delay: 240ms; }
+.entry:nth-of-type(1) { animation-delay: 320ms; }
+.entry:nth-of-type(2) { animation-delay: 380ms; }
+.entry:nth-of-type(3) { animation-delay: 440ms; }
+.entry:nth-of-type(4) { animation-delay: 500ms; }
+.entry:nth-of-type(5) { animation-delay: 560ms; }
+.entry:nth-of-type(6) { animation-delay: 620ms; }
+@keyframes rise { to { opacity: 1; transform: translateY(0); } }
+
+/* ═════════════════════════════════════════════════════════════
+   PROGRESSIVE ENHANCEMENT — wider viewports
+   ═════════════════════════════════════════════════════════════ */
+
+@media (min-width: 640px) {
+  body { padding-bottom: calc(70px + var(--safe-bottom)); }
+  .rounds { grid-template-columns: repeat(4, 1fr); }
+  .round { flex-direction: column; align-items: center; text-align: center; padding: 8px; gap: 2px; }
+  .round .label { font-size: 9px; }
+  .filter-strip { padding: 16px 24px 18px; gap: 12px; }
+  main { padding: 28px 24px 40px; }
+  .banner { padding: 26px 24px 24px; }
+  .section-head { flex-direction: row; align-items: baseline; justify-content: space-between; }
+}
+
+@media (min-width: 960px) {
+  .chrome { padding: 14px 32px; }
+  .chrome nav { display: flex; gap: 20px; }
+  .nav-strip { display: none; }
+  .banner { padding: 32px 32px 28px; }
+  .banner-headline { padding-left: 18px; }
+  .banner-tag { padding-left: 18px; }
+  .banner-meta { padding-left: 18px; }
+  .banner::before { left: 32px; }
+  .filter-strip { padding: 18px 32px 22px; }
+  main { padding: 36px 32px 60px; }
+  .section-head h2 { font-size: 30px; }
+  .entry {
+    flex-direction: row;
+    align-items: start;
+    gap: 24px;
+    padding: 22px 8px 22px 16px;
+    display: grid;
+    grid-template-columns: 40px 1.2fr 1.4fr auto;
+  }
+  .entry-head { display: contents; }
+  .entry-name { gap: 6px; }
+  .entry-name .institute { font-size: 19px; }
+  .entry-name .branch { font-size: 17px; }
+  .entry-tail { flex-direction: column; align-items: flex-end; min-width: 240px; gap: 12px; }
+  .cushion-row { justify-content: flex-end; gap: 14px; }
+  .action-bar { display: none; }                     /* desktop has chrome nav; bar redundant */
+  body { padding-bottom: 0; }
+  .modal-backdrop { align-items: center; }
+  .modal {
+    width: min(560px, 92vw);
+    border: 1px solid var(--ink);
+    border-radius: 0;
+    box-shadow: 22px 22px 0 var(--vermilion), 0 30px 60px -20px rgba(0,0,0,0.3);
+    transform: translateY(20px) scale(0.98);
+  }
+  .modal::before { display: none; }
+  .modal-backdrop.show .modal { transform: translateY(0) scale(1); }
+  .modal-actions { grid-template-columns: auto auto; justify-content: flex-end; }
+  .toast { bottom: 24px; }
+}
+
+@media (min-width: 1180px) {
+  main { padding: 44px 32px 80px; max-width: 1180px; }
+  .entry { grid-template-columns: 48px 1fr 360px 240px; }
+}
+
+/* honor user motion prefs */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="chrome">
+  <div class="left">
+    <span class="wordmark">davya<em>·</em>crm</span>
+    <nav>
+      <a href="#">Students</a>
+      <a href="#">Today</a>
+      <a href="#">Kanban</a>
+      <a href="#">Reports</a>
+      <a href="#">Finance</a>
+      <a href="#" class="active">Rank</a>
+      <a href="#">Books</a>
+    </nav>
+  </div>
+  <div class="right"><span class="seal">S</span></div>
+</header>
+
+<!-- phone nav scroll strip; hidden on desktop -->
+<div class="nav-strip">
+  <a href="#">Students</a>
+  <a href="#">Today</a>
+  <a href="#">Kanban</a>
+  <a href="#">Reports</a>
+  <a href="#">Finance</a>
+  <a href="#" class="active">Rank</a>
+  <a href="#">Books</a>
+</div>
+
+<section class="banner">
+  <div class="banner-tag">Rank lookup — picking preferences</div>
+  <h1 class="banner-headline">
+    <span class="for">for</span>
+    <span class="name">Aman Sharma</span>
+  </h1>
+  <div class="banner-meta">
+    <div>
+      <div class="label">JEE Main rank</div>
+      <div class="rank-num">52,800</div>
+    </div>
+    <a href="#" class="banner-back">Back to student edit</a>
+  </div>
+</section>
+
+<section class="filter-strip">
+  <span class="chip rank"><span class="k">Rank</span><span class="v">52,800</span></span>
+  <span class="chip"><span class="k">Yr</span><span class="v">2025</span></span>
+  <span class="chip"><span class="k">Region</span><span class="v">Delhi</span></span>
+  <span class="chip"><span class="k">Families</span><span class="v">CS · IT · AIML</span></span>
+  <span class="more">⋯</span>
+</section>
+
+<main>
+  <div class="section-head">
+    <h2>Eligible at Sliding round</h2>
+    <div class="meta"><b>6</b> entries · sorted by prediction</div>
+  </div>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">i.</div>
+      <div class="entry-name">
+        <span class="institute">Vivekananda Institute of Professional Studies — Technical Campus</span>
+        <span class="branch">Computer Science &amp; Engineering · Shift I</span>
+        <div class="meta-row">
+          <span class="chip">VIPS-TC</span>
+          <span class="chip">Delhi</span>
+          <span class="chip tight">tight match</span>
+        </div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R2</div><div class="v">—</div></div>
+      <div class="round"><div class="label">R3</div><div class="v">48,210</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">55,920</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">60 seats</span>
+        <span class="cushion"><span class="cushion-dot"></span>+5.9% cushion</span>
+      </div>
+      <div class="save-pill">
+        <button onclick="save(this, 1)">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">ii.</div>
+      <div class="entry-name">
+        <span class="institute">Bharati Vidyapeeth's College of Engineering</span>
+        <span class="branch">Computer Science &amp; Engineering · Shift I</span>
+        <div class="meta-row"><span class="chip">BVCOE</span><span class="chip">Delhi</span></div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round"><div class="label">R2</div><div class="v">45,110</div></div>
+      <div class="round"><div class="label">R3</div><div class="v">49,808</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">58,120</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">60 seats</span>
+        <span class="cushion"><span class="cushion-dot"></span>+10.1% cushion</span>
+      </div>
+      <div class="save-pill">
+        <button class="conflicted" onclick="conflict(this, 1, 'BVCOE — Computer Science &amp; Engineering', 'BVCOE — IT')">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">iii.</div>
+      <div class="entry-name">
+        <span class="institute">Maharaja Surajmal Institute of Technology</span>
+        <span class="branch">Information Technology · Shift I</span>
+        <div class="meta-row"><span class="chip">MSIT</span><span class="chip">Delhi</span></div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R2</div><div class="v">—</div></div>
+      <div class="round"><div class="label">R3</div><div class="v">51,210</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">62,400</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">60 seats</span>
+        <span class="cushion"><span class="cushion-dot amber"></span>+18.2% cushion</span>
+      </div>
+      <div class="save-pill">
+        <button onclick="save(this, 1)">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">iv.</div>
+      <div class="entry-name">
+        <span class="institute">HMR Institute of Technology &amp; Management</span>
+        <span class="branch">AI &amp; Machine Learning · Shift I</span>
+        <div class="meta-row"><span class="chip">HMRITM</span><span class="chip">Delhi</span></div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R2</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R3</div><div class="v">—</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">71,030</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">30 seats</span>
+        <span class="cushion"><span class="cushion-dot amber"></span>+34.5% cushion</span>
+      </div>
+      <div class="save-pill">
+        <button onclick="save(this, 1)">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">v.</div>
+      <div class="entry-name">
+        <span class="institute">Maharaja Agrasen Institute of Technology</span>
+        <span class="branch">Information Technology · Shift II</span>
+        <div class="meta-row"><span class="chip">MAIT</span><span class="chip">Delhi</span></div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R2</div><div class="v">—</div></div>
+      <div class="round"><div class="label">R3</div><div class="v">61,400</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">73,910</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">60 seats</span>
+        <span class="cushion"><span class="cushion-dot amber"></span>+40.0% cushion</span>
+      </div>
+      <div class="save-pill">
+        <button onclick="save(this, 1)">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+
+  <article class="entry">
+    <div class="entry-head">
+      <div class="entry-num">vi.</div>
+      <div class="entry-name">
+        <span class="institute">Guru Premsukh Memorial College of Engineering</span>
+        <span class="branch">Computer Science &amp; Engineering · Shift I</span>
+        <div class="meta-row"><span class="chip">GPMCE</span><span class="chip">Delhi</span></div>
+      </div>
+    </div>
+    <div class="rounds">
+      <div class="round empty"><div class="label">R1</div><div class="v">—</div></div>
+      <div class="round empty"><div class="label">R2</div><div class="v">—</div></div>
+      <div class="round"><div class="label">R3</div><div class="v">68,400</div></div>
+      <div class="round predicted"><div class="label">Sliding</div><div class="v">79,540</div></div>
+    </div>
+    <div class="entry-tail">
+      <div class="cushion-row">
+        <span class="seats">60 seats</span>
+        <span class="cushion"><span class="cushion-dot vermilion"></span>+50.6% edge</span>
+      </div>
+      <div class="save-pill">
+        <button onclick="save(this, 1)">1ˢᵗ</button>
+        <button onclick="save(this, 2)">2ⁿᵈ</button>
+        <button onclick="save(this, 3)">3ʳᵈ</button>
+      </div>
+    </div>
+  </article>
+</main>
+
+<div class="action-bar">
+  <div class="count"><span class="num" id="saved-count">0</span>/3 picked</div>
+  <div class="ghost">tap a row to save as Choice 1, 2 or 3</div>
+  <button class="done">Done</button>
+</div>
+
+<div class="toast" id="toast">
+  <span class="dot"></span>
+  <span>Saved as <em id="toast-slot">Choice 1</em> for <em>Aman Sharma</em></span>
+</div>
+
+<div class="modal-backdrop" id="modal">
+  <div class="modal" role="dialog" aria-labelledby="m-title">
+    <div class="modal-head">
+      <div class="modal-eyebrow">Overwrite confirmation</div>
+      <h3 class="modal-title" id="m-title">Choice 1 is already set.</h3>
+    </div>
+    <div class="modal-body">
+      <p style="margin: 0 0 6px;">Aman Sharma's Choice 1 is currently:</p>
+      <div class="diff">
+        <div class="row old"><span class="tag">was</span><span class="text" id="m-old">BVCOE — IT</span></div>
+        <div class="row new"><span class="tag">now</span><span class="text" id="m-new">BVCOE — Computer Science &amp; Engineering</span></div>
+      </div>
+      <p style="margin: 0; color: var(--ink-mute); font-size: 13px;">The previous value will be replaced. Timeline keeps an audit record.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Keep current</button>
+      <button class="confirm" onclick="confirmOverwrite()">Overwrite</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const slots = ['', '1ˢᵗ', '2ⁿᵈ', '3ʳᵈ'];
+const slotNames = ['', 'Choice 1', 'Choice 2', 'Choice 3'];
+let pendingBtn = null, pendingSlot = null;
+const savedSlots = new Set();
+
+function save(btn, slot) {
+  // unsave any sibling row that owned this slot before
+  document.querySelectorAll(`.save-pill button.saved-slot-${slot}`).forEach(b => {
+    b.classList.remove('saved', `saved-slot-${slot}`);
+    b.innerHTML = b.dataset.original || b.innerHTML;
+    delete b.dataset.original;
+  });
+  btn.dataset.original = btn.innerHTML;
+  btn.classList.add('saved', `saved-slot-${slot}`);
+  btn.innerHTML = `Saved ${slots[slot]} <span class="save-confirm-mark">✓</span>`;
+  btn.closest('.entry').classList.add('saved');
+  savedSlots.add(slot);
+  document.getElementById('saved-count').textContent = savedSlots.size;
+  showToast(slotNames[slot]);
+}
+
+function conflict(btn, slot, newLabel, oldLabel) {
+  pendingBtn = btn; pendingSlot = slot;
+  document.getElementById('m-old').textContent = oldLabel;
+  document.getElementById('m-new').textContent = newLabel;
+  document.getElementById('m-title').innerHTML = `${slotNames[slot]} is already set.`;
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); pendingBtn = null; pendingSlot = null; }
+function confirmOverwrite() {
+  if (pendingBtn) { pendingBtn.classList.remove('conflicted'); save(pendingBtn, pendingSlot); }
+  closeModal();
+}
+function showToast(label) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-slot').textContent = label;
+  t.classList.add('show');
+  clearTimeout(window._toastT);
+  window._toastT = setTimeout(() => t.classList.remove('show'), 2400);
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+</script>
+</body>
+</html>
