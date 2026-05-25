@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Books;
 
+use App\Filament\Pages\Book\CompanyDashboard;
 use App\Models\Book\Company;
 use App\Models\Book\Entry;
 use App\Models\Book\EntryPayment;
@@ -9,6 +10,7 @@ use App\Models\Book\FiscalYear;
 use App\Models\Book\IncomeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -99,7 +101,7 @@ class CompanyDashboardPageTest extends TestCase
         $fy3 = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2026-04-01',
             'end_date' => '2027-03-31', 'label' => '2026-27']);
 
-        $page = \Livewire\Livewire::test(\App\Filament\Pages\Book\CompanyDashboard::class,
+        $page = Livewire::test(CompanyDashboard::class,
             ['company' => 'x', 'fy' => '2025-26'])->instance();
 
         $labels = $page->companyFiscalYears()->pluck('label')->all();
@@ -128,5 +130,41 @@ class CompanyDashboardPageTest extends TestCase
 
         $this->get("/admin/books/{$c->slug}/{$fy->label}")
             ->assertDontSee('davya-fy-switcher', false);
+    }
+
+    public function test_balance_available_equals_income_plus_loans_taken_minus_expense(): void
+    {
+        $c = Company::create(['name' => 'B', 'slug' => 'b']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+
+        // Income: ₹10,00,000
+        IncomeEntry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'occurred_on' => '2025-05-01', 'source' => 'Sales', 'amount' => 1000000]);
+
+        // Loan taken (principal received): ₹2,00,000
+        $loansTaken = $c->sections()->where('slug', 'loans_taken')->first();
+        Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $loansTaken->id, 'title' => 'HDFC OD', 'loan_amount' => 200000]);
+
+        // Expense (cash outflow on salary): ₹50,000
+        $salary = $c->sections()->where('slug', 'salary')->first();
+        $emp = Entry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'section_id' => $salary->id, 'title' => 'Usha', 'salary_amount' => 100000]);
+        EntryPayment::create(['entry_id' => $emp->id, 'amount' => 50000, 'direction' => 'out',
+            'mode' => 'bank', 'occurred_on' => '2025-05-15']);
+
+        $page = Livewire::test(CompanyDashboard::class,
+            ['company' => 'b', 'fy' => '2025-26'])->instance();
+        $kpis = $page->getKpis();
+
+        // 10,00,000 + 2,00,000 − 50,000 = 11,50,000
+        $this->assertEqualsWithDelta(1150000.0, $kpis['balance_available'], 0.01,
+            'Balance Available = Income + Loan Taken − Expense');
+        $this->assertEqualsWithDelta(200000.0, $kpis['loan_taken_principal'], 0.01);
+
+        $this->get("/admin/books/{$c->slug}/{$fy->label}")
+            ->assertSee('Balance Available')
+            ->assertSee('1,150,000.00');
     }
 }

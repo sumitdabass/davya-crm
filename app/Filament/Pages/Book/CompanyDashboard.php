@@ -2,14 +2,26 @@
 
 namespace App\Filament\Pages\Book;
 
+use App\Books\Services\ClosingSnapshotWriter;
 use App\Books\Services\DepreciationCalculator;
 use App\Books\Services\FiscalYearAggregator;
 use App\Models\Book\Asset;
 use App\Models\Book\Company;
 use App\Models\Book\Entry;
+use App\Models\Book\EntryPayment;
 use App\Models\Book\FiscalYear;
 use App\Models\Book\Section;
+use App\Support\MoneyFormat;
+use Carbon\Carbon;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Pages\Page;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Collection;
 
 class CompanyDashboard extends Page
 {
@@ -48,9 +60,9 @@ class CompanyDashboard extends Page
      * year-switcher dropdown so super_admins can hop between years without
      * detouring through the Companies landing.
      *
-     * @return \Illuminate\Support\Collection<int, FiscalYear>
+     * @return Collection<int, FiscalYear>
      */
-    public function companyFiscalYears(): \Illuminate\Support\Collection
+    public function companyFiscalYears(): Collection
     {
         return FiscalYear::where('company_id', $this->company->id)
             ->orderByDesc('start_date')
@@ -75,7 +87,7 @@ class CompanyDashboard extends Page
     protected function getHeaderActions(): array
     {
         return [
-            \Filament\Actions\Action::make('cashReceived')
+            Action::make('cashReceived')
                 ->label('+ Cash Received')
                 ->icon('heroicon-o-banknotes')
                 ->color('success')
@@ -87,12 +99,12 @@ class CompanyDashboard extends Page
                     'mode' => 'bank',
                 ])
                 ->form([
-                    \Filament\Forms\Components\TextInput::make('source')
+                    TextInput::make('source')
                         ->label('Source')
                         ->required()
                         ->default('Other')
                         ->placeholder('Free text — e.g. "Refund", "Sumit Loan back", "Other"'),
-                    \Filament\Forms\Components\TextInput::make('amount')
+                    TextInput::make('amount')
                         ->label('Amount')
                         ->required()
                         ->numeric()
@@ -100,12 +112,12 @@ class CompanyDashboard extends Page
                         ->prefix('₹')
                         ->live(onBlur: true)
                         ->helperText(fn ($state) => $state
-                            ? \App\Support\MoneyFormat::toIndianWords((float) $state)
+                            ? MoneyFormat::toIndianWords((float) $state)
                             : 'Type an amount — the words will appear here.'),
-                    \Filament\Forms\Components\DatePicker::make('occurred_on')
+                    DatePicker::make('occurred_on')
                         ->label('Date')
                         ->required(),
-                    \Filament\Forms\Components\Select::make('mode')
+                    Select::make('mode')
                         ->required()
                         ->options([
                             'cash' => 'Cash',
@@ -114,10 +126,10 @@ class CompanyDashboard extends Page
                             'cheque' => 'Cheque',
                             'other' => 'Other',
                         ]),
-                    \Filament\Forms\Components\TextInput::make('reference')
+                    TextInput::make('reference')
                         ->label('Reference')
                         ->placeholder('e.g. cheque no., UTR, txn id'),
-                    \Filament\Forms\Components\Textarea::make('notes')
+                    Textarea::make('notes')
                         ->label('Notes')
                         ->rows(2)
                         ->placeholder('Optional — any context that helps later reconciliation'),
@@ -129,7 +141,7 @@ class CompanyDashboard extends Page
                     $section = $this->company->sections()->where('slug', 'receipts')->first();
                     if (! $section) {
                         $maxOrder = (int) $this->company->sections()->max('sort_order');
-                        $section = \App\Models\Book\Section::create([
+                        $section = Section::create([
                             'company_id' => $this->company->id,
                             'slug' => 'receipts',
                             'name' => 'Receipts',
@@ -138,13 +150,13 @@ class CompanyDashboard extends Page
                         ]);
                     }
                     $source = trim((string) ($data['source'] ?? '')) ?: 'Other';
-                    $entry = \App\Models\Book\Entry::create([
+                    $entry = Entry::create([
                         'company_id' => $this->company->id,
                         'fiscal_year_id' => $this->fy->id,
                         'section_id' => $section->id,
                         'title' => $source,
                     ]);
-                    \App\Models\Book\EntryPayment::create([
+                    EntryPayment::create([
                         'entry_id' => $entry->id,
                         'occurred_on' => $data['occurred_on'],
                         'amount' => $data['amount'],
@@ -157,7 +169,7 @@ class CompanyDashboard extends Page
                     ]);
                 }),
 
-            \Filament\Actions\Action::make('customize')
+            Action::make('customize')
                 ->label('Customize')
                 ->icon('heroicon-o-adjustments-horizontal')
                 ->color('gray')
@@ -166,7 +178,7 @@ class CompanyDashboard extends Page
                     \Filament\Forms\Components\Section::make('Choose what to see')
                         ->description('Toggle dashboard regions on or off. Saved per user.')
                         ->schema(collect(self::DASHBOARD_REGIONS)
-                            ->map(fn ($label, $key) => \Filament\Forms\Components\Checkbox::make($key)
+                            ->map(fn ($label, $key) => Checkbox::make($key)
                                 ->label($label)
                                 ->default(true)
                             )->values()->all()),
@@ -180,32 +192,34 @@ class CompanyDashboard extends Page
                     $user->forceFill(['books_dashboard_prefs' => $prefs])->save();
                 }),
 
-            \Filament\Actions\Action::make('newFy')
+            Action::make('newFy')
                 ->label('+ New FY')
                 ->icon('heroicon-o-plus')
                 ->color('gray')
                 ->form([
-                    \Filament\Forms\Components\TextInput::make('label')
+                    TextInput::make('label')
                         ->required()
                         ->placeholder('e.g. 2026-27')
                         ->helperText('Indian financial year label (Apr–Mar).'),
-                    \Filament\Forms\Components\DatePicker::make('start_date')
+                    DatePicker::make('start_date')
                         ->label('Start (Apr 1)')
                         ->required()
                         ->default(function () {
-                            $year = (int) \Carbon\Carbon::parse($this->fy->end_date)->format('Y');
-                            return $year . '-04-01';
+                            $year = (int) Carbon::parse($this->fy->end_date)->format('Y');
+
+                            return $year.'-04-01';
                         }),
-                    \Filament\Forms\Components\DatePicker::make('end_date')
+                    DatePicker::make('end_date')
                         ->label('End (Mar 31)')
                         ->required()
                         ->default(function () {
-                            $year = (int) \Carbon\Carbon::parse($this->fy->end_date)->format('Y');
-                            return ($year + 1) . '-03-31';
+                            $year = (int) Carbon::parse($this->fy->end_date)->format('Y');
+
+                            return ($year + 1).'-03-31';
                         }),
                 ])
                 ->action(function (array $data): void {
-                    $fy = \App\Models\Book\FiscalYear::create([
+                    $fy = FiscalYear::create([
                         'company_id' => $this->company->id,
                         'label' => $data['label'],
                         'start_date' => $data['start_date'],
@@ -214,7 +228,7 @@ class CompanyDashboard extends Page
                     $this->redirect(url('/admin/books/'.$this->company->slug.'/'.$fy->label));
                 }),
 
-            \Filament\Actions\Action::make('closeFy')
+            Action::make('closeFy')
                 ->label('Close FY')
                 ->icon('heroicon-o-lock-closed')
                 ->color('warning')
@@ -222,11 +236,11 @@ class CompanyDashboard extends Page
                 ->requiresConfirmation()
                 ->modalDescription('Closing freezes every entry, payment, and income line in FY '.$this->fy->label.'. You can reopen it any time — the snapshot will refresh.')
                 ->action(function (): void {
-                    (new \App\Books\Services\ClosingSnapshotWriter())->close($this->fy);
+                    (new ClosingSnapshotWriter)->close($this->fy);
                     $this->redirect(request()->url());
                 }),
 
-            \Filament\Actions\Action::make('reopenFy')
+            Action::make('reopenFy')
                 ->label('Reopen FY')
                 ->icon('heroicon-o-lock-open')
                 ->color('warning')
@@ -234,11 +248,11 @@ class CompanyDashboard extends Page
                 ->requiresConfirmation()
                 ->modalDescription('Reopening clears the closing snapshot so prior-year carryover will recompute live until the next close.')
                 ->action(function (): void {
-                    (new \App\Books\Services\ClosingSnapshotWriter())->reopen($this->fy);
+                    (new ClosingSnapshotWriter)->reopen($this->fy);
                     $this->redirect(request()->url());
                 }),
 
-            \Filament\Actions\Action::make('viewHistory')
+            Action::make('viewHistory')
                 ->label('History')
                 ->icon('heroicon-o-clock')
                 ->color('gray')
@@ -248,22 +262,39 @@ class CompanyDashboard extends Page
 
     public function getKpis(): array
     {
-        $agg = new FiscalYearAggregator();
+        $agg = new FiscalYearAggregator;
         $carry = $agg->carryover($this->fy);
+        $totalIncome = $agg->totalIncome($this->fy);
+        $totalOutflow = $agg->totalOutflow($this->fy);
+        $loanTakenPrincipal = $this->loanTakenPrincipal();
 
         return [
-            'total_income'        => $agg->totalIncome($this->fy),
-            'cash_received'       => $agg->cashInflowFromRecoveries($this->fy),
-            'cash_outflow'        => $agg->cashOutflow($this->fy),
-            'non_cash_outflow'    => $agg->nonCashOutflow($this->fy),
-            'total_outflow'       => $agg->totalOutflow($this->fy),
-            'net_pl'              => $agg->netPl($this->fy),
-            'carryover'           => $carry,
-            'cumulative_pl'       => $agg->netPl($this->fy) + $carry['value'],
+            'total_income' => $totalIncome,
+            'cash_received' => $agg->cashInflowFromRecoveries($this->fy),
+            'cash_outflow' => $agg->cashOutflow($this->fy),
+            'non_cash_outflow' => $agg->nonCashOutflow($this->fy),
+            'total_outflow' => $totalOutflow,
+            'net_pl' => $agg->netPl($this->fy),
+            'carryover' => $carry,
+            'cumulative_pl' => $agg->netPl($this->fy) + $carry['value'],
             'loans_given_outstanding' => $this->loansOutstandingForSlug('loan'),
             'loans_taken_outstanding' => $this->loansOutstandingForSlug('loans_taken'),
-            'salary_paid'             => $this->paidTotalForSlug('salary'),
+            'loan_taken_principal' => $loanTakenPrincipal,
+            'salary_paid' => $this->paidTotalForSlug('salary'),
+            // Cash-position snapshot: principal we received via loans we took +
+            // operating income, minus all outflow (expense). Used by the tile
+            // rendered above "Year at a glance".
+            'balance_available' => $totalIncome + $loanTakenPrincipal - $totalOutflow,
         ];
+    }
+
+    /** Sum of `loan_amount` (principal received) on Entries in the loans_taken section for this FY. */
+    private function loanTakenPrincipal(): float
+    {
+        return (float) Entry::query()
+            ->where('fiscal_year_id', $this->fy->id)
+            ->whereHas('section', fn ($q) => $q->where('slug', 'loans_taken'))
+            ->sum('loan_amount');
     }
 
     /**
@@ -273,7 +304,7 @@ class CompanyDashboard extends Page
      */
     public function getKpiMeta(): array
     {
-        $agg = new FiscalYearAggregator();
+        $agg = new FiscalYearAggregator;
         $prior = $agg->priorYearKpis($this->fy);
         $current = $this->getKpis();
         $priorLabel = $prior['label'] ?? null;
@@ -282,6 +313,7 @@ class CompanyDashboard extends Page
             if ($then === null || abs($then) < 0.01) {
                 return null;
             }
+
             return (($now - $then) / abs($then)) * 100.0;
         };
 
@@ -289,17 +321,18 @@ class CompanyDashboard extends Page
         $sparkableKeys = ['total_income', 'cash_outflow', 'cash_received', 'salary_paid', 'non_cash_outflow', 'total_outflow', 'net_pl'];
         foreach ($sparkableKeys as $key) {
             $meta[$key] = [
-                'series'      => $agg->monthlySeries($this->fy, $key),
-                'delta_pct'   => $prior ? $delta((float) $current[$key], (float) ($prior[$key] ?? 0)) : null,
+                'series' => $agg->monthlySeries($this->fy, $key),
+                'delta_pct' => $prior ? $delta((float) $current[$key], (float) ($prior[$key] ?? 0)) : null,
                 'prior_label' => $priorLabel,
             ];
         }
+
         return $meta;
     }
 
     private function paidTotalForSlug(string $slug): float
     {
-        return (float) \App\Models\Book\EntryPayment::query()
+        return (float) EntryPayment::query()
             ->where('direction', 'out')
             ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id)
                 ->whereHas('section', fn ($s) => $s->where('slug', $slug)))
@@ -318,19 +351,19 @@ class CompanyDashboard extends Page
             : (float) $e->loan_outstanding);
     }
 
-    public function explainKpiAction(): \Filament\Actions\Action
+    public function explainKpiAction(): Action
     {
-        return \Filament\Actions\Action::make('explainKpi')
+        return Action::make('explainKpi')
             ->modalHeading(fn (array $arguments) => 'How "'.($arguments['label'] ?? 'KPI').'" is computed')
             ->modalWidth('3xl')
-            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+            ->modalContent(function (array $arguments): View {
                 $key = $arguments['key'] ?? '';
                 $kpis = $this->getKpis();
 
                 // KPIs backed by actual payment events get a full record list.
                 if (in_array($key, ['cash_received', 'cash_outflow'], true)) {
                     $direction = $key === 'cash_received' ? 'in' : 'out';
-                    $query = \App\Models\Book\EntryPayment::query()
+                    $query = EntryPayment::query()
                         ->where('direction', $direction)
                         ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
                         ->with(['entry.section', 'createdBy'])
@@ -338,10 +371,11 @@ class CompanyDashboard extends Page
                     if ($key === 'cash_received') {
                         $query->whereHas('entry.section', fn ($s) => $s->whereIn(
                             'slug',
-                            \App\Books\Services\FiscalYearAggregator::CASH_RECEIVED_SECTION_SLUGS
+                            FiscalYearAggregator::CASH_RECEIVED_SECTION_SLUGS
                         ));
                     }
                     $payments = $query->get();
+
                     return view('filament.pages.book.partials.kpi-payments', [
                         'payments' => $payments,
                         'total' => (float) $payments->sum('amount'),
@@ -353,11 +387,12 @@ class CompanyDashboard extends Page
 
                 // Non-cash outflow = per-asset depreciation events.
                 if ($key === 'non_cash_outflow') {
-                    $assets = \App\Models\Book\Asset::query()
+                    $assets = Asset::query()
                         ->whereHas('entry', fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
                         ->with('entry.section')
                         ->get();
-                    $calc = new \App\Books\Services\DepreciationCalculator();
+                    $calc = new DepreciationCalculator;
+
                     return view('filament.pages.book.partials.kpi-depreciation', [
                         'rows' => $assets->map(fn ($a) => [
                             'name' => $a->entry->title,
@@ -427,30 +462,30 @@ class CompanyDashboard extends Page
                 return [
                     'section' => $s,
                     'count' => $entries->count(),
-                    'salary_total'        => $entries->sum(fn ($e) => (float) $e->annualized_salary_amount),
-                    'loan_total'          => $entries->sum(fn ($e) => (float) $e->loan_amount),
-                    'paid_total'          => $entries->sum(fn ($e) => (float) $e->paid),
+                    'salary_total' => $entries->sum(fn ($e) => (float) $e->annualized_salary_amount),
+                    'loan_total' => $entries->sum(fn ($e) => (float) $e->loan_amount),
+                    'paid_total' => $entries->sum(fn ($e) => (float) $e->paid),
                     'received_back_total' => $entries->sum(fn ($e) => (float) $e->received_back),
-                    'balance_total'       => $entries->sum(fn ($e) => (float) $e->balance),
+                    'balance_total' => $entries->sum(fn ($e) => (float) $e->balance),
                 ];
             })->all();
     }
 
     public function getAssetRegister(): array
     {
-        $calc = new DepreciationCalculator();
+        $calc = new DepreciationCalculator;
 
         return Asset::whereHas('entry',
-                fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
+            fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
             ->with('entry.section')->get()
             ->map(fn ($a) => [
-                'id'           => $a->entry->id,
-                'name'         => $a->entry->title,
-                'section_slug' => $a->entry->section?->slug ?? 'assets',
-                'original'     => (float) $a->original_value,
-                'this_year'    => $calc->yearlyDepFor($a, $this->fy),
-                'accumulated' => $calc->accumulatedDepThrough($a, $this->fy),
-                'book_value'  => $calc->bookValueAtEndOf($a, $this->fy),
+            'id' => $a->entry->id,
+            'name' => $a->entry->title,
+            'section_slug' => $a->entry->section?->slug ?? 'assets',
+            'original' => (float) $a->original_value,
+            'this_year' => $calc->yearlyDepFor($a, $this->fy),
+            'accumulated' => $calc->accumulatedDepThrough($a, $this->fy),
+            'book_value' => $calc->bookValueAtEndOf($a, $this->fy),
             ])->all();
     }
 
@@ -461,20 +496,22 @@ class CompanyDashboard extends Page
             ->filter(function ($e) {
                 $isTaken = $e->section?->slug === 'loans_taken';
                 $outstanding = $isTaken ? (float) $e->loan_outstanding_taken : (float) $e->loan_outstanding;
+
                 return $outstanding > 0;
             })
             ->map(function ($e) {
                 $isTaken = $e->section?->slug === 'loans_taken';
+
                 return [
-                    'id'            => $e->id,
-                    'title'         => $e->title,
-                    'kind'          => $isTaken ? 'taken' : 'given',
+                    'id' => $e->id,
+                    'title' => $e->title,
+                    'kind' => $isTaken ? 'taken' : 'given',
                     'interest_rate' => $e->interest_rate,
-                    'loan'          => (float) $e->loan_amount,
+                    'loan' => (float) $e->loan_amount,
                     'received_back' => (float) $e->received_back,
-                    'repaid'        => (float) $e->repaid,
-                    'outstanding'   => $isTaken ? (float) $e->loan_outstanding_taken : (float) $e->loan_outstanding,
-                    'section_slug'  => $e->section?->slug,
+                    'repaid' => (float) $e->repaid,
+                    'outstanding' => $isTaken ? (float) $e->loan_outstanding_taken : (float) $e->loan_outstanding,
+                    'section_slug' => $e->section?->slug,
                 ];
             })->values()->all();
     }

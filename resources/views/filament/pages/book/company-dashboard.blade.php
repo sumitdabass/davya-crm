@@ -39,6 +39,26 @@
         @endif
     </div>
 
+    {{-- Balance Available — quick "how much do I have right now" snapshot.
+         Income + Loans Taken (principal received) − Expense (total outflow). --}}
+    @if ($visibleRegions['kpis'])
+        @php $balance = $kpis['balance_available']; @endphp
+        <div class="davya-section-card" style="margin-bottom:12px;">
+            <div class="davya-section-card-title">Balance Available</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:var(--fs-13); color:var(--text-sub);">
+                    <span><span style="color:var(--text-muted); margin-right:6px;">Income</span><x-book-amount :v="$kpis['total_income']" /></span>
+                    <span style="color:var(--text-muted);">+</span>
+                    <span><span style="color:var(--text-muted); margin-right:6px;">Loans Taken</span><x-book-amount :v="$kpis['loan_taken_principal']" /></span>
+                    <span style="color:var(--text-muted);">−</span>
+                    <span><span style="color:var(--text-muted); margin-right:6px;">Expense</span><x-book-amount :v="$kpis['total_outflow']" /></span>
+                    <span style="color:var(--text-muted);">=</span>
+                </div>
+                <x-book-amount :v="$balance" big :danger="$balance < 0" />
+            </div>
+        </div>
+    @endif
+
     {{-- KPI tiles --}}
     @if ($visibleRegions['kpis'])
         <div class="davya-section-card">
