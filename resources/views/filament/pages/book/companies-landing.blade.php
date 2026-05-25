@@ -7,6 +7,14 @@
                     $latestFy = \App\Models\Book\FiscalYear::where('company_id',$c->id)->orderByDesc('start_date')->first();
                 @endphp
                 @if ($latestFy)
+                    @php
+                        $balance = (float) (new \App\Books\Services\FiscalYearAggregator())->balanceAvailable($latestFy);
+                        $isNeg = $balance < 0;
+                        $absBalance = abs($balance);
+                        $balanceInt = number_format(floor($absBalance), 0, '.', ',');
+                        $balanceDec = '.'.str_pad((string) (int) round(($absBalance - floor($absBalance)) * 100), 2, '0', STR_PAD_LEFT);
+                        $words = \App\Support\MoneyFormat::toIndianWords($balance);
+                    @endphp
                     <div style="position:relative;">
                         <a href="{{ url('/admin/books/'.$c->slug.'/'.$latestFy->label) }}"
                            style="display:block; padding:16px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:var(--elev-1); text-decoration:none; color:inherit;"
@@ -17,6 +25,15 @@
                             <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;">
                                 <span class="davya-books-badge davya-books-badge--brand">{{ $c->currency }}</span>
                                 <span class="davya-books-badge">FY {{ $latestFy->label }}{{ $latestFy->is_closed ? ' · closed' : '' }}</span>
+                            </div>
+                            <div class="davya-balance-card davya-balance-card--compact" data-balance-negative="{{ $isNeg ? 'true' : 'false' }}">
+                                <div class="davya-balance-card__eyebrow">Balance Available</div>
+                                <div class="davya-balance-card__hero">
+                                    <div class="davya-balance-card__hero-num" title="₹{{ number_format($balance, 2) }}">
+                                        <span class="davya-balance-card__hero-currency">₹</span>{{ $isNeg ? '−' : '' }}{{ $balanceInt }}<span class="davya-balance-card__hero-decimals">{{ $balanceDec }}</span>
+                                    </div>
+                                    <div class="davya-balance-card__hero-words">{{ $words }}</div>
+                                </div>
                             </div>
                         </a>
                         <button type="button"

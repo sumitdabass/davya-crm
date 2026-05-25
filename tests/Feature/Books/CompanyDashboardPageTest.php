@@ -165,6 +165,8 @@ class CompanyDashboardPageTest extends TestCase
 
         $this->get("/admin/books/{$c->slug}/{$fy->label}")
             ->assertSee('Balance Available')
-            ->assertSee('1,150,000.00');
+            // Hero number splits the integer and decimals across spans, so
+            // assert the integer part appears in the rendered HTML.
+            ->assertSee('1,150,000');
     }
 }

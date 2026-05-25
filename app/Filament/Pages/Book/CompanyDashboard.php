@@ -264,37 +264,22 @@ class CompanyDashboard extends Page
     {
         $agg = new FiscalYearAggregator;
         $carry = $agg->carryover($this->fy);
-        $totalIncome = $agg->totalIncome($this->fy);
-        $totalOutflow = $agg->totalOutflow($this->fy);
-        $loanTakenPrincipal = $this->loanTakenPrincipal();
 
         return [
-            'total_income' => $totalIncome,
+            'total_income' => $agg->totalIncome($this->fy),
             'cash_received' => $agg->cashInflowFromRecoveries($this->fy),
             'cash_outflow' => $agg->cashOutflow($this->fy),
             'non_cash_outflow' => $agg->nonCashOutflow($this->fy),
-            'total_outflow' => $totalOutflow,
+            'total_outflow' => $agg->totalOutflow($this->fy),
             'net_pl' => $agg->netPl($this->fy),
             'carryover' => $carry,
             'cumulative_pl' => $agg->netPl($this->fy) + $carry['value'],
             'loans_given_outstanding' => $this->loansOutstandingForSlug('loan'),
             'loans_taken_outstanding' => $this->loansOutstandingForSlug('loans_taken'),
-            'loan_taken_principal' => $loanTakenPrincipal,
+            'loan_taken_principal' => $agg->loanTakenPrincipal($this->fy),
             'salary_paid' => $this->paidTotalForSlug('salary'),
-            // Cash-position snapshot: principal we received via loans we took +
-            // operating income, minus all outflow (expense). Used by the tile
-            // rendered above "Year at a glance".
-            'balance_available' => $totalIncome + $loanTakenPrincipal - $totalOutflow,
+            'balance_available' => $agg->balanceAvailable($this->fy),
         ];
-    }
-
-    /** Sum of `loan_amount` (principal received) on Entries in the loans_taken section for this FY. */
-    private function loanTakenPrincipal(): float
-    {
-        return (float) Entry::query()
-            ->where('fiscal_year_id', $this->fy->id)
-            ->whereHas('section', fn ($q) => $q->where('slug', 'loans_taken'))
-            ->sum('loan_amount');
     }
 
     /**
@@ -479,13 +464,13 @@ class CompanyDashboard extends Page
             fn ($q) => $q->where('fiscal_year_id', $this->fy->id))
             ->with('entry.section')->get()
             ->map(fn ($a) => [
-            'id' => $a->entry->id,
-            'name' => $a->entry->title,
-            'section_slug' => $a->entry->section?->slug ?? 'assets',
-            'original' => (float) $a->original_value,
-            'this_year' => $calc->yearlyDepFor($a, $this->fy),
-            'accumulated' => $calc->accumulatedDepThrough($a, $this->fy),
-            'book_value' => $calc->bookValueAtEndOf($a, $this->fy),
+                'id' => $a->entry->id,
+                'name' => $a->entry->title,
+                'section_slug' => $a->entry->section?->slug ?? 'assets',
+                'original' => (float) $a->original_value,
+                'this_year' => $calc->yearlyDepFor($a, $this->fy),
+                'accumulated' => $calc->accumulatedDepThrough($a, $this->fy),
+                'book_value' => $calc->bookValueAtEndOf($a, $this->fy),
             ])->all();
     }
 

@@ -65,6 +65,198 @@
     --fs-14: 14px; --fs-16: 16px; --fs-18: 18px; --fs-24: 24px;
 }
 
+/* Balance Available — editorial-finance hero card.
+ * Used on the company dashboard (above "Year at a glance") AND in a compact
+ * form on each company tile on the Books landing.
+ *
+ * Aesthetic: warm cream paper with a noise grain, two-zone layout (ledger
+ * on the left, hero number on the right), thin emerald rule between them.
+ * Switches to vermilion (#D97757, already used as --stage-won) when the
+ * balance is negative. */
+.davya-balance-card {
+    --balance-rule: var(--brand-600);
+    --balance-accent: var(--brand-700);
+    --balance-paper: #FCFBF6;
+    --balance-paper-border: #EAE6D9;
+    position: relative;
+    background: var(--balance-paper);
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.4 0 0 0 0 0.32 0 0 0 0 0.18 0 0 0 0.06 0'/></filter><rect width='180' height='180' filter='url(%23n)'/></svg>");
+    background-size: 180px 180px;
+    border: 1px solid var(--balance-paper-border);
+    border-radius: var(--r-lg);
+    padding: 22px 28px 24px;
+    margin-bottom: var(--s-3);
+    overflow: hidden;
+    animation: davya-balance-rise 520ms cubic-bezier(.2,.7,.2,1) both;
+}
+.davya-balance-card[data-balance-negative="true"] {
+    --balance-rule: #D97757;
+    --balance-accent: #B25238;
+    --balance-paper: #FCF8F4;
+    --balance-paper-border: #EFDFD0;
+}
+@keyframes davya-balance-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.davya-balance-card__eyebrow {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 2.4px;
+    margin: 0 0 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.davya-balance-card__eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--balance-paper-border), transparent);
+}
+
+.davya-balance-card__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1.4fr);
+    gap: 28px;
+    align-items: center;
+}
+@media (max-width: 760px) {
+    .davya-balance-card { padding: 18px 20px 20px; }
+    .davya-balance-card__body {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 18px;
+    }
+    .davya-balance-card__rule { display: none; }
+}
+
+.davya-balance-card__rule {
+    width: 1px;
+    align-self: stretch;
+    background: linear-gradient(to bottom, transparent, var(--balance-rule) 25%, var(--balance-rule) 75%, transparent);
+    opacity: 0.35;
+}
+
+.davya-balance-card__ledger {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+.davya-balance-card__row {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: baseline;
+    gap: 14px;
+}
+.davya-balance-card__label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+.davya-balance-card__amount {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.davya-balance-card__op {
+    width: 12px;
+    font-family: var(--font-display, Fraunces, Georgia, serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: 18px;
+    color: var(--balance-accent);
+    text-align: center;
+    opacity: 0.8;
+}
+
+.davya-balance-card__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    min-width: 0;
+}
+@media (max-width: 760px) {
+    .davya-balance-card__hero { align-items: flex-start; text-align: left; }
+}
+.davya-balance-card__hero-num {
+    font-family: var(--font-display, Fraunces, Georgia, serif);
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(38px, 5.5vw, 54px);
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5px;
+    white-space: nowrap;
+}
+.davya-balance-card[data-balance-negative="true"] .davya-balance-card__hero-num { color: var(--balance-accent); }
+.davya-balance-card__hero-currency {
+    font-size: 0.5em;
+    font-style: normal;
+    font-weight: 500;
+    color: var(--text-sub);
+    margin-right: 4px;
+    vertical-align: 0.18em;
+}
+.davya-balance-card__hero-decimals {
+    font-size: 0.42em;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    margin-left: 2px;
+    vertical-align: 0.05em;
+}
+.davya-balance-card__hero-words {
+    font-family: var(--font-display, Fraunces, Georgia, serif);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 13px;
+    color: var(--text-sub);
+    margin-top: 10px;
+    line-height: 1.4;
+    max-width: 360px;
+    letter-spacing: 0.1px;
+    text-transform: lowercase;
+}
+@media (max-width: 760px) {
+    .davya-balance-card__hero-words { max-width: 100%; }
+}
+
+/* Compact variant — used inside company tiles on the Books landing.
+ * Drops the eyebrow + ledger; just the hero number under a tiny label. */
+.davya-balance-card--compact {
+    padding: 0;
+    background: transparent;
+    background-image: none;
+    border: 0;
+    border-top: 1px dashed var(--border);
+    border-radius: 0;
+    margin: 14px 0 0;
+    padding-top: 14px;
+    animation: none;
+}
+.davya-balance-card--compact .davya-balance-card__hero { align-items: flex-start; text-align: left; }
+.davya-balance-card--compact .davya-balance-card__hero-num {
+    font-size: clamp(26px, 3.4vw, 34px);
+}
+.davya-balance-card--compact .davya-balance-card__hero-words {
+    font-size: 11px;
+    margin-top: 4px;
+    max-width: 100%;
+}
+.davya-balance-card--compact .davya-balance-card__eyebrow {
+    margin: 0 0 6px;
+    letter-spacing: 1.8px;
+}
+.davya-balance-card--compact .davya-balance-card__eyebrow::after { display: none; }
+
 /* Section-card — used by forms, settings tiles, drawer panels. */
 .davya-section-card {
     background: #FAFBFC;

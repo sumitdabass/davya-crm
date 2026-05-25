@@ -7,6 +7,8 @@ use App\Models\Book\Entry;
 use App\Models\Book\EntryPayment;
 use App\Models\Book\FiscalYear;
 use App\Models\Book\IncomeEntry;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class FiscalYearAggregator
 {
@@ -20,7 +22,7 @@ class FiscalYearAggregator
     public function __construct(
         private ?DepreciationCalculator $dep = null,
     ) {
-        $this->dep ??= new DepreciationCalculator();
+        $this->dep ??= new DepreciationCalculator;
     }
 
     public function totalIncome(FiscalYear $fy): float
@@ -31,15 +33,15 @@ class FiscalYearAggregator
     public function cashOutflow(FiscalYear $fy): float
     {
         return (float) EntryPayment::whereHas('entry',
-                fn ($q) => $q->where('fiscal_year_id', $fy->id))
+            fn ($q) => $q->where('fiscal_year_id', $fy->id))
             ->where('direction', 'out')->sum('amount');
     }
 
     public function cashInflowFromRecoveries(FiscalYear $fy): float
     {
         return (float) EntryPayment::whereHas('entry',
-                fn ($q) => $q->where('fiscal_year_id', $fy->id)
-                    ->whereHas('section', fn ($s) => $s->whereIn('slug', self::CASH_RECEIVED_SECTION_SLUGS)))
+            fn ($q) => $q->where('fiscal_year_id', $fy->id)
+                ->whereHas('section', fn ($s) => $s->whereIn('slug', self::CASH_RECEIVED_SECTION_SLUGS)))
             ->where('direction', 'in')->sum('amount');
     }
 
@@ -68,6 +70,27 @@ class FiscalYearAggregator
     public function netPl(FiscalYear $fy): float
     {
         return $this->totalIncome($fy) - $this->totalOutflow($fy);
+    }
+
+    /** Sum of principal received via loans we took, this FY. */
+    public function loanTakenPrincipal(FiscalYear $fy): float
+    {
+        return (float) Entry::query()
+            ->where('fiscal_year_id', $fy->id)
+            ->whereHas('section', fn ($q) => $q->where('slug', 'loans_taken'))
+            ->sum('loan_amount');
+    }
+
+    /**
+     * Operating cash position for this FY:
+     *   Income + Loans Taken (principal received) − Total Outflow
+     * Powers the Balance Available tile + the company landing cards.
+     */
+    public function balanceAvailable(FiscalYear $fy): float
+    {
+        return $this->totalIncome($fy)
+             + $this->loanTakenPrincipal($fy)
+             - $this->totalOutflow($fy);
     }
 
     public function carryover(FiscalYear $fy): array
@@ -106,12 +129,12 @@ class FiscalYearAggregator
     public function monthlySeries(FiscalYear $fy, string $metric): array
     {
         $buckets = [];
-        $start = $fy->start_date instanceof \Carbon\Carbon
+        $start = $fy->start_date instanceof Carbon
             ? $fy->start_date->copy()
-            : \Carbon\Carbon::parse($fy->start_date);
-        $end = $fy->end_date instanceof \Carbon\Carbon
+            : Carbon::parse($fy->start_date);
+        $end = $fy->end_date instanceof Carbon
             ? $fy->end_date->copy()
-            : \Carbon\Carbon::parse($fy->end_date);
+            : Carbon::parse($fy->end_date);
 
         $income = $this->seriesByMonth(
             IncomeEntry::where('fiscal_year_id', $fy->id),
@@ -149,21 +172,21 @@ class FiscalYearAggregator
         $cumDep = 0.0;
         for ($i = 0; $i < 12 && $cursor->lessThanOrEqualTo($end); $i++) {
             $key = $cursor->format('Y-m');
-            $cumIncome  += (float) ($income[$key] ?? 0);
-            $cumOutPay  += (float) ($outflowPayments[$key] ?? 0);
-            $cumRecov   += (float) ($recoveryPayments[$key] ?? 0);
-            $cumSalary  += (float) ($salaryPayments[$key] ?? 0);
-            $cumDep     += $depPerMonth;
+            $cumIncome += (float) ($income[$key] ?? 0);
+            $cumOutPay += (float) ($outflowPayments[$key] ?? 0);
+            $cumRecov += (float) ($recoveryPayments[$key] ?? 0);
+            $cumSalary += (float) ($salaryPayments[$key] ?? 0);
+            $cumDep += $depPerMonth;
 
             $buckets[] = match ($metric) {
-                'total_income'      => $cumIncome,
-                'cash_outflow'      => $cumOutPay,
-                'cash_received'     => $cumRecov,
-                'salary_paid'       => $cumSalary,
-                'non_cash_outflow'  => $cumDep,
-                'total_outflow'     => $cumOutPay + $cumDep,
-                'net_pl'            => $cumIncome - $cumOutPay - $cumDep,
-                default             => 0.0,
+                'total_income' => $cumIncome,
+                'cash_outflow' => $cumOutPay,
+                'cash_received' => $cumRecov,
+                'salary_paid' => $cumSalary,
+                'non_cash_outflow' => $cumDep,
+                'total_outflow' => $cumOutPay + $cumDep,
+                'net_pl' => $cumIncome - $cumOutPay - $cumDep,
+                default => 0.0,
             };
 
             $cursor->addMonth();
@@ -173,9 +196,9 @@ class FiscalYearAggregator
     }
 
     /**
-     * @return array<string, float>  keyed YYYY-MM
+     * @return array<string, float> keyed YYYY-MM
      */
-    private function seriesByMonth(\Illuminate\Database\Eloquent\Builder $base, string $dateCol, string $sumCol): array
+    private function seriesByMonth(Builder $base, string $dateCol, string $sumCol): array
     {
         $driver = $base->getModel()->getConnection()->getDriverName();
         $expr = $driver === 'sqlite'
@@ -197,13 +220,13 @@ class FiscalYearAggregator
         }
 
         return [
-            'total_income'     => $this->totalIncome($prior),
-            'cash_received'    => $this->cashInflowFromRecoveries($prior),
-            'cash_outflow'     => $this->cashOutflow($prior),
+            'total_income' => $this->totalIncome($prior),
+            'cash_received' => $this->cashInflowFromRecoveries($prior),
+            'cash_outflow' => $this->cashOutflow($prior),
             'non_cash_outflow' => $this->nonCashOutflow($prior),
-            'total_outflow'    => $this->totalOutflow($prior),
-            'net_pl'           => $this->netPl($prior),
-            'label'            => $prior->label,
+            'total_outflow' => $this->totalOutflow($prior),
+            'net_pl' => $this->netPl($prior),
+            'label' => $prior->label,
         ];
     }
 }

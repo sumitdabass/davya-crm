@@ -39,24 +39,47 @@
         @endif
     </div>
 
-    {{-- Balance Available — quick "how much do I have right now" snapshot.
+    {{-- Balance Available — editorial-finance hero card.
          Income + Loans Taken (principal received) − Expense (total outflow). --}}
     @if ($visibleRegions['kpis'])
-        @php $balance = $kpis['balance_available']; @endphp
-        <div class="davya-section-card" style="margin-bottom:12px;">
-            <div class="davya-section-card-title">Balance Available</div>
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:var(--fs-13); color:var(--text-sub);">
-                    <span><span style="color:var(--text-muted); margin-right:6px;">Income</span><x-book-amount :v="$kpis['total_income']" /></span>
-                    <span style="color:var(--text-muted);">+</span>
-                    <span><span style="color:var(--text-muted); margin-right:6px;">Loans Taken</span><x-book-amount :v="$kpis['loan_taken_principal']" /></span>
-                    <span style="color:var(--text-muted);">−</span>
-                    <span><span style="color:var(--text-muted); margin-right:6px;">Expense</span><x-book-amount :v="$kpis['total_outflow']" /></span>
-                    <span style="color:var(--text-muted);">=</span>
+        @php
+            $balance = (float) $kpis['balance_available'];
+            $isNeg = $balance < 0;
+            $absBalance = abs($balance);
+            $balanceInt = number_format(floor($absBalance), 0, '.', ',');
+            $balanceDec = '.'.str_pad((string) (int) round(($absBalance - floor($absBalance)) * 100), 2, '0', STR_PAD_LEFT);
+            $fmtMoney = fn ($v) => '₹'.number_format(abs((float) $v), 0, '.', ',');
+            $words = \App\Support\MoneyFormat::toIndianWords($balance);
+        @endphp
+        <section class="davya-balance-card" data-balance-negative="{{ $isNeg ? 'true' : 'false' }}" aria-label="Balance available">
+            <h2 class="davya-balance-card__eyebrow">Balance Available</h2>
+            <div class="davya-balance-card__body">
+                <div class="davya-balance-card__ledger">
+                    <div class="davya-balance-card__row">
+                        <span class="davya-balance-card__label">Income</span>
+                        <span class="davya-balance-card__amount">{{ $fmtMoney($kpis['total_income']) }}</span>
+                        <span class="davya-balance-card__op">+</span>
+                    </div>
+                    <div class="davya-balance-card__row">
+                        <span class="davya-balance-card__label">Loans Taken</span>
+                        <span class="davya-balance-card__amount">{{ $fmtMoney($kpis['loan_taken_principal']) }}</span>
+                        <span class="davya-balance-card__op">−</span>
+                    </div>
+                    <div class="davya-balance-card__row">
+                        <span class="davya-balance-card__label">Expense</span>
+                        <span class="davya-balance-card__amount">{{ $fmtMoney($kpis['total_outflow']) }}</span>
+                        <span class="davya-balance-card__op">=</span>
+                    </div>
                 </div>
-                <x-book-amount :v="$balance" big :danger="$balance < 0" />
+                <div class="davya-balance-card__rule" aria-hidden="true"></div>
+                <div class="davya-balance-card__hero">
+                    <div class="davya-balance-card__hero-num" title="₹{{ number_format($balance, 2) }}">
+                        <span class="davya-balance-card__hero-currency">₹</span>{{ $isNeg ? '−' : '' }}{{ $balanceInt }}<span class="davya-balance-card__hero-decimals">{{ $balanceDec }}</span>
+                    </div>
+                    <div class="davya-balance-card__hero-words">{{ $words }}</div>
+                </div>
             </div>
-        </div>
+        </section>
     @endif
 
     {{-- KPI tiles --}}
