@@ -40,8 +40,9 @@
     </div>
 
     {{-- Balance Available — editorial-finance hero card.
-         Income + Loans Taken (principal received) − Expense (total outflow). --}}
-    @if ($visibleRegions['kpis'])
+         Income + Loans Taken (principal received) − Expense (total outflow).
+         Toggled independently from the KPI grid via the 'balance' region. --}}
+    @if ($visibleRegions['balance'])
         @php
             $balance = (float) $kpis['balance_available'];
             $isNeg = $balance < 0;

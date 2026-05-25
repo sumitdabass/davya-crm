@@ -32,6 +32,7 @@ class CompanyDashboard extends Page
     protected static string $view = 'filament.pages.book.company-dashboard';
 
     public const DASHBOARD_REGIONS = [
+        'balance' => 'Balance Available',
         'kpis' => 'KPI Tiles',
         'rollups' => 'Section Roll-ups',
         'assets' => 'Asset Register',

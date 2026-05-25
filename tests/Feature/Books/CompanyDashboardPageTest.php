@@ -132,6 +132,45 @@ class CompanyDashboardPageTest extends TestCase
             ->assertDontSee('davya-fy-switcher', false);
     }
 
+    public function test_balance_available_region_toggles_independently_from_kpi_tiles(): void
+    {
+        $c = Company::create(['name' => 'T', 'slug' => 't']);
+        $fy = FiscalYear::create(['company_id' => $c->id, 'start_date' => '2025-04-01',
+            'end_date' => '2026-03-31', 'label' => '2025-26']);
+        IncomeEntry::create(['company_id' => $c->id, 'fiscal_year_id' => $fy->id,
+            'occurred_on' => '2025-05-01', 'source' => 'X', 'amount' => 123456]);
+
+        // User hides KPI tiles but keeps Balance Available visible.
+        $u = auth()->user();
+        $u->books_dashboard_prefs = [
+            'balance' => true,
+            'kpis' => false,
+            'rollups' => true,
+            'assets' => true,
+            'loans' => true,
+        ];
+        $u->save();
+
+        $this->get("/admin/books/{$c->slug}/{$fy->label}")
+            ->assertSee('Balance Available')
+            ->assertSee('123,456')           // hero number renders
+            ->assertDontSee('Year at a glance');  // KPI grid hidden
+
+        // Inverse — hide Balance, show KPIs.
+        $u->books_dashboard_prefs = [
+            'balance' => false,
+            'kpis' => true,
+            'rollups' => true,
+            'assets' => true,
+            'loans' => true,
+        ];
+        $u->save();
+
+        $this->get("/admin/books/{$c->slug}/{$fy->label}")
+            ->assertSee('Year at a glance')
+            ->assertDontSee('Balance Available');
+    }
+
     public function test_balance_available_equals_income_plus_loans_taken_minus_expense(): void
     {
         $c = Company::create(['name' => 'B', 'slug' => 'b']);
