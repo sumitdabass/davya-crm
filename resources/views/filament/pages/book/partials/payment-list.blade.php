@@ -1,4 +1,4 @@
-<div style="display:grid; gap:8px;">
+<div x-data style="display:grid; gap:8px;">
     @if ($payments->isEmpty())
         <div style="color:var(--text-sub); text-align:center; padding:24px 0; font-size:var(--fs-13);">No payments recorded yet.</div>
     @else
@@ -34,11 +34,15 @@
                                 {{ $p->createdBy ? \Illuminate\Support\Str::before($p->createdBy->email, '@') : '—' }}
                             </td>
                             <td class="actions">
+                                {{-- Use Alpine @click + $wire instead of Livewire.dispatch:
+                                     window.Livewire is unreachable from this teleported modalContent
+                                     in production (the bridge listener never fires), but Alpine binds
+                                     at scan time and $wire references the SectionPage component directly. --}}
                                 <button type="button"
-                                    onclick="Livewire.dispatch('book:open-edit-payment', { id: {{ $p->id }} })"
+                                    x-on:click="$wire.mountAction('editPayment', { id: {{ $p->id }} })"
                                     data-variant="primary">Edit</button>
                                 <button type="button"
-                                    onclick="if (confirm('Delete this payment? This cannot be undone.')) { Livewire.dispatch('book:open-delete-payment', { id: {{ $p->id }} }); }"
+                                    x-on:click="if (confirm('Delete this payment? This cannot be undone.')) $wire.mountAction('deletePayment', { id: {{ $p->id }} })"
                                     data-variant="danger">Delete</button>
                             </td>
                         </tr>

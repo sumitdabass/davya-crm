@@ -1,4 +1,4 @@
-<div style="display:grid; gap:8px;">
+<div x-data style="display:grid; gap:8px;">
     @forelse ($attachments as $a)
         <div style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface);">
             <div>
@@ -12,7 +12,7 @@
                 </div>
             </div>
             <button type="button"
-                onclick="if (confirm('Delete this document? This cannot be undone.')) { Livewire.dispatch('book:open-delete-document', { id: {{ $a->id }} }); }"
+                x-on:click="if (confirm('Delete this document? This cannot be undone.')) $wire.mountAction('deleteDocument', { id: {{ $a->id }} })"
                 style="background:transparent; border:0; cursor:pointer; color:var(--danger); font-size:var(--fs-11); padding:4px 8px; border-radius:var(--r-sm);"
                 onmouseover="this.style.background='#FEE2E2';"
                 onmouseout="this.style.background='transparent';">Delete</button>
