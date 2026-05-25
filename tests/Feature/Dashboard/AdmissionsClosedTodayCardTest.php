@@ -63,4 +63,43 @@ class AdmissionsClosedTodayCardTest extends TestCase
         $card = new AdmissionsClosedTodayCard;
         $this->assertSame(1, $card->drillDown($admin)->query->count());
     }
+
+    public function test_drilldown_emits_admitted_college_from_latest_paid_round(): void
+    {
+        $admin = User::where('email', 'sumit@davya.local')->first();
+        $closedStageId = Stage::where('name', 'Closed')->value('id');
+
+        $student = Student::create([
+            'phone' => '9333000001',
+            'name' => 'Admitted via Round',
+            'owner_id' => $admin->id,
+            'lead_source' => 'Website',
+            'stage' => 'Closed',
+            'close_reason' => 'Completed',
+            'stage_id' => $closedStageId,
+        ]);
+
+        \App\Models\RoundHistory::create([
+            'student_id' => $student->id,
+            'round_name' => 'Online_R2',
+            'allotted_college' => 'MAIT',
+            'allotted_course' => 'B.Tech CSE',
+            'seat_fee_paid' => true,
+            'fee_paid_at' => now(),
+            'outcome' => 'Allotted — Fee Paid',
+        ]);
+
+        $card = new AdmissionsClosedTodayCard();
+        $payload = $card->drillDown($admin);
+
+        $this->assertNotNull($payload);
+        $rows = $payload->query->get();
+        $this->assertGreaterThanOrEqual(1, $rows->count());
+
+        $found = $rows->firstWhere('id', $student->id);
+        $this->assertNotNull($found, 'Drill-down query must include the admitted student.');
+
+        $rendered = \App\Dashboard\RowFormatter::format($found, 'final_college');
+        $this->assertSame('MAIT', $rendered);
+    }
 }

@@ -124,7 +124,8 @@ class TeamStatCard implements Card
                 ->where('stage', 'Closed')
                 ->where('close_reason', 'Completed')
                 ->whereBetween('updated_at', $todayRange)
-                ->whereIn('owner_id', $teamIds),
+                ->whereIn('owner_id', $teamIds)
+                ->with(['latestAdmittedRound']),
         };
     }
 }

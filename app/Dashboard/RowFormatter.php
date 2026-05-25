@@ -14,7 +14,15 @@ class RowFormatter
             'name' => (string) ($row->name ?? '—'),
             'phone' => (string) ($row->phone ?? '—'),
             'course' => (string) ($row->course ?? '—'),
-            'final_college' => (string) ($row->final_college ?? '—'),
+            'final_college' => $row instanceof Student
+                ? (string) ($row->latestAdmittedRound?->allotted_college ?? '—')
+                : '—',
+            'final_course' => $row instanceof Student
+                ? (string) ($row->latestAdmittedRound?->allotted_course ?? '—')
+                : '—',
+            'admission_date' => $row instanceof Student
+                ? ($row->latestAdmittedRound?->fee_paid_at?->setTimezone('Asia/Kolkata')->format('Y-m-d') ?? '—')
+                : '—',
             'lead_source' => (string) ($row->lead_source ?? '—'),
             'owner_name' => (string) ($row->owner?->name ?? '—'),
             'student_name' => $row instanceof Meeting

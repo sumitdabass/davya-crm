@@ -101,4 +101,39 @@ class TeamStatCardTest extends TestCase
         $teamCardIds = array_filter($ids, fn ($id) => str_starts_with($id, 'team.'));
         $this->assertCount($headCount * 3, $teamCardIds);
     }
+
+    public function test_admissions_drilldown_emits_allotted_college_via_accessor(): void
+    {
+        $admin = User::where('email', 'sumit@davya.local')->first();
+        $head = User::factory()->create(['name' => 'TestHead']);
+        $head->assignRole('head');
+
+        $student = Student::create([
+            'phone' => '9555000777',
+            'name' => 'Team Admit',
+            'owner_id' => $head->id,
+            'lead_source' => 'Sheet:TestHead',
+            'stage' => 'Closed',
+            'close_reason' => 'Completed',
+        ]);
+
+        \App\Models\RoundHistory::create([
+            'student_id' => $student->id,
+            'round_name' => 'Online_R1',
+            'allotted_college' => 'BVCOE',
+            'allotted_course' => 'B.Tech IT',
+            'seat_fee_paid' => true,
+            'fee_paid_at' => now(),
+            'outcome' => 'Allotted — Fee Paid',
+        ]);
+
+        $card = new TeamStatCard($head, TeamStatCard::METRIC_ADMISSIONS_CLOSED);
+        $payload = $card->drillDown($admin);
+
+        $row = $payload->query->get()->firstWhere('id', $student->id);
+        $this->assertNotNull($row);
+
+        $rendered = \App\Dashboard\RowFormatter::format($row, 'final_college');
+        $this->assertSame('BVCOE', $rendered);
+    }
 }

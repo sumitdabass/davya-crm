@@ -52,6 +52,7 @@ class AdmissionsClosedTodayCard implements Card
             ->where('stage', 'Closed')
             ->where('close_reason', 'Completed')
             ->whereBetween('updated_at', [now()->startOfDay(), now()->endOfDay()])
+            ->with(['latestAdmittedRound'])
             ->visibleTo($viewer);
     }
 }
