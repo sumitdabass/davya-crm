@@ -66,26 +66,32 @@ class SectionPage extends Page
 
     /**
      * Bridges for buttons rendered inside Filament's modalContent partials.
-     * wire:click directives inside an open Filament action modal don't get
-     * re-bound by Livewire (the modal is teleported out of the component DOM),
-     * so we fire global Livewire events from a plain onclick and re-mount the
-     * action here. Used by partials/payment-list + partials/attachment-list.
+     * Two layers of indirection:
+     *   1. wire:click directives don't bind inside teleported modalContent —
+     *      partials use onclick + Livewire.dispatch to reach these listeners.
+     *   2. Filament 3 refuses to push a new action onto mountedActions while
+     *      another is mounted (the viewPayments modal that hosts the button is
+     *      itself a mounted action) — so we must unmountAction() first, which
+     *      closes the viewPayments modal, before mounting the new one.
      */
     #[On('book:open-edit-payment')]
     public function openEditPayment(int $id): void
     {
+        $this->unmountAction();
         $this->mountAction('editPayment', ['id' => $id]);
     }
 
     #[On('book:open-delete-payment')]
     public function openDeletePayment(int $id): void
     {
+        $this->unmountAction();
         $this->mountAction('deletePayment', ['id' => $id]);
     }
 
     #[On('book:open-delete-document')]
     public function openDeleteDocument(int $id): void
     {
+        $this->unmountAction();
         $this->mountAction('deleteDocument', ['id' => $id]);
     }
 
