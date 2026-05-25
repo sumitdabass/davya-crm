@@ -35,7 +35,8 @@ class ListStudents extends ListRecords
     {
         $filename = 'students-'.Carbon::now('Asia/Kolkata')->format('Y-m-d-His').'.csv';
 
-        $query = static::getResource()::getEloquentQuery()->with('owner:id,name');
+        $query = static::getResource()::getEloquentQuery()
+            ->with(['owner:id,name', 'latestAdmittedRound']);
 
         return response()->streamDownload(function () use ($query): void {
             $out = fopen('php://output', 'w');
@@ -75,9 +76,9 @@ class ListStudents extends ListRecords
                         $s->preference_r1,
                         $s->preference_r2,
                         $s->preference_r3,
-                        $s->final_college,
-                        $s->final_course,
-                        optional($s->admission_date)->format('Y-m-d'),
+                        $s->latestAdmittedRound?->allotted_college,
+                        $s->latestAdmittedRound?->allotted_course,
+                        optional($s->latestAdmittedRound?->fee_paid_at)->format('Y-m-d'),
                         optional($s->created_at)->format('Y-m-d H:i'),
                         optional($s->updated_at)->format('Y-m-d H:i'),
                     ]);
