@@ -85,7 +85,12 @@ final class PaymentFormSchema
         unset($data['proof_upload']);
 
         if (is_string($uploadPath) && $uploadPath !== '') {
-            $data['proof_url'] = Storage::disk(self::DRIVE_DISK)->url($uploadPath);
+            try {
+                $data['proof_url'] = Storage::disk(self::DRIVE_DISK)->url($uploadPath);
+            } catch (\Throwable $e) {
+                report($e);
+                $data['proof_url'] = null;
+            }
         } elseif (! array_key_exists('proof_url', $data)) {
             $data['proof_url'] = null;
         }
