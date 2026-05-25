@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-crumbs :trail="[]" title="Rank" />
+    <x-crumbs :trail="[]" />
 
     @if ($primary = $this->getPrimaryCard())
         <div class="mt-4">

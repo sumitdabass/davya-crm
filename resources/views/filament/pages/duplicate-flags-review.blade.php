@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" title="Duplicate flags" />
+    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" />
     <p class="text-sm text-gray-600 dark:text-gray-400">
         These pairs are head-vs-head duplicate phones (Sonam &harr; Nikhil). Pick which record to keep — the other will be deleted and its payments, notes, and round history will move to the keeper.
     </p>

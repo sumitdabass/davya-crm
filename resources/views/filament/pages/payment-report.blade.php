@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" title="Payments" />
+    <x-crumbs :trail="[['label' => 'Reports', 'href' => null]]" />
     <div class="flex gap-2 mb-4 border-b border-gray-200 dark:border-gray-700">
         <button type="button"
             wire:click="setTab('report')"

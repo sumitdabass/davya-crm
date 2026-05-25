@@ -1,5 +1,5 @@
 <x-filament-panels::page>
-    <x-crumbs :trail="[]" title="Finance" />
+    <x-crumbs :trail="[]" />
 
     <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">
         Pick a finance ledger. Cards visible to you reflect your role's access.

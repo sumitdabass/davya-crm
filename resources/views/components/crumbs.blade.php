@@ -16,7 +16,9 @@
             <span class="davya-books-header__crumb" style="cursor:default;">{{ $hop['label'] }}</span>
         @endif
     @endforeach
-    <h1 class="davya-books-header__title">{{ $title }}</h1>
+    @if ($title !== '' && $title !== null)
+        <h1 class="davya-books-header__title">{{ $title }}</h1>
+    @endif
     @if ($badge)
         {!! $badge !!}
     @endif
