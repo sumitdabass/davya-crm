@@ -46,12 +46,12 @@ class DashboardCustomizationTest extends TestCase
 
         Livewire::test(CompanyDashboard::class, ['company' => 'a', 'fy' => '2025-26'])
             ->callAction('customize', [
-                'kpis' => false, 'rollups' => true, 'assets' => true, 'loans' => true,
+                'balance' => true, 'kpis' => false, 'rollups' => true, 'assets' => true, 'loans' => true,
             ])
             ->assertHasNoActionErrors();
 
         $this->assertSame([
-            'kpis' => false, 'rollups' => true, 'assets' => true, 'loans' => true,
+            'balance' => true, 'kpis' => false, 'rollups' => true, 'assets' => true, 'loans' => true,
         ], $this->user->fresh()->books_dashboard_prefs);
     }
 
