@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Meeting;
 use App\Models\Student;
+use App\Models\User;
 use App\Services\LeadImport\ImportAction;
 use App\Services\LeadIntakeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -75,5 +77,52 @@ class LeadIntakeServiceParityTest extends TestCase
         $before = Student::count();
         app(LeadIntakeService::class)->preview(['phone' => '9000000500', 'course' => 'BCA']);
         $this->assertSame($before, Student::count());
+    }
+
+    public function test_merge_demotion_reparents_meetings(): void
+    {
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $sonam = User::where('email', 'sonam@davya.local')->first();
+
+        // Sumit-owned lead lands first; later Sonam re-ingests the same phone.
+        // Per LeadPriority Sonam > Sumit, so Sumit's existing row is demoted.
+        $sumitStudent = Student::create([
+            'phone' => '9444000999',
+            'name' => 'Walk-in',
+            'owner_id' => $sumit->id,
+            'lead_source' => 'Walk-in',
+            'stage' => 'Lead Captured',
+        ]);
+
+        Meeting::create([
+            'student_id' => $sumitStudent->id,
+            'owner_id' => $sumit->id,
+            'created_by_id' => $sumit->id,
+            'scheduled_at' => now()->addDay(),
+            'mode' => 'in_person',
+            'status' => 'scheduled',
+        ]);
+
+        app(LeadIntakeService::class)->ingest([
+            'phone' => '9444000999',
+            'name' => 'Walk-in',
+            'owner_name' => 'Sonam',
+            'source' => 'Sheet:Sonam',
+        ]);
+
+        $winner = Student::where('owner_id', $sonam->id)
+            ->where('phone', '9444000999')->first();
+        $this->assertNotNull($winner, 'Sonam-owned winner row must exist after MERGE.');
+
+        $this->assertSame(
+            1,
+            Meeting::where('student_id', $winner->id)->count(),
+            'Meeting must reparent from demoted Sumit row to Sonam winner row.'
+        );
+        $this->assertSame(
+            0,
+            Meeting::where('student_id', $sumitStudent->id)->count(),
+            'Demoted Sumit row must no longer own the meeting.'
+        );
     }
 }

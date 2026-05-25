@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\DuplicateFlag;
+use App\Models\Meeting;
 use App\Models\Payment;
 use App\Models\RoundHistory;
 use App\Models\Student;
@@ -139,6 +140,7 @@ class LeadIntakeService
         Payment::where('student_id', $from->id)->update(['student_id' => $to->id]);
         StudentNote::where('student_id', $from->id)->update(['student_id' => $to->id]);
         RoundHistory::where('student_id', $from->id)->update(['student_id' => $to->id]);
+        Meeting::where('student_id', $from->id)->update(['student_id' => $to->id]);
     }
 
     private function deriveLeadSource(array $data, ?string $ownerName, ?string $referrerName): ?string
