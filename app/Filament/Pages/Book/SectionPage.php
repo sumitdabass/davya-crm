@@ -2,15 +2,25 @@
 
 namespace App\Filament\Pages\Book;
 
+use App\Models\Book\Asset;
+use App\Models\Book\Attachment;
 use App\Models\Book\Company;
 use App\Models\Book\Entry;
+use App\Models\Book\EntryPayment;
 use App\Models\Book\FiscalYear;
 use App\Models\Book\Section;
 use Filament\Actions\Action;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\On;
 
 class SectionPage extends Page
 {
@@ -20,14 +30,16 @@ class SectionPage extends Page
 
     protected static string $view = 'filament.pages.book.section';
 
-    /** @var \App\Models\Book\Company */
+    /** @var Company */
     public $companyModel;
 
-    /** @var \App\Models\Book\FiscalYear */
+    /** @var FiscalYear */
     public $fyModel;
 
-    /** @var \App\Models\Book\Section */
+    /** @var Section */
     public $sectionModel;
+
+    public ?int $uploadEntryId = null;
 
     public function mount(string $company, string $fy, string $section): void
     {
@@ -59,19 +71,19 @@ class SectionPage extends Page
      * so we fire global Livewire events from a plain onclick and re-mount the
      * action here. Used by partials/payment-list + partials/attachment-list.
      */
-    #[\Livewire\Attributes\On('book:open-edit-payment')]
+    #[On('book:open-edit-payment')]
     public function openEditPayment(int $id): void
     {
         $this->mountAction('editPayment', ['id' => $id]);
     }
 
-    #[\Livewire\Attributes\On('book:open-delete-payment')]
+    #[On('book:open-delete-payment')]
     public function openDeletePayment(int $id): void
     {
         $this->mountAction('deletePayment', ['id' => $id]);
     }
 
-    #[\Livewire\Attributes\On('book:open-delete-document')]
+    #[On('book:open-delete-document')]
     public function openDeleteDocument(int $id): void
     {
         $this->mountAction('deleteDocument', ['id' => $id]);
@@ -112,7 +124,7 @@ class SectionPage extends Page
                 ->minValue(1)
                 ->maxValue(50)
                 ->helperText('Used to cap accumulated depreciation.'),
-            \Filament\Forms\Components\DatePicker::make('dep_started_at')
+            DatePicker::make('dep_started_at')
                 ->label('Depreciation start date')
                 ->required()
                 ->helperText('When the asset was put into use. Prorated within the FY.'),
@@ -194,13 +206,13 @@ class SectionPage extends Page
                         'notes' => $data['notes'] ?? null,
                     ]);
                     if ($isAsset) {
-                        \App\Models\Book\Asset::create([
-                            'entry_id'        => $entry->id,
-                            'original_value'  => $data['original_value'],
-                            'dep_percent'     => $data['dep_percent'],
-                            'dep_years'       => $data['dep_years'],
-                            'dep_started_at'  => $data['dep_started_at'],
-                            'method'          => $data['method'] ?? 'straight_line',
+                        Asset::create([
+                            'entry_id' => $entry->id,
+                            'original_value' => $data['original_value'],
+                            'dep_percent' => $data['dep_percent'],
+                            'dep_years' => $data['dep_years'],
+                            'dep_started_at' => $data['dep_started_at'],
+                            'method' => $data['method'] ?? 'straight_line',
                         ]);
                     }
                 }),
@@ -224,17 +236,18 @@ class SectionPage extends Page
                     'notes' => $entry->notes,
                 ];
                 if ($this->isAssetSection()) {
-                    $asset = \App\Models\Book\Asset::where('entry_id', $entry->id)->first();
+                    $asset = Asset::where('entry_id', $entry->id)->first();
                     if ($asset) {
                         $base += [
                             'original_value' => (float) $asset->original_value,
-                            'dep_percent'    => (float) $asset->dep_percent,
-                            'dep_years'      => $asset->dep_years,
+                            'dep_percent' => (float) $asset->dep_percent,
+                            'dep_years' => $asset->dep_years,
                             'dep_started_at' => $asset->dep_started_at?->toDateString(),
-                            'method'         => $asset->method,
+                            'method' => $asset->method,
                         ];
                     }
                 }
+
                 return $base;
             })
             ->form(function (): array {
@@ -282,14 +295,14 @@ class SectionPage extends Page
                     'notes' => $data['notes'] ?? null,
                 ]);
                 if ($this->isAssetSection() && isset($data['original_value'])) {
-                    \App\Models\Book\Asset::updateOrCreate(
+                    Asset::updateOrCreate(
                         ['entry_id' => $entry->id],
                         [
                             'original_value' => $data['original_value'],
-                            'dep_percent'    => $data['dep_percent'],
-                            'dep_years'      => $data['dep_years'],
+                            'dep_percent' => $data['dep_percent'],
+                            'dep_years' => $data['dep_years'],
                             'dep_started_at' => $data['dep_started_at'],
-                            'method'         => $data['method'] ?? 'straight_line',
+                            'method' => $data['method'] ?? 'straight_line',
                         ]
                     );
                 }
@@ -322,7 +335,7 @@ class SectionPage extends Page
                     ->numeric()
                     ->required()
                     ->minValue(0),
-                \Filament\Forms\Components\Checkbox::make('zero_salary')
+                Checkbox::make('zero_salary')
                     ->label('Zero out the salary column (recommended)')
                     ->default(true),
             ])
@@ -364,15 +377,18 @@ class SectionPage extends Page
             ->label('+ Documents')
             ->icon('heroicon-o-paper-clip')
             ->color('gray')
+            ->mountUsing(function (array $arguments): void {
+                $this->uploadEntryId = (int) $arguments['id'];
+            })
             ->modalHeading(fn (array $arguments) => 'Upload documents for "'
-                .\App\Models\Book\Entry::find($arguments['id'])->title.'"')
+                .Entry::find($arguments['id'])->title.'"')
             ->form([
-                \Filament\Forms\Components\FileUpload::make('files')
+                FileUpload::make('files')
                     ->label('Files')
                     ->multiple()
                     ->disk(config('books.attachments_disk'))
-                    ->directory(fn (array $arguments) => 'books/'.$this->companyModel->slug.'/'.$this->fyModel->label
-                        .'/'.$this->sectionModel->slug.'/'.$arguments['id'])
+                    ->directory(fn () => 'books/'.$this->companyModel->slug.'/'.$this->fyModel->label
+                        .'/'.$this->sectionModel->slug.'/'.$this->uploadEntryId)
                     ->preserveFilenames()
                     ->required(),
             ])
@@ -381,9 +397,9 @@ class SectionPage extends Page
                     throw new \DomainException('FY is closed');
                 }
                 $entry = Entry::findOrFail($arguments['id']);
-                $disk = \Illuminate\Support\Facades\Storage::disk(config('books.attachments_disk'));
+                $disk = Storage::disk(config('books.attachments_disk'));
                 foreach ($data['files'] as $path) {
-                    \App\Models\Book\Attachment::create([
+                    Attachment::create([
                         'attachable_type' => $entry::class,
                         'attachable_id' => $entry->id,
                         'disk' => config('books.attachments_disk'),
@@ -402,8 +418,8 @@ class SectionPage extends Page
         return Action::make('viewDocuments')
             ->label('View')
             ->modalHeading(fn (array $arguments) => 'Documents for "'
-                .\App\Models\Book\Entry::find($arguments['id'])->title.'"')
-            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+                .Entry::find($arguments['id'])->title.'"')
+            ->modalContent(function (array $arguments): View {
                 $entry = Entry::findOrFail($arguments['id']);
                 $attachments = $entry->attachments()->latest('uploaded_at')->get();
 
@@ -425,11 +441,11 @@ class SectionPage extends Page
                 if ($this->fyModel->is_closed) {
                     throw new \DomainException('FY is closed');
                 }
-                $attachment = \App\Models\Book\Attachment::findOrFail($arguments['id']);
-                \Illuminate\Support\Facades\Storage::disk($attachment->disk)->delete($attachment->path);
+                $attachment = Attachment::findOrFail($arguments['id']);
+                Storage::disk($attachment->disk)->delete($attachment->path);
                 $attachment->delete();
 
-                \Filament\Notifications\Notification::make()
+                Notification::make()
                     ->title('Document deleted')
                     ->success()
                     ->send();
@@ -440,7 +456,7 @@ class SectionPage extends Page
     {
         return Action::make('addPayment')
             ->modalHeading(fn (array $arguments) => 'Record payment — '
-                .\App\Models\Book\Entry::find($arguments['id'])->title)
+                .Entry::find($arguments['id'])->title)
             ->fillForm(function (array $arguments): array {
                 // Default direction is driven by the section's slug, not the
                 // entry's amount fields — a Loans Given row with a yet-to-be-
@@ -448,7 +464,7 @@ class SectionPage extends Page
                 // (money coming back from the borrower).
                 $defaultDirection = match ($this->sectionModel->slug) {
                     'loan', 'receipts' => 'in',
-                    default            => 'out',
+                    default => 'out',
                 };
 
                 return [
@@ -480,7 +496,7 @@ class SectionPage extends Page
                         'cheque' => 'Cheque',
                         'other' => 'Other',
                     ]),
-                \Filament\Forms\Components\DatePicker::make('occurred_on')
+                DatePicker::make('occurred_on')
                     ->label('Date')
                     ->required(),
                 TextInput::make('source')
@@ -496,7 +512,7 @@ class SectionPage extends Page
                     throw new \DomainException('FY is closed');
                 }
                 $entry = Entry::findOrFail($arguments['id']);
-                \App\Models\Book\EntryPayment::create([
+                EntryPayment::create([
                     'entry_id' => $entry->id,
                     'occurred_on' => $data['occurred_on'],
                     'amount' => $data['amount'],
@@ -514,11 +530,11 @@ class SectionPage extends Page
     {
         return Action::make('viewPayments')
             ->modalHeading(fn (array $arguments) => 'Payments — '
-                .\App\Models\Book\Entry::find($arguments['id'])->title)
+                .Entry::find($arguments['id'])->title)
             // Default Filament modal width (~2xl/672px) couldn't fit the 8-col
             // payment table — Edit/Delete buttons overflowed off-screen.
             ->modalWidth('7xl')
-            ->modalContent(function (array $arguments): \Illuminate\Contracts\View\View {
+            ->modalContent(function (array $arguments): View {
                 $entry = Entry::findOrFail($arguments['id']);
 
                 return view('filament.pages.book.partials.payment-list', [
@@ -539,26 +555,26 @@ class SectionPage extends Page
         return Action::make('deletePayment')
             ->color('danger')
             ->action(function (array $arguments): void {
-                $payment = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+                $payment = EntryPayment::findOrFail($arguments['id']);
                 $entry = $payment->entry;
                 if ($entry && $entry->fiscalYear?->is_closed) {
                     throw new \DomainException('FY is closed');
                 }
                 $payment->delete();
 
-                \Filament\Notifications\Notification::make()
+                Notification::make()
                     ->title('Payment deleted')
                     ->success()
                     ->send();
             });
     }
 
-    public function editPaymentAction(): \Filament\Actions\Action
+    public function editPaymentAction(): Action
     {
-        return \Filament\Actions\Action::make('editPayment')
+        return Action::make('editPayment')
             ->modalHeading(fn (array $arguments) => 'Edit payment')
             ->fillForm(function (array $arguments): array {
-                $p = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+                $p = EntryPayment::findOrFail($arguments['id']);
 
                 return [
                     'direction' => $p->direction,
@@ -571,19 +587,19 @@ class SectionPage extends Page
                 ];
             })
             ->form([
-                \Filament\Forms\Components\Select::make('direction')
+                Select::make('direction')
                     ->label('Direction')
                     ->required()
                     ->options([
                         'out' => 'Paid out (we paid them)',
                         'in' => 'Received back (they paid us)',
                     ]),
-                \Filament\Forms\Components\TextInput::make('amount')
+                TextInput::make('amount')
                     ->numeric()
                     ->required()
                     ->minValue(0.01)
                     ->prefix('₹'),
-                \Filament\Forms\Components\Select::make('mode')
+                Select::make('mode')
                     ->required()
                     ->options([
                         'cash' => 'Cash',
@@ -592,19 +608,19 @@ class SectionPage extends Page
                         'cheque' => 'Cheque',
                         'other' => 'Other',
                     ]),
-                \Filament\Forms\Components\DatePicker::make('occurred_on')
+                DatePicker::make('occurred_on')
                     ->label('Date')
                     ->required(),
-                \Filament\Forms\Components\TextInput::make('source')
+                TextInput::make('source')
                     ->label('Source')
                     ->placeholder('Who/what — free text'),
-                \Filament\Forms\Components\TextInput::make('reference')
+                TextInput::make('reference')
                     ->label('Reference')
                     ->placeholder('e.g. cheque no., UTR, txn id'),
-                \Filament\Forms\Components\Textarea::make('notes')->rows(2),
+                Textarea::make('notes')->rows(2),
             ])
             ->action(function (array $data, array $arguments): void {
-                $payment = \App\Models\Book\EntryPayment::findOrFail($arguments['id']);
+                $payment = EntryPayment::findOrFail($arguments['id']);
                 $entry = $payment->entry;
                 if ($entry && $entry->fiscalYear?->is_closed) {
                     throw new \DomainException('FY is closed');
