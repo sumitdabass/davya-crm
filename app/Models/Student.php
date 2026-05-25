@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
 
@@ -79,6 +80,13 @@ class Student extends Model
     public function notes(): HasMany { return $this->hasMany(StudentNote::class)->latest(); }
     public function meetings(): HasMany { return $this->hasMany(Meeting::class); }
     public function fieldValues(): HasMany { return $this->hasMany(StudentFieldValue::class); }
+
+    public function latestAdmittedRound(): HasOne
+    {
+        return $this->hasOne(RoundHistory::class)
+            ->where('seat_fee_paid', true)
+            ->latestOfMany('fee_paid_at');
+    }
 
     public function getTotalReceivedAttribute(): float
     {
