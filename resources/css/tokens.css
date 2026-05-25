@@ -1,19 +1,18 @@
-/* davya-tokens — visual v3 typography uplift (2026-05-25)
+/* davya-tokens — visual v3 typography (2026-05-25)
  * Loaded via AdminPanelProvider::HEAD_END when config('davyas.visual_v2') is true.
  * Spec: docs/superpowers/specs/2026-04-24-visual-refresh-design.md (v2 baseline)
  *
- * v3 aesthetic: "Editorial Indian Banking" — Instrument Serif italic for display
- * (page titles, modal headings, hero numbers), Bricolage Grotesque for body
- * (full-stack, fluent in Devanagari + Latin), JetBrains Mono for tabular numerals.
- * Vermilion accent (#D97757) is promoted to first-class alongside the emerald
- * brand. Surface is a paper-warm off-white (#FFFEFB) instead of cool #FFFFFF.
+ * v3 aesthetic: clean modern sans throughout — Bricolage Grotesque for both
+ * display (heavy weights, tight tracking) and body (regular/medium). No italic
+ * display. JetBrains Mono for tabular numerals only. Vermilion accent
+ * (#D97757) is promoted to first-class alongside the emerald brand.
  * All v3 selectors are scoped under body.davya-v2 so toggling the flag off
  * restores Filament's defaults.
  */
-@import url('https://fonts.bunny.net/css?family=instrument-serif:400i|bricolage-grotesque:400,500,600,700|jetbrains-mono:400,500|fraunces:500i,600&display=swap');
+@import url('https://fonts.bunny.net/css?family=bricolage-grotesque:400,500,600,700,800|jetbrains-mono:400,500&display=swap');
 
 :root {
-    --font-display: 'Instrument Serif', 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-display: 'Bricolage Grotesque', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-body: 'Bricolage Grotesque', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, 'Cascadia Mono', monospace;
 
@@ -187,13 +186,13 @@
 }
 .davya-balance-card__op {
     width: 12px;
-    font-family: var(--font-display, Fraunces, Georgia, serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: 18px;
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 16px;
     color: var(--balance-accent);
     text-align: center;
-    opacity: 0.8;
+    opacity: 0.85;
 }
 
 .davya-balance-card__hero {
@@ -207,14 +206,14 @@
     .davya-balance-card__hero { align-items: flex-start; text-align: left; }
 }
 .davya-balance-card__hero-num {
-    font-family: var(--font-display, Fraunces, Georgia, serif);
-    font-style: italic;
-    font-weight: 400;     /* Instrument Serif ships only at 400 — picking 500 silently fell back to Fraunces */
+    font-family: var(--font-display);
+    font-style: normal;
+    font-weight: 800;
     font-size: clamp(38px, 5.5vw, 58px);
     line-height: 1;
     color: var(--text);
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.5px;
+    letter-spacing: -1.2px;
     white-space: nowrap;
 }
 .davya-balance-card[data-balance-negative="true"] .davya-balance-card__hero-num { color: var(--balance-accent); }
@@ -234,16 +233,16 @@
     vertical-align: 0.05em;
 }
 .davya-balance-card__hero-words {
-    font-family: var(--font-display, Fraunces, Georgia, serif);
-    font-style: italic;
-    font-weight: 400;
-    font-size: 13px;
+    font-family: var(--font-body);
+    font-style: normal;
+    font-weight: 500;
+    font-size: 11px;
     color: var(--text-sub);
     margin-top: 10px;
     line-height: 1.4;
     max-width: 360px;
-    letter-spacing: 0.1px;
-    text-transform: lowercase;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
 }
 @media (max-width: 760px) {
     .davya-balance-card__hero-words { max-width: 100%; }
@@ -1470,29 +1469,30 @@ body.davya-v2 .fi-badge {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Display surfaces — italic Instrument Serif. Page titles, modal heads,
- * section headers, sidebar group labels. */
+/* Display surfaces — Bricolage Grotesque at heavy weight, NO italic.
+ * Page titles, modal heads, section headers. */
 body.davya-v2 .fi-page-heading,
 body.davya-v2 .fi-header-heading,
 body.davya-v2 .fi-modal-heading,
 body.davya-v2 .fi-section-header-heading,
 body.davya-v2 .fi-fo-section-header-heading,
 body.davya-v2 .fi-resource-list-records-page-heading,
+body.davya-v2 .fi-wi-section-header-heading,
 body.davya-v2 h1.fi-header-heading,
 body.davya-v2 .davya-books-header__title {
     font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.012em;
+    font-style: normal;
+    font-weight: 700;
+    letter-spacing: -0.015em;
     color: var(--text);
 }
 
-/* The big page H1: dial up the size — Instrument Serif's italic shines large. */
+/* The big page H1: scale up — Bricolage at heavy weight reads as confident. */
 body.davya-v2 .fi-page-heading,
 body.davya-v2 h1.fi-header-heading,
 body.davya-v2 .davya-books-header__title {
-    font-size: clamp(28px, 3vw, 34px);
-    line-height: 1.1;
+    font-size: clamp(26px, 2.6vw, 32px);
+    line-height: 1.15;
 }
 
 /* Sidebar group labels — keep them sans (Bricolage uppercase) so they
