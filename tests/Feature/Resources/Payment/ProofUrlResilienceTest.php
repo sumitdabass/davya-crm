@@ -12,14 +12,14 @@ class ProofUrlResilienceTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_resolveProofUpload_returns_null_when_drive_throws(): void
+    public function test_resolve_proof_upload_returns_null_when_drive_throws(): void
     {
         // Adaptation: url() is declared on the Cloud contract, not the base
         // Filesystem contract — mocking Filesystem fails with
         // "method url cannot be configured". Cloud extends Filesystem.
         $fake = $this->createMock(Cloud::class);
         $fake->method('url')
-             ->willThrowException(new \RuntimeException('Drive auth expired'));
+            ->willThrowException(new \RuntimeException('Drive auth expired'));
 
         Storage::set(PaymentFormSchema::DRIVE_DISK, $fake);
 
@@ -32,7 +32,7 @@ class ProofUrlResilienceTest extends TestCase
         $this->assertNull($result['proof_url'], 'proof_url must be null on Drive failure');
     }
 
-    public function test_resolveProofUpload_keeps_existing_proof_url_when_no_new_upload(): void
+    public function test_resolve_proof_upload_keeps_existing_proof_url_when_no_new_upload(): void
     {
         $result = PaymentFormSchema::resolveProofUpload([
             'proof_url' => 'https://drive.google.com/existing.pdf',

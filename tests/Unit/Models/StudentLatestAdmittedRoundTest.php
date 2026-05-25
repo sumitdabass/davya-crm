@@ -68,6 +68,7 @@ class StudentLatestAdmittedRoundTest extends TestCase
     private function makeStudent(string $phone): Student
     {
         $admin = User::where('email', 'sumit@davya.local')->first();
+
         return Student::create([
             'phone' => $phone,
             'name' => 'Test',
