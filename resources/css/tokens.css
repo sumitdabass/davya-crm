@@ -601,7 +601,7 @@ body.davya-v2 .fi-main-ctn { padding-left: 0 !important; }
     -webkit-overflow-scrolling: touch;
 }
 
-/* === Display face (Fraunces) — applied sparingly to identity surfaces. === */
+/* === Display face (Bricolage) — applied sparingly to identity surfaces. === */
 
 /* Kanban column titles — stage names carry hierarchy in the pipeline view. */
 body.davya-v2 .davya-kanban-col-head h4 {
@@ -628,7 +628,7 @@ body.davya-v2 .davya-stat-number {
 /* === Books module — visual integration (2026-05-11) ============================
  * Books pages adopt the davya-v2 vocabulary. These three classes formalise the
  * patterns Books needs that aren't already in the system: a KPI tile (white
- * surface + Fraunces number + emerald hover when clickable), a section roll-up
+ * surface + Bricolage display number + emerald hover when clickable), a section roll-up
  * tile (with stage-style accent bar), and a hand-rolled data table styled to
  * match Filament's resource tables. The rest of Books re-uses the existing
  * .davya-section-card, .davya-section-card-title, .davya-stat-number,
@@ -988,7 +988,7 @@ body.davya-compact .davya-books-roll__rows {
 
 /* ============================================================
  * IPU Knowledge Agent drawer — editorial archive aesthetic
- * Fraunces italic display + emerald hairline rail + footnote-style citations
+ * Bricolage display + emerald hairline rail + footnote-style citations
  * ============================================================ */
 
 @keyframes davya-ai-pulse {
@@ -1014,7 +1014,7 @@ body.davya-compact .davya-books-roll__rows {
     border-radius: var(--r-sm);
     display: inline-flex;
     align-items: center; justify-content: center;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 19px;
     line-height: 1;
@@ -1093,7 +1093,7 @@ body.davya-compact .davya-books-roll__rows {
     gap: 12px;
 }
 .davya-ai-title {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-weight: 400;
     font-style: italic;
     font-size: 24px;
@@ -1151,7 +1151,7 @@ body.davya-compact .davya-books-roll__rows {
 .davya-ai-msg + .davya-ai-msg { margin-top: 26px; }
 
 .davya-ai-role {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 11px;
     letter-spacing: 0.04em;
@@ -1240,7 +1240,7 @@ body.davya-compact .davya-books-roll__rows {
     padding: 24px 24px 40px;
 }
 .davya-ai-empty-mark {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 32px;
     color: var(--brand-500);
@@ -1248,7 +1248,7 @@ body.davya-compact .davya-books-roll__rows {
     margin-bottom: 18px;
 }
 .davya-ai-empty-line {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-weight: 400;
     font-size: 26px;
@@ -1273,7 +1273,7 @@ body.davya-compact .davya-books-roll__rows {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     font-size: 12px;
     color: var(--brand-700);
@@ -1324,7 +1324,7 @@ body.davya-compact .davya-books-roll__rows {
     transition: border-color 140ms ease, box-shadow 140ms ease;
 }
 .davya-ai-textarea::placeholder {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-style: italic;
     color: var(--text-muted);
     font-size: 13px;
@@ -1544,9 +1544,10 @@ body.davya-v2 .fi-modal-window {
     background: var(--surface);
 }
 
-/* The Balance Available card uses Instrument Serif via --font-display
- * naturally; reinforce the connection by promoting vermilion as the
- * negative-balance accent throughout the panel. */
+/* The Balance Available card uses Bricolage Grotesque via --font-display
+ * (italic display dropped 2026-05-25, commit a3f2c20) naturally; reinforce
+ * the connection by promoting vermilion as the negative-balance accent
+ * throughout the panel. */
 body.davya-v2 .fi-color-danger,
 body.davya-v2 .fi-badge[data-color="danger"],
 body.davya-v2 .fi-btn[data-color="danger"] {
