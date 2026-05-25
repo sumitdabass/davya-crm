@@ -31,6 +31,13 @@ class KanbanBoard extends Page
 
     protected static ?string $slug = 'kanban';
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+        return $user instanceof User
+            && $user->hasAnyRole(['admin', 'super_admin', 'head', 'member']);
+    }
+
     #[Url(as: 'owner')]
     public ?string $filterOwner = null;
 
@@ -307,7 +314,7 @@ class KanbanBoard extends Page
         $allowed = [
             'close_reason', 're_entry_reason', 'student_response', 'deal_amount', 'course',
             'category', 'plan', 'meeting_date', 'meeting_location', 'current_round',
-            'final_college', 'final_course', 'admission_date', 'is_ipu_registered',
+            'is_ipu_registered',
             'ipu_login_code', 'father_name', 'twelfth_marks', 'exam_appeared', 'refund_amount',
         ];
         $dirty = array_intersect_key($fieldUpdates, array_flip($allowed));
