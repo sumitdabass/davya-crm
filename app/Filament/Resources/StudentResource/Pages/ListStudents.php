@@ -78,7 +78,7 @@ class ListStudents extends ListRecords
                         $s->preference_r3,
                         $s->latestAdmittedRound?->allotted_college,
                         $s->latestAdmittedRound?->allotted_course,
-                        optional($s->latestAdmittedRound?->fee_paid_at)->format('Y-m-d'),
+                        $s->latestAdmittedRound?->fee_paid_at?->setTimezone('Asia/Kolkata')?->format('Y-m-d'),
                         optional($s->created_at)->format('Y-m-d H:i'),
                         optional($s->updated_at)->format('Y-m-d H:i'),
                     ]);
