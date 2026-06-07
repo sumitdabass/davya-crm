@@ -63,4 +63,30 @@ class StudentSourceOwnerFormTest extends TestCase
             ->call('create')
             ->assertHasFormErrors(['referrer_id']);
     }
+
+    public function test_lead_source_is_required(): void
+    {
+        // The students.lead_source column is NOT NULL, so an empty Lead Source
+        // used to reach the DB and surface as a 500. The form Select must enforce
+        // required so the user gets an inline validation message instead.
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $sumit->update(['must_change_password' => false]);
+        $this->actingAs($sumit);
+
+        Livewire::test(CreateStudent::class)
+            ->fillForm([
+                'phone' => '9999900200',
+                'name' => 'No Source Lead',
+                'owner_id' => $sumit->id,
+                'referrer_id' => $sumit->id,
+                // lead_source intentionally omitted — should fail validation, not 500.
+                'stage' => 'Lead Captured',
+                'preference_r1' => 'IPEM',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['lead_source']);
+
+        $this->assertDatabaseMissing('students', ['name' => 'No Source Lead']);
+    }
 }

@@ -188,6 +188,7 @@ class StudentResource extends Resource
                             Select::make('lead_source')
                                 ->label('Lead Source')
                                 ->options(fn () => self::optionsFor('lead_source', ['FB', 'Insta', 'Cold Calling', 'Google', 'Personal Ref', 'Other']))
+                                ->required()
                                 ->searchable(),
                             Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready', 'Not Interested', 'Needs Time'])),
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
