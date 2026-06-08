@@ -25,6 +25,9 @@ use App\Support\Aging;
 use App\Support\MoneyFormat;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Placeholder;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
@@ -32,6 +35,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\View;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -41,6 +45,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 class StudentResource extends Resource
 {
@@ -230,6 +235,52 @@ class StudentResource extends Resource
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
+                            Repeater::make('payouts')
+                                ->relationship()
+                                ->label('Payouts (to college / other)')
+                                ->columnSpanFull()
+                                ->defaultItems(0)
+                                ->addActionLabel('Add payout')
+                                ->schema([
+                                    Select::make('payee_type')
+                                        ->options(['college' => 'College', 'other' => 'Other'])
+                                        ->default('college')
+                                        ->required(),
+                                    TextInput::make('payee_name')
+                                        ->label('Payee name')
+                                        ->placeholder('College / party name')
+                                        ->maxLength(120),
+                                    TextInput::make('amount')->numeric()->prefix('₹')->required(),
+                                    Select::make('status')
+                                        ->options(['to_pay' => 'To be paid', 'paid' => 'Paid'])
+                                        ->default('to_pay')
+                                        ->live()
+                                        ->required(),
+                                    DateTimePicker::make('paid_at')
+                                        ->label('Paid on')
+                                        ->visible(fn (Get $get) => $get('status') === 'paid'),
+                                ])
+                                ->columns(['default' => 1, 'md' => 2])
+                                ->mutateRelationshipDataBeforeCreateUsing(function (array $data): array {
+                                    $data['recorded_by_user_id'] = auth()->id();
+
+                                    return $data;
+                                })
+                                ->live(),
+                            Placeholder::make('expected_profit_preview')
+                                ->label('Expected profit')
+                                ->columnSpanFull()
+                                ->content(function (Get $get): HtmlString {
+                                    $deal = (float) ($get('deal_amount') ?? 0);
+                                    $payouts = collect($get('payouts') ?? [])
+                                        ->sum(fn ($row) => (float) ($row['amount'] ?? 0));
+                                    $profit = $deal - $payouts;
+
+                                    return new HtmlString(
+                                        '₹'.number_format($deal, 0).' deal − ₹'.number_format($payouts, 0).' payouts = '
+                                        .MoneyFormat::asInlineHtml($profit, $profit < 0, true)
+                                    );
+                                }),
                             Select::make('plan')->options(fn () => self::optionsFor('plan', ['Sitting', 'Counselling Online', 'Counselling Offline'])),
                             Select::make('registration_status')
                                 ->label('IPU Registration Status')
