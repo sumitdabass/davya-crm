@@ -8,6 +8,7 @@ use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationMana
 use App\Filament\Resources\StudentResource\RelationManagers\MeetingsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\NotesRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationManager;
+use App\Filament\Resources\StudentResource\RelationManagers\PayoutsRelationManager;
 use App\Filament\Resources\StudentResource\RelationManagers\RoundHistoryRelationManager;
 use App\Models\Payment;
 use App\Models\RoundHistory;
@@ -567,6 +568,7 @@ class StudentResource extends Resource
     {
         return [
             PaymentsRelationManager::class,
+            PayoutsRelationManager::class,
             NotesRelationManager::class,
             ActivityRelationManager::class,
             MeetingsRelationManager::class,
