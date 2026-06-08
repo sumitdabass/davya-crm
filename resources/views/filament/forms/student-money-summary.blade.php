@@ -1,26 +1,18 @@
 @php($r = $getRecord())
 @if ($r)
     @php($mf = \App\Support\MoneyFormat::class)
-    <div class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-2" data-testid="student-money-summary">
-        <div class="davya-books-kpi">
-            <div class="davya-books-kpi__label">Deal</div>
-            {!! $mf::asInlineHtml((float) $r->deal_amount) !!}
-        </div>
-        <div class="davya-books-kpi">
-            <div class="davya-books-kpi__label">Received</div>
-            {!! $mf::asInlineHtml((float) $r->total_received) !!}
-        </div>
-        <div class="davya-books-kpi">
-            <div class="davya-books-kpi__label">Pending</div>
-            {!! $mf::asInlineHtml((float) $r->pending_amount, $r->pending_amount > 0) !!}
-        </div>
-        <div class="davya-books-kpi">
-            <div class="davya-books-kpi__label">Payouts</div>
-            {!! $mf::asInlineHtml((float) $r->total_payouts) !!}
-        </div>
-        <div class="davya-books-kpi">
-            <div class="davya-books-kpi__label">Expected profit</div>
-            {!! $mf::asInlineHtml((float) $r->expected_profit, $r->expected_profit < 0) !!}
-        </div>
+    @php($fmt = fn ($v) => ((float) $v < 0 ? '-₹' : '₹') . $mf::indianShort(abs((float) $v)))
+    <div class="text-sm text-gray-500 dark:text-gray-400"
+         style="margin-top:4px; line-height:1.5;"
+         data-testid="student-money-summary">
+        <span>{{ $fmt($r->deal_amount) }} deal</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span>{{ $fmt($r->total_received) }} received</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span @style(['color:var(--warning,#D97706)' => $r->pending_amount > 0])>{{ $fmt($r->pending_amount) }} pending</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span>{{ $fmt($r->total_payouts) }} payouts</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span @style(['color:var(--danger,#DC2626)' => $r->expected_profit < 0])>{{ $fmt($r->expected_profit) }} profit</span>
     </div>
 @endif

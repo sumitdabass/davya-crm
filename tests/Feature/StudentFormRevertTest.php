@@ -58,7 +58,8 @@ class StudentFormRevertTest extends TestCase
 
         Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
             ->assertSuccessful()
-            ->assertSee('Expected profit')
+            ->assertSee('profit')
+            ->assertSee('received')
             ->assertSeeHtml('data-testid="student-money-summary"');
     }
 }
