@@ -30,6 +30,9 @@ Update Payment / Add Payout / Update Payout**, then show the matching form.
    The `plan` dropdown options (Sitting / Counselling Online / Counselling Offline) STAY — that was
    a separately-requested feature, not a payout change. Expected profit stays visible via the
    students-list column and the Payment Report rollup.
+7. **Money summary in the Stage section**: a compact read-only strip at the top of the student form
+   (inside the sticky Stage section, so it's visible on every tab) showing **Deal · Received ·
+   Pending · Payouts · Expected Profit**. Only on existing students (hidden on create).
 
 ## Rationale for single-modal ToggleButtons (not blade buttons that swap the modal)
 
@@ -193,6 +196,34 @@ The relation manager's table `recordTitleAttribute`, columns, per-row Edit/Delet
   `DeleteAction`. Bulk: DeleteBulkAction.
 - Register in `StudentResource::getRelations()` right after `PaymentsRelationManager::class`.
 
+## Stage-section money summary
+
+A new blade `resources/views/filament/forms/student-money-summary.blade.php` renders a compact
+horizontal strip of 5 read-only figures from the form's record (`$getRecord()`), mirroring how the
+existing `filament.forms.account-summary` view is embedded:
+
+- Deal (`deal_amount`), Received (`total_received`), Pending (`pending_amount`), Payouts
+  (`total_payouts`), Expected Profit (`expected_profit`).
+- Each rendered via `MoneyFormat::asInlineHtml()` (Indian-words style); Pending shown in warning
+  color when > 0, Expected Profit in danger when < 0.
+- Use existing visual vocabulary (small KPI tiles / `davya-*` classes) and keep it compact so it
+  fits the sticky Stage block.
+
+Embed in `StudentResource.php` Stage section:
+```php
+Section::make('Stage')
+    ->icon('heroicon-o-flag')
+    ->schema([
+        $stageField,
+        View::make('filament.forms.student-money-summary')
+            ->visible(fn ($record) => $record !== null)
+            ->columnSpanFull(),
+    ])
+    ->columnSpanFull()
+    ->compact(),
+```
+(`View` is already imported in StudentResource.)
+
 ## Testing
 
 Feature tests (`tests/Feature/PaymentPayoutChooserTest.php`), driving the relation manager via
@@ -207,6 +238,8 @@ test pattern in `tests/Feature/PaymentsRelationManagerTest.php`):
 - Smoke: `EditStudent` / `CreateStudent` page still mounts after the Deal-tab repeater removal and
   Account-tab action removal (no leftover references); Deal tab no longer contains a payouts
   repeater.
+- Stage-section money summary: the `student-money-summary` view renders for an existing student
+  (EditStudent mounts and the summary figures are present).
 
 Existing suite (892 after the payouts feature) stays green; the prior `StudentPayoutFormTest`
 relationship-contract test still holds (payouts relation unchanged). If any existing test asserted
