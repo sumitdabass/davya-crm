@@ -25,8 +25,11 @@ Update Payment / Add Payout / Update Payout**, then show the matching form.
    (labelled `₹40,000 · advance · 09 Jun` etc.); its fields load; edit + Save updates that row.
 5. **Browsing:** add a **Payouts** relation-manager tab (mirrors Payments) for viewing/editing
    payout history; no create button on it (adds go through the chooser).
-6. Keep a read-only **Expected profit** line on the Deal tab so the number stays visible after the
-   repeater is removed.
+6. **Fully revert the Deal & Counselling tab** to its pre-payouts state: remove the payouts
+   repeater AND remove the live Expected-profit placeholder entirely (no read-only line either).
+   The `plan` dropdown options (Sitting / Counselling Online / Counselling Offline) STAY — that was
+   a separately-requested feature, not a payout change. Expected profit stays visible via the
+   students-list column and the Payment Report rollup.
 
 ## Rationale for single-modal ToggleButtons (not blade buttons that swap the modal)
 
@@ -162,21 +165,19 @@ The relation manager's table `recordTitleAttribute`, columns, per-row Edit/Delet
 
 ## Removals
 
-1. **Deal tab** (`StudentResource.php`): remove the `Repeater::make('payouts')` block. Replace the
-   live `Placeholder` with a read-only Expected-profit line that reads the **saved** record:
-   ```php
-   Placeholder::make('expected_profit_display')
-       ->label('Expected profit')
-       ->visible(fn ($record) => $record !== null)
-       ->content(fn ($record) => new HtmlString(MoneyFormat::asInlineHtml((float) $record->expected_profit, $record->expected_profit < 0, true)));
-   ```
-   (On a new/unsaved student it's hidden; payouts are added after save via the chooser.)
+1. **Deal tab** (`StudentResource.php`): remove the `Repeater::make('payouts')` block AND the
+   `Placeholder::make('expected_profit_preview')` block entirely — i.e. revert the Deal &
+   Counselling tab to exactly its pre-payouts state (only `deal_amount` + the registration/seat/
+   plan selects remain, with `plan` keeping its new options). Payouts are added/edited solely via
+   the chooser; profit is seen on the list column + Payment Report.
 2. **Account tab** (`StudentResource.php`): remove the `Action::make('addPayment')` from the
    `Actions::make([...])` block. Keep `addNote`.
    - If removing `addPayment` leaves the `Actions::make([...])` with only `addNote`, keep the
      `Actions` wrapper with the single remaining action.
-3. Imports left unused after removal (e.g. `Repeater`, `Get` if no longer referenced in
-   StudentResource) — remove them; Pint will flag.
+3. Remove now-unused imports from `StudentResource.php` that were added for the repeater/placeholder
+   (`Repeater`, `Placeholder`, `DateTimePicker`, `Get`, `Illuminate\Support\HtmlString`) — but only
+   if grep confirms they're no longer referenced anywhere in the file. Keep `MoneyFormat` (still
+   used by the table money columns). `php -l` + Pint must pass.
 
 ## New: Payouts relation manager
 
