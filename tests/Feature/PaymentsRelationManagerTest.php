@@ -7,6 +7,8 @@ use App\Filament\Resources\StudentResource\RelationManagers\PaymentsRelationMana
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -33,7 +35,8 @@ class PaymentsRelationManagerTest extends TestCase
             'ownerRecord' => $student,
             'pageClass' => EditStudent::class,
         ])
-            ->callTableAction('create', data: [
+            ->callTableAction('newPaymentPayout', data: [
+                'entry_action' => 'add_payment',
                 'type' => 'advance',
                 'amount' => 10000,
                 'mode' => 'cash',
@@ -47,31 +50,32 @@ class PaymentsRelationManagerTest extends TestCase
 
     public function test_payments_tab_accepts_file_upload_and_resolves_to_proof_url(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('drive');
+        Storage::fake('drive');
         $this->seed();
 
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
         $student = Student::create([
-            'phone'       => '9100000201',
-            'name'        => 'UploadTester',
-            'owner_id'    => $sumit->id,
+            'phone' => '9100000201',
+            'name' => 'UploadTester',
+            'owner_id' => $sumit->id,
             'referrer_id' => $sumit->id,
             'lead_source' => 'Sumit',
         ]);
 
         $this->actingAs($sumit);
 
-        $file = \Illuminate\Http\UploadedFile::fake()->image('proof.png');
+        $file = UploadedFile::fake()->image('proof.png');
 
         Livewire::test(PaymentsRelationManager::class, [
             'ownerRecord' => $student,
-            'pageClass'   => EditStudent::class,
+            'pageClass' => EditStudent::class,
         ])
-            ->callTableAction('create', data: [
-                'type'                => 'advance',
-                'amount'              => 2500,
-                'received_at'         => now()->toDateTimeString(),
-                'proof_upload'        => [$file],
+            ->callTableAction('newPaymentPayout', data: [
+                'entry_action' => 'add_payment',
+                'type' => 'advance',
+                'amount' => 2500,
+                'received_at' => now()->toDateTimeString(),
+                'proof_upload' => [$file],
                 'recorded_by_user_id' => $sumit->id,
             ])
             ->assertHasNoTableActionErrors();
@@ -84,14 +88,14 @@ class PaymentsRelationManagerTest extends TestCase
 
     public function test_payments_tab_url_fallback_still_persists_proof_url_unchanged(): void
     {
-        \Illuminate\Support\Facades\Storage::fake('drive');
+        Storage::fake('drive');
         $this->seed();
 
         $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
         $student = Student::create([
-            'phone'       => '9100000202',
-            'name'        => 'UrlFallbackTester',
-            'owner_id'    => $sumit->id,
+            'phone' => '9100000202',
+            'name' => 'UrlFallbackTester',
+            'owner_id' => $sumit->id,
             'referrer_id' => $sumit->id,
             'lead_source' => 'Sumit',
         ]);
@@ -100,13 +104,14 @@ class PaymentsRelationManagerTest extends TestCase
 
         Livewire::test(PaymentsRelationManager::class, [
             'ownerRecord' => $student,
-            'pageClass'   => EditStudent::class,
+            'pageClass' => EditStudent::class,
         ])
-            ->callTableAction('create', data: [
-                'type'                => 'advance',
-                'amount'              => 1500,
-                'received_at'         => now()->toDateTimeString(),
-                'proof_url'           => 'https://drive.google.com/file/d/manual-url/view',
+            ->callTableAction('newPaymentPayout', data: [
+                'entry_action' => 'add_payment',
+                'type' => 'advance',
+                'amount' => 1500,
+                'received_at' => now()->toDateTimeString(),
+                'proof_url' => 'https://drive.google.com/file/d/manual-url/view',
                 'recorded_by_user_id' => $sumit->id,
             ])
             ->assertHasNoTableActionErrors();
