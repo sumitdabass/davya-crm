@@ -20,7 +20,15 @@ class EditStudent extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            PaymentPayoutChooser::make(),
+            // NOTE: Filament 3.3.50 couples hidden->disabled (Action::isDisabled()
+            // returns `... || isHidden()`), and the runtime mountAction() unmounts
+            // disabled actions. So `->hidden()` actions are NOT mountable here — the
+            // plan's premise does not hold in this version. We instead keep them
+            // visible (mountable, exactly as the summary blade's mountAction() needs)
+            // and CSS-hide the auto-rendered header trigger buttons.
+            PaymentPayoutChooser::dealAction()->extraAttributes(['class' => 'hidden']),
+            PaymentPayoutChooser::paymentAction()->extraAttributes(['class' => 'hidden']),
+            PaymentPayoutChooser::payoutAction()->extraAttributes(['class' => 'hidden']),
             Actions\DeleteAction::make(),
         ];
     }
