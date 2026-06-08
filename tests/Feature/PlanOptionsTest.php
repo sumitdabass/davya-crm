@@ -13,9 +13,10 @@ class PlanOptionsTest extends TestCase
     public function test_plan_field_has_new_options(): void
     {
         $options = StudentField::where('key', 'plan')->value('options');
+        $values = collect($options)->pluck('value')->all();
         $this->assertEqualsCanonicalizing(
             ['Sitting', 'Counselling Online', 'Counselling Offline'],
-            $options
+            $values
         );
     }
 }
