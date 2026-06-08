@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\Payment;
+use App\Models\Payout;
+use App\Models\Student;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -57,11 +59,11 @@ class PaymentReport extends Page implements HasForms
     {
         $today = now('Asia/Kolkata');
         $from = $this->urlFrom !== '' ? $this->urlFrom : $today->copy()->startOfMonth()->toDateString();
-        $to   = $this->urlTo   !== '' ? $this->urlTo   : $today->endOfDay()->toDateString();
+        $to = $this->urlTo !== '' ? $this->urlTo : $today->endOfDay()->toDateString();
 
         $this->applied = [
             'from' => $from,
-            'to'   => $to,
+            'to' => $to,
             'owner_ids' => $this->urlOwnerIds,
         ];
         $this->form->fill($this->applied);
@@ -79,7 +81,7 @@ class PaymentReport extends Page implements HasForms
     {
         $state = $this->form->getState();
         $this->urlFrom = $state['from'] ?? '';
-        $this->urlTo   = $state['to']   ?? '';
+        $this->urlTo = $state['to'] ?? '';
         $this->urlOwnerIds = array_values(array_filter(
             (array) ($state['owner_ids'] ?? []),
             fn ($v) => $v !== null && $v !== '',
@@ -119,6 +121,7 @@ class PaymentReport extends Page implements HasForms
         if ($user->hasRole('admin')) {
             return User::orderBy('name')->pluck('name', 'id')->all();
         }
+
         // Head: own team members (including self).
         return User::where('id', $user->id)
             ->orWhere('team_head_id', $user->id)
@@ -128,14 +131,14 @@ class PaymentReport extends Page implements HasForms
     }
 
     /**
-     * @return array{totals:array<string,float>, byOwner:array<int,array{name:string,received:float,refunds:float,count:int}>, byType:array<string,float>}
+     * @return array{totals:array<string,float>, byOwner:array<int,array{name:string,received:float,refunds:float,count:int,expected_profit:float}>, byType:array<string,float>, profit:array<string,float>}
      */
     public function getReport(): array
     {
         $filters = ! empty($this->applied) ? $this->applied : $this->data;
 
         $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
-        $to   = Carbon::parse($filters['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
+        $to = Carbon::parse($filters['to'] ?? now(), 'Asia/Kolkata')->endOfDay();
         $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
 
         $user = auth()->user();
@@ -149,8 +152,8 @@ class PaymentReport extends Page implements HasForms
         }
 
         $totalReceived = (float) (clone $base)->where('amount', '>', 0)->sum('amount');
-        $totalRefunds  = (float) (clone $base)->where('amount', '<', 0)->sum('amount');
-        $netCollected  = $totalReceived + $totalRefunds; // refunds negative
+        $totalRefunds = (float) (clone $base)->where('amount', '<', 0)->sum('amount');
+        $netCollected = $totalReceived + $totalRefunds; // refunds negative
 
         $byOwner = [];
         foreach (User::orderBy('name')->get() as $u) {
@@ -168,11 +171,20 @@ class PaymentReport extends Page implements HasForms
             if ($received == 0.0 && $refunds == 0.0 && $count === 0) {
                 continue;
             }
+            $ownerStudentIds = Student::query()
+                ->visibleTo($user)
+                ->where('owner_id', $u->id)
+                ->whereBetween('created_at', [$from, $to])
+                ->pluck('id');
+            $ownerDeal = (float) Student::whereIn('id', $ownerStudentIds)->sum('deal_amount');
+            $ownerCommitted = (float) Payout::whereIn('student_id', $ownerStudentIds)->sum('amount');
+            $ownerProfit = $ownerDeal - $ownerCommitted;
             $byOwner[$u->id] = [
-                'name'     => $u->name,
+                'name' => $u->name,
                 'received' => $received,
-                'refunds'  => $refunds,
-                'count'    => $count,
+                'refunds' => $refunds,
+                'count' => $count,
+                'expected_profit' => $ownerProfit,
             ];
         }
 
@@ -181,15 +193,34 @@ class PaymentReport extends Page implements HasForms
             $byType[$type] = (float) (clone $base)->where('type', $type)->sum('amount');
         }
 
+        $studentBase = Student::query()
+            ->visibleTo($user)
+            ->whereBetween('created_at', [$from, $to]);
+        if (! empty($ownerIds)) {
+            $studentBase->whereIn('owner_id', $ownerIds);
+        }
+
+        $totalDeal = (float) (clone $studentBase)->sum('deal_amount');
+        $studentIds = (clone $studentBase)->pluck('id');
+        $committedPayouts = (float) Payout::whereIn('student_id', $studentIds)->sum('amount');
+        $paidPayouts = (float) Payout::whereIn('student_id', $studentIds)->where('status', 'paid')->sum('amount');
+
         return [
             'totals' => [
                 'received' => $totalReceived,
-                'refunds'  => $totalRefunds,
-                'net'      => $netCollected,
-                'count'    => (int) (clone $base)->count(),
+                'refunds' => $totalRefunds,
+                'net' => $netCollected,
+                'count' => (int) (clone $base)->count(),
             ],
             'byOwner' => $byOwner,
-            'byType'  => $byType,
+            'byType' => $byType,
+            'profit' => [
+                'total_deal' => $totalDeal,
+                'committed' => $committedPayouts,
+                'paid_out' => $paidPayouts,
+                'expected_profit' => $totalDeal - $committedPayouts,
+                'outstanding' => $committedPayouts - $paidPayouts,
+            ],
         ];
     }
 
@@ -207,7 +238,7 @@ class PaymentReport extends Page implements HasForms
         $filters = ! empty($this->applied) ? $this->applied : $this->data;
 
         $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), 'Asia/Kolkata')->startOfDay();
-        $to   = Carbon::parse($filters['to']   ?? now(),                     'Asia/Kolkata')->endOfDay();
+        $to = Carbon::parse($filters['to'] ?? now(), 'Asia/Kolkata')->endOfDay();
         $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
         $user = auth()->user();
 
@@ -226,7 +257,7 @@ class PaymentReport extends Page implements HasForms
             $driver = $base->getModel()->getConnection()->getDriverName();
             $expr = $driver === 'sqlite'
                 ? "strftime('%Y-%m-%d', received_at)"
-                : "DATE(received_at)";
+                : 'DATE(received_at)';
             $rows = $base->selectRaw("{$expr} AS d, SUM(amount) AS total, COUNT(*) AS c")
                 ->groupBy('d')->orderBy('d')
                 ->pluck('total', 'd')->map(fn ($v) => (float) $v)->all();
@@ -240,6 +271,7 @@ class PaymentReport extends Page implements HasForms
                 $buckets[] = $cum;
                 $cursor->addDay();
             }
+
             return $buckets ?: [0.0, 0.0];
         };
 
@@ -253,7 +285,7 @@ class PaymentReport extends Page implements HasForms
             $driver = $base->getModel()->getConnection()->getDriverName();
             $expr = $driver === 'sqlite'
                 ? "strftime('%Y-%m-%d', received_at)"
-                : "DATE(received_at)";
+                : 'DATE(received_at)';
             $rows = $base->selectRaw("{$expr} AS d, COUNT(*) AS c")
                 ->groupBy('d')->orderBy('d')
                 ->pluck('c', 'd')->map(fn ($v) => (int) $v)->all();
@@ -267,31 +299,36 @@ class PaymentReport extends Page implements HasForms
                 $buckets[] = (float) $cum;
                 $cursor->addDay();
             }
+
             return $buckets ?: [0.0, 0.0];
         };
 
         // Final totals for delta math — sum of the series == last cumulative value.
         $currentReceived = $buildSeries(fn ($q) => $q->where('amount', '>', 0), $from, $to);
-        $priorReceived   = $buildSeries(fn ($q) => $q->where('amount', '>', 0), $priorFrom, $priorTo);
-        $currentRefunds  = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $from, $to));
-        $priorRefunds    = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $priorFrom, $priorTo));
-        $currentNet      = $buildSeries(fn ($q) => $q, $from, $to);
-        $priorNet        = $buildSeries(fn ($q) => $q, $priorFrom, $priorTo);
-        $currentCount    = $buildCountSeries($from, $to);
-        $priorCount      = $buildCountSeries($priorFrom, $priorTo);
+        $priorReceived = $buildSeries(fn ($q) => $q->where('amount', '>', 0), $priorFrom, $priorTo);
+        $currentRefunds = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $from, $to));
+        $priorRefunds = array_map('abs', $buildSeries(fn ($q) => $q->where('amount', '<', 0), $priorFrom, $priorTo));
+        $currentNet = $buildSeries(fn ($q) => $q, $from, $to);
+        $priorNet = $buildSeries(fn ($q) => $q, $priorFrom, $priorTo);
+        $currentCount = $buildCountSeries($from, $to);
+        $priorCount = $buildCountSeries($priorFrom, $priorTo);
 
         $delta = function (array $now, array $then): ?float {
-            $a = end($now); $b = end($then);
-            if ($b === false || abs((float) $b) < 0.01) return null;
+            $a = end($now);
+            $b = end($then);
+            if ($b === false || abs((float) $b) < 0.01) {
+                return null;
+            }
+
             return (((float) $a - (float) $b) / abs((float) $b)) * 100.0;
         };
-        $priorLabel = $priorFrom->format('d M') . '–' . $priorTo->format('d M');
+        $priorLabel = $priorFrom->format('d M').'–'.$priorTo->format('d M');
 
         return [
             'received' => ['series' => $currentReceived, 'delta_pct' => $delta($currentReceived, $priorReceived), 'prior_label' => $priorLabel],
-            'refunds'  => ['series' => $currentRefunds,  'delta_pct' => $delta($currentRefunds, $priorRefunds),   'prior_label' => $priorLabel],
-            'net'      => ['series' => $currentNet,      'delta_pct' => $delta($currentNet, $priorNet),           'prior_label' => $priorLabel],
-            'count'    => ['series' => $currentCount,    'delta_pct' => $delta($currentCount, $priorCount),       'prior_label' => $priorLabel],
+            'refunds' => ['series' => $currentRefunds,  'delta_pct' => $delta($currentRefunds, $priorRefunds),   'prior_label' => $priorLabel],
+            'net' => ['series' => $currentNet,      'delta_pct' => $delta($currentNet, $priorNet),           'prior_label' => $priorLabel],
+            'count' => ['series' => $currentCount,    'delta_pct' => $delta($currentCount, $priorCount),       'prior_label' => $priorLabel],
         ];
     }
 
@@ -317,7 +354,7 @@ class PaymentReport extends Page implements HasForms
 
         $tz = 'Asia/Kolkata';
         $from = Carbon::parse($filters['from'] ?? now()->startOfMonth(), $tz)->startOfDay();
-        $to   = Carbon::parse($filters['to']   ?? now(),                  $tz)->endOfDay();
+        $to = Carbon::parse($filters['to'] ?? now(), $tz)->endOfDay();
         $ownerIds = array_values(array_filter((array) ($filters['owner_ids'] ?? []), fn ($v) => $v !== null && $v !== ''));
 
         $q = Payment::query()
@@ -337,14 +374,14 @@ class PaymentReport extends Page implements HasForms
         }
 
         return $q->get()->map(fn (Payment $p) => [
-            'id'           => $p->id,
-            'received_at'  => $p->received_at->setTimezone($tz)->format('d M, H:i'),
+            'id' => $p->id,
+            'received_at' => $p->received_at->setTimezone($tz)->format('d M, H:i'),
             'student_name' => $p->student?->name ?? '—',
-            'student_id'   => $p->student_id,
-            'amount'       => (float) $p->amount,
-            'mode'         => $p->mode,
-            'type'         => $p->type,
-            'owner_name'   => $p->student?->owner?->name ?? '—',
+            'student_id' => $p->student_id,
+            'amount' => (float) $p->amount,
+            'mode' => $p->mode,
+            'type' => $p->type,
+            'owner_name' => $p->student?->owner?->name ?? '—',
         ])->all();
     }
 
@@ -357,6 +394,7 @@ class PaymentReport extends Page implements HasForms
         if ($this->detailType !== null) {
             $bits[] = ucfirst($this->detailType);
         }
+
         return $bits ? implode(' · ', $bits) : 'All payments in range';
     }
 
@@ -367,7 +405,7 @@ class PaymentReport extends Page implements HasForms
     {
         $tz = 'Asia/Kolkata';
         $start = Carbon::now($tz)->startOfDay();
-        $end   = $start->copy()->addDay();
+        $end = $start->copy()->addDay();
 
         return Payment::query()
             ->whereBetween('received_at', [$start, $end->copy()->subSecond()])
@@ -376,14 +414,14 @@ class PaymentReport extends Page implements HasForms
             ->orderByDesc('received_at')
             ->get()
             ->map(fn (Payment $p) => [
-                'id'           => $p->id,
-                'time'         => $p->received_at->setTimezone($tz)->format('H:i'),
+                'id' => $p->id,
+                'time' => $p->received_at->setTimezone($tz)->format('H:i'),
                 'student_name' => $p->student?->name ?? '—',
-                'student_id'   => $p->student_id,
-                'amount'       => (float) $p->amount,
-                'mode'         => $p->mode,
-                'type'         => $p->type,
-                'owner_name'   => $p->student?->owner?->name ?? '—',
+                'student_id' => $p->student_id,
+                'amount' => (float) $p->amount,
+                'mode' => $p->mode,
+                'type' => $p->type,
+                'owner_name' => $p->student?->owner?->name ?? '—',
             ])
             ->all();
     }

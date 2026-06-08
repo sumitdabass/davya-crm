@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\PaymentReport;
 use App\Models\Payment;
+use App\Models\Payout;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -17,9 +18,9 @@ class PaymentReportTest extends TestCase
     public function test_report_aggregates_received_refunds_and_count_by_owner(): void
     {
         $this->seed();
-        $sumit  = User::where('email', 'sumit@davya.local')->first();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
-        $nisha  = User::where('email', 'nisha@davya.local')->first();
+        $nisha = User::where('email', 'nisha@davya.local')->first();
         $this->actingAs($sumit);
 
         $a = Student::create([
@@ -49,7 +50,7 @@ class PaymentReportTest extends TestCase
         $page = new PaymentReport;
         $page->data = [
             'from' => Carbon::now()->startOfMonth()->toDateString(),
-            'to'   => Carbon::now()->endOfMonth()->toDateString(),
+            'to' => Carbon::now()->endOfMonth()->toDateString(),
             'owner_ids' => [],
         ];
 
@@ -72,9 +73,9 @@ class PaymentReportTest extends TestCase
     public function test_report_respects_owner_filter(): void
     {
         $this->seed();
-        $sumit  = User::where('email', 'sumit@davya.local')->first();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
-        $nisha  = User::where('email', 'nisha@davya.local')->first();
+        $nisha = User::where('email', 'nisha@davya.local')->first();
 
         $a = Student::create([
             'phone' => '9100007010', 'name' => 'A',
@@ -99,7 +100,7 @@ class PaymentReportTest extends TestCase
         $page = new PaymentReport;
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
-            'to'   => now()->endOfMonth()->toDateString(),
+            'to' => now()->endOfMonth()->toDateString(),
             'owner_ids' => [$nikhil->id],
         ];
 
@@ -114,7 +115,7 @@ class PaymentReportTest extends TestCase
         // Prod bug report: Sonam was seeing Nikhil's team totals in the Payment Report.
         $this->seed();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
-        $sonam  = User::where('email', 'sonam@davya.local')->first();
+        $sonam = User::where('email', 'sonam@davya.local')->first();
 
         $nikhilStudent = Student::create([
             'phone' => '9100008001', 'name' => 'NikhilLead',
@@ -141,7 +142,7 @@ class PaymentReportTest extends TestCase
         $page = new PaymentReport;
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
-            'to'   => now()->endOfMonth()->toDateString(),
+            'to' => now()->endOfMonth()->toDateString(),
             'owner_ids' => [],
         ];
         $r = $page->getReport();
@@ -156,7 +157,7 @@ class PaymentReportTest extends TestCase
         $page2 = new PaymentReport;
         $page2->data = [
             'from' => now()->startOfMonth()->toDateString(),
-            'to'   => now()->endOfMonth()->toDateString(),
+            'to' => now()->endOfMonth()->toDateString(),
             'owner_ids' => [],
         ];
         $r2 = $page2->getReport();
@@ -167,9 +168,9 @@ class PaymentReportTest extends TestCase
     public function test_admin_payment_report_sees_all_teams(): void
     {
         $this->seed();
-        $sumit  = User::where('email', 'sumit@davya.local')->first();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
-        $sonam  = User::where('email', 'sonam@davya.local')->first();
+        $sonam = User::where('email', 'sonam@davya.local')->first();
 
         $nikhilStudent = Student::create([
             'phone' => '9100008101', 'name' => 'NikhilLead',
@@ -194,7 +195,7 @@ class PaymentReportTest extends TestCase
         $page = new PaymentReport;
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
-            'to'   => now()->endOfMonth()->toDateString(),
+            'to' => now()->endOfMonth()->toDateString(),
             'owner_ids' => [],
         ];
         $r = $page->getReport();
@@ -206,9 +207,9 @@ class PaymentReportTest extends TestCase
     public function test_detail_rows_scope_by_owner_and_type(): void
     {
         $this->seed();
-        $sumit  = User::where('email', 'sumit@davya.local')->first();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
         $nikhil = User::where('email', 'nikhil@davya.local')->first();
-        $nisha  = User::where('email', 'nisha@davya.local')->first();
+        $nisha = User::where('email', 'nisha@davya.local')->first();
         $this->actingAs($sumit);
 
         $a = Student::create([
@@ -237,7 +238,7 @@ class PaymentReportTest extends TestCase
         $page = new PaymentReport;
         $page->data = [
             'from' => now()->startOfMonth()->toDateString(),
-            'to'   => now()->endOfMonth()->toDateString(),
+            'to' => now()->endOfMonth()->toDateString(),
             'owner_ids' => [],
         ];
         $page->applied = $page->data;
@@ -261,5 +262,49 @@ class PaymentReportTest extends TestCase
         $page->setTab('report');
         $this->assertNull($page->detailOwnerId);
         $this->assertNull($page->detailType);
+    }
+
+    public function test_report_includes_expected_profit_rollup(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $nikhil = User::where('email', 'nikhil@davya.local')->first();
+        $this->actingAs($sumit);
+
+        $student = Student::create([
+            'phone' => '9100007050', 'name' => 'ProfitLead',
+            'owner_id' => $nikhil->id, 'referrer_id' => $nikhil->id,
+            'lead_source' => 'Nikhil', 'stage' => 'Onboarded',
+            'deal_amount' => 100000,
+        ]);
+
+        Payout::factory()->create([
+            'student_id' => $student->id, 'amount' => 30000, 'status' => 'to_pay',
+            'recorded_by_user_id' => $nikhil->id,
+        ]);
+        Payout::factory()->paid()->create([
+            'student_id' => $student->id, 'amount' => 20000,
+            'recorded_by_user_id' => $nikhil->id,
+        ]);
+
+        Payment::create([
+            'student_id' => $student->id, 'type' => 'advance', 'amount' => 25000,
+            'received_at' => now(), 'recorded_by_user_id' => $nikhil->id,
+        ]);
+
+        $page = new PaymentReport;
+        $page->data = [
+            'from' => now()->startOfMonth()->toDateString(),
+            'to' => now()->toDateString(),
+            'owner_ids' => [],
+        ];
+
+        $r = $page->getReport();
+
+        $this->assertEqualsWithDelta(100000.0, $r['profit']['total_deal'], 0.01);
+        $this->assertEqualsWithDelta(50000.0, $r['profit']['committed'], 0.01);
+        $this->assertEqualsWithDelta(20000.0, $r['profit']['paid_out'], 0.01);
+        $this->assertEqualsWithDelta(50000.0, $r['profit']['expected_profit'], 0.01);
+        $this->assertEqualsWithDelta(30000.0, $r['profit']['outstanding'], 0.01);
     }
 }

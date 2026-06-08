@@ -87,6 +87,26 @@
             </button>
         </div>
 
+        {{-- Profit rollup (deal − payouts) --}}
+        <div class="mt-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div class="davya-books-kpi">
+                <div class="davya-books-kpi__label">Total deal</div>
+                <x-book-amount :v="(float) $r['profit']['total_deal']" big />
+            </div>
+            <div class="davya-books-kpi">
+                <div class="davya-books-kpi__label">Paid out</div>
+                <x-book-amount :v="(float) $r['profit']['paid_out']" big />
+            </div>
+            <div class="davya-books-kpi">
+                <div class="davya-books-kpi__label">Outstanding payouts</div>
+                <x-book-amount :v="(float) $r['profit']['outstanding']" big :danger="(float) $r['profit']['outstanding'] > 0" />
+            </div>
+            <div class="davya-books-kpi">
+                <div class="davya-books-kpi__label">Expected profit</div>
+                <x-book-amount :v="(float) $r['profit']['expected_profit']" big :danger="(float) $r['profit']['expected_profit'] < 0" />
+            </div>
+        </div>
+
         <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 overflow-hidden">
                 <header class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 font-semibold text-sm">By owner</header>
@@ -96,6 +116,7 @@
                             <th class="text-left px-4 py-2 font-medium">Owner</th>
                             <th class="text-right px-4 py-2 font-medium">Received</th>
                             <th class="text-right px-4 py-2 font-medium">Refunds</th>
+                            <th class="text-right px-4 py-2 font-medium">Profit</th>
                             <th class="text-right px-4 py-2 font-medium">#</th>
                         </tr>
                     </thead>
@@ -110,10 +131,13 @@
                                 <td class="text-right px-4 py-2 tabular-nums text-amber-600 dark:text-amber-400">
                                     ₹{{ number_format(abs($row['refunds']), 0, '.', ',') }}
                                 </td>
+                                <td class="text-right px-4 py-2 tabular-nums">
+                                    ₹{{ number_format($row['expected_profit'] ?? 0, 0, '.', ',') }}
+                                </td>
                                 <td class="text-right px-4 py-2 tabular-nums">{{ $row['count'] }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">No payments in range.</td></tr>
+                            <tr><td colspan="5" class="px-4 py-6 text-center text-sm text-gray-500">No payments in range.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
