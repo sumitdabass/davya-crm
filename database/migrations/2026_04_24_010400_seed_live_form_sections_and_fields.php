@@ -1,8 +1,10 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         $now = now();
@@ -14,7 +16,7 @@ return new class extends Migration {
         $maxPos = (int) DB::table('student_field_sections')->max('position');
         foreach ($desiredSections as $name) {
             $exists = DB::table('student_field_sections')->where('name', $name)->exists();
-            if (!$exists) {
+            if (! $exists) {
                 $maxPos++;
                 DB::table('student_field_sections')->insert([
                     'name' => $name, 'position' => $maxPos,
@@ -51,7 +53,7 @@ return new class extends Migration {
                 ['key' => 'lead_source',      'label' => 'Lead Source',      'type' => 'dropdown', 'built_in_column' => 'lead_source',      'options' => null, 'required' => true],
                 ['key' => 'referrer_name',    'label' => 'Referrer Name',    'type' => 'text',     'built_in_column' => 'referrer_name',    'options' => null, 'required' => false],
                 ['key' => 'stage',            'label' => 'Stage',            'type' => 'dropdown', 'built_in_column' => 'stage',            'options' => null, 'required' => true],
-                ['key' => 'student_response', 'label' => 'Student Response', 'type' => 'dropdown', 'built_in_column' => 'student_response', 'options' => $label(['Ready','Not Interested','Needs Time']), 'required' => false],
+                ['key' => 'student_response', 'label' => 'Student Response', 'type' => 'dropdown', 'built_in_column' => 'student_response', 'options' => $label(['Ready', 'Not Interested', 'Needs Time']), 'required' => false],
             ],
             'Academic' => [
                 ['key' => 'exam_appeared',  'label' => 'Exam Appeared', 'type' => 'text', 'built_in_column' => 'exam_appeared',  'options' => null, 'required' => false],
@@ -63,7 +65,7 @@ return new class extends Migration {
             ],
             'Deal' => [
                 ['key' => 'deal_amount', 'label' => 'Deal Amount', 'type' => 'number',   'built_in_column' => 'deal_amount', 'options' => null, 'required' => false],
-                ['key' => 'plan',        'label' => 'Plan',        'type' => 'dropdown', 'built_in_column' => 'plan',        'options' => $label(['Online','Offline','All']), 'required' => false],
+                ['key' => 'plan',        'label' => 'Plan',        'type' => 'dropdown', 'built_in_column' => 'plan',        'options' => $label(['Sitting', 'Counselling Online', 'Counselling Offline']), 'required' => false],
             ],
             'Counselling' => [
                 ['key' => 'is_ipu_registered', 'label' => 'IPU Registered',  'type' => 'checkbox', 'built_in_column' => 'is_ipu_registered', 'options' => null, 'required' => false],
@@ -73,7 +75,7 @@ return new class extends Migration {
                 ['key' => 'seat_fee_due',      'label' => 'Seat Fee Due',    'type' => 'checkbox', 'built_in_column' => 'seat_fee_due',      'options' => null, 'required' => false],
             ],
             'Closure' => [
-                ['key' => 'close_reason',    'label' => 'Close Reason',    'type' => 'dropdown', 'built_in_column' => 'close_reason',    'options' => $label(['Not Interested','Backed Out — Forfeit','Backed Out — Partial Refund','Completed','Other']), 'required' => false],
+                ['key' => 'close_reason',    'label' => 'Close Reason',    'type' => 'dropdown', 'built_in_column' => 'close_reason',    'options' => $label(['Not Interested', 'Backed Out — Forfeit', 'Backed Out — Partial Refund', 'Completed', 'Other']), 'required' => false],
                 ['key' => 'refund_amount',   'label' => 'Refund Amount',   'type' => 'number',   'built_in_column' => 'refund_amount',   'options' => null, 'required' => false],
                 ['key' => 're_entry_reason', 'label' => 'Re-entry Reason', 'type' => 'textarea', 'built_in_column' => 're_entry_reason', 'options' => null, 'required' => false],
                 ['key' => 'description',     'label' => 'Description',     'type' => 'textarea', 'built_in_column' => 'description',     'options' => null, 'required' => false],
@@ -83,10 +85,14 @@ return new class extends Migration {
 
         foreach ($toSeed as $sectionName => $fields) {
             $sid = $sections[$sectionName] ?? null;
-            if (!$sid) continue;
+            if (! $sid) {
+                continue;
+            }
             $pos = (int) DB::table('student_fields')->where('section_id', $sid)->max('position');
             foreach ($fields as $f) {
-                if (DB::table('student_fields')->where('key', $f['key'])->exists()) continue;
+                if (DB::table('student_fields')->where('key', $f['key'])->exists()) {
+                    continue;
+                }
                 $pos++;
                 DB::table('student_fields')->insert([
                     'section_id' => $sid,
@@ -113,10 +119,10 @@ return new class extends Migration {
         $category = DB::table('student_fields')->where('key', 'category')->first();
         if ($category) {
             $opts = is_string($category->options) ? json_decode($category->options, true) : $category->options;
-            $needsFix = empty($opts) || (isset($opts[0]) && !is_array($opts[0]));
+            $needsFix = empty($opts) || (isset($opts[0]) && ! is_array($opts[0]));
             if ($needsFix) {
                 DB::table('student_fields')->where('id', $category->id)->update([
-                    'options' => json_encode($label(['Delhi','Outside'])),
+                    'options' => json_encode($label(['Delhi', 'Outside'])),
                     'updated_at' => $now,
                 ]);
             }
@@ -145,9 +151,11 @@ return new class extends Migration {
         // Drop the 5 added sections only if empty (protects any user-created fields in them).
         foreach (['Source & Stage', 'Deal', 'Counselling', 'History', 'Closure'] as $name) {
             $sid = DB::table('student_field_sections')->where('name', $name)->value('id');
-            if (!$sid) continue;
+            if (! $sid) {
+                continue;
+            }
             $hasFields = DB::table('student_fields')->where('section_id', $sid)->exists();
-            if (!$hasFields) {
+            if (! $hasFields) {
                 DB::table('student_field_sections')->where('id', $sid)->delete();
             }
         }

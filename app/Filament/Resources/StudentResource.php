@@ -21,6 +21,8 @@ use App\Services\Pipeline\StageTransitionEngine;
 use App\Services\PipelineSummary;
 use App\StudentFields\DynamicTableColumns;
 use App\StudentFields\FieldRenderer;
+use App\Support\Aging;
+use App\Support\MoneyFormat;
 use Filament\Forms\Components\Actions;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Section;
@@ -228,7 +230,7 @@ class StudentResource extends Resource
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
-                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
+                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Sitting', 'Counselling Online', 'Counselling Offline'])),
                             Select::make('registration_status')
                                 ->label('IPU Registration Status')
                                 ->options([
@@ -393,7 +395,7 @@ class StudentResource extends Resource
     {
         $baseColumns = [
             TextColumn::make('name')->searchable()->weight('medium')->sortable()
-                ->formatStateUsing(fn ($state, $record) => \App\Support\Aging::dotHtml($record->updated_at).e($state))
+                ->formatStateUsing(fn ($state, $record) => Aging::dotHtml($record->updated_at).e($state))
                 ->html()
                 ->description(fn ($record) => $record->phone),
             TextColumn::make('owner.name')->label('Owner')->badge()->color('gray'),
@@ -411,15 +413,15 @@ class StudentResource extends Resource
                 default => 'gray',
             }),
             TextColumn::make('deal_amount')->label('Deal')->sortable()->default(0)
-                ->formatStateUsing(fn ($state) => \App\Support\MoneyFormat::asInlineHtml((float) $state))->html(),
+                ->formatStateUsing(fn ($state) => MoneyFormat::asInlineHtml((float) $state))->html(),
             TextColumn::make('total_received')->label('Received')->sortable()
                 ->formatStateUsing(fn ($state) => $state > 0
-                    ? '<span style="color:var(--success,#10B981);">'.\App\Support\MoneyFormat::asInlineHtml((float) $state).'</span>'
-                    : \App\Support\MoneyFormat::asInlineHtml(0))->html(),
+                    ? '<span style="color:var(--success,#10B981);">'.MoneyFormat::asInlineHtml((float) $state).'</span>'
+                    : MoneyFormat::asInlineHtml(0))->html(),
             TextColumn::make('pending_amount')->label('Pending')->sortable()
                 ->formatStateUsing(fn ($state) => $state > 0
-                    ? '<span style="color:var(--warning,#F59E0B);">'.\App\Support\MoneyFormat::asInlineHtml((float) $state).'</span>'
-                    : \App\Support\MoneyFormat::asInlineHtml(0))->html(),
+                    ? '<span style="color:var(--warning,#F59E0B);">'.MoneyFormat::asInlineHtml((float) $state).'</span>'
+                    : MoneyFormat::asInlineHtml(0))->html(),
             TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
             TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
@@ -482,7 +484,7 @@ class StudentResource extends Resource
 
                         return $query;
                     }),
-                SelectFilter::make('plan')->options(fn () => self::optionsFor('plan', ['Online', 'Offline', 'All'])),
+                SelectFilter::make('plan')->options(fn () => self::optionsFor('plan', ['Sitting', 'Counselling Online', 'Counselling Offline'])),
                 SelectFilter::make('course')
                     ->options(fn () => Student::query()->whereNotNull('course')->where('course', '!=', '')
                         ->distinct()->orderBy('course')->pluck('course', 'course')->all()),
