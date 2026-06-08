@@ -62,4 +62,20 @@ class StudentFormRevertTest extends TestCase
             ->assertSee('received')
             ->assertSeeHtml('data-testid="student-money-summary"');
     }
+
+    public function test_stage_summary_is_clickable_to_open_chooser(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $this->actingAs($sumit);
+
+        $student = Student::create([
+            'phone' => '9100000055', 'name' => 'ClickSummary', 'deal_amount' => 100000,
+            'owner_id' => $sumit->id, 'referrer_id' => $sumit->id, 'lead_source' => 'Sumit',
+        ]);
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSeeHtml('wire:click="mountAction(\'newPaymentPayout\')"');
+    }
 }
