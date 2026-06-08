@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Student extends Model
 {
@@ -22,6 +22,13 @@ class Student extends Model
         return $query
             ->where('updated_at', '<', now()->subDays(14))
             ->whereNotIn('stage', ['Admission Confirmed', 'Closed']);
+    }
+
+    public function scopeWithExpectedProfit(Builder $query): Builder
+    {
+        return $query
+            ->select('students.*')
+            ->selectRaw('students.deal_amount - COALESCE((SELECT SUM(amount) FROM payouts WHERE payouts.student_id = students.id), 0) AS expected_profit');
     }
 
     public function scopeVisibleTo(Builder $query, ?User $user): Builder
@@ -73,13 +80,45 @@ class Student extends Model
         'meeting_date' => 'datetime',
     ];
 
-    public function owner(): BelongsTo { return $this->belongsTo(User::class, 'owner_id'); }
-    public function referrer(): BelongsTo { return $this->belongsTo(User::class, 'referrer_id'); }
-    public function payments(): HasMany { return $this->hasMany(Payment::class); }
-    public function roundHistory(): HasMany { return $this->hasMany(RoundHistory::class); }
-    public function notes(): HasMany { return $this->hasMany(StudentNote::class)->latest(); }
-    public function meetings(): HasMany { return $this->hasMany(Meeting::class); }
-    public function fieldValues(): HasMany { return $this->hasMany(StudentFieldValue::class); }
+    public function owner(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'owner_id');
+    }
+
+    public function referrer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referrer_id');
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class);
+    }
+
+    public function roundHistory(): HasMany
+    {
+        return $this->hasMany(RoundHistory::class);
+    }
+
+    public function notes(): HasMany
+    {
+        return $this->hasMany(StudentNote::class)->latest();
+    }
+
+    public function meetings(): HasMany
+    {
+        return $this->hasMany(Meeting::class);
+    }
+
+    public function fieldValues(): HasMany
+    {
+        return $this->hasMany(StudentFieldValue::class);
+    }
 
     public function latestAdmittedRound(): HasOne
     {
@@ -96,6 +135,30 @@ class Student extends Model
     public function getPendingAmountAttribute(): float
     {
         return (float) ($this->deal_amount ?? 0) - $this->total_received;
+    }
+
+    public function getTotalPayoutsAttribute(): float
+    {
+        return (float) $this->payouts()->sum('amount');
+    }
+
+    public function getPayoutsPaidAttribute(): float
+    {
+        return (float) $this->payouts()->where('status', 'paid')->sum('amount');
+    }
+
+    public function getPayoutsOutstandingAttribute(): float
+    {
+        return $this->total_payouts - $this->payouts_paid;
+    }
+
+    public function getExpectedProfitAttribute(): float
+    {
+        if (array_key_exists('expected_profit', $this->attributes)) {
+            return (float) $this->attributes['expected_profit'];
+        }
+
+        return (float) ($this->deal_amount ?? 0) - $this->total_payouts;
     }
 
     public function getActivitylogOptions(): LogOptions
