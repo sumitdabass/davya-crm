@@ -473,6 +473,11 @@ class StudentResource extends Resource
                 ->formatStateUsing(fn ($state) => $state > 0
                     ? '<span style="color:var(--warning,#F59E0B);">'.MoneyFormat::asInlineHtml((float) $state).'</span>'
                     : MoneyFormat::asInlineHtml(0))->html(),
+            TextColumn::make('expected_profit')->label('Profit')->sortable()
+                ->alignEnd()
+                ->toggleable()
+                ->visibleFrom('md')
+                ->formatStateUsing(fn ($state) => MoneyFormat::asInlineHtml((float) $state, (float) $state < 0))->html(),
             TextColumn::make('email')->searchable()->toggleable(isToggledHiddenByDefault: true),
             TextColumn::make('rank')->toggleable(isToggledHiddenByDefault: true)->sortable(),
             TextColumn::make('state')->toggleable(isToggledHiddenByDefault: true)->searchable(),
@@ -618,7 +623,9 @@ class StudentResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->visibleTo(auth()->user());
+        return parent::getEloquentQuery()
+            ->visibleTo(auth()->user())
+            ->withExpectedProfit();
     }
 
     public static function getRelations(): array
