@@ -1,0 +1,43 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Filament\Resources\StudentResource\Pages\CreateStudent;
+use App\Filament\Resources\StudentResource\Pages\EditStudent;
+use App\Models\Student;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
+use Tests\TestCase;
+
+class StudentFormRevertTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_create_and_edit_student_pages_mount_after_deal_tab_revert(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $this->actingAs($sumit);
+
+        Livewire::test(CreateStudent::class)->assertSuccessful();
+
+        $student = Student::create([
+            'phone' => '9100000077',
+            'name' => 'RevertTester',
+            'owner_id' => $sumit->id,
+            'referrer_id' => $sumit->id,
+            'lead_source' => 'Sumit',
+        ]);
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])->assertSuccessful();
+    }
+
+    public function test_deal_tab_no_longer_defines_a_payouts_repeater(): void
+    {
+        $source = file_get_contents(app_path('Filament/Resources/StudentResource.php'));
+        $this->assertStringNotContainsString("Repeater::make('payouts')", $source);
+        $this->assertStringNotContainsString("Placeholder::make('expected_profit_preview')", $source);
+        $this->assertStringNotContainsString("Action::make('addPayment')", $source);
+    }
+}
