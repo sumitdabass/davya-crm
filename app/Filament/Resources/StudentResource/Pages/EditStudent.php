@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\StudentResource\Pages;
 
 use App\Filament\Resources\StudentResource;
+use App\Filament\Support\PaymentPayoutChooser;
 use App\Services\Pipeline\PipelineConfig;
 use App\Services\Pipeline\StageTransitionEngine;
 use App\StudentFields\StudentFormDynamicTrait;
@@ -19,6 +20,7 @@ class EditStudent extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            PaymentPayoutChooser::make(),
             Actions\DeleteAction::make(),
         ];
     }
@@ -60,7 +62,7 @@ class EditStudent extends EditRecord
         }
 
         $data['stage_id'] = $target->id;
-        $data['stage']    = $target->name;  // Dual-write: keep the legacy VARCHAR cache in sync.
+        $data['stage'] = $target->name;  // Dual-write: keep the legacy VARCHAR cache in sync.
 
         // Lead Owner lock: once a head saves a referrer_id, lock the field so
         // only an admin can change it later (admin clears the lock manually).
