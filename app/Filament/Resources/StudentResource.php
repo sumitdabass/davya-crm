@@ -143,7 +143,12 @@ class StudentResource extends Resource
             // visible (and editable) regardless of which tab the operator is on.
             Section::make('Stage')
                 ->icon('heroicon-o-flag')
-                ->schema([$stageField])
+                ->schema([
+                    $stageField,
+                    View::make('filament.forms.student-money-summary')
+                        ->visible(fn ($record) => $record !== null)
+                        ->columnSpanFull(),
+                ])
                 ->columnSpanFull()
                 ->compact(),
 

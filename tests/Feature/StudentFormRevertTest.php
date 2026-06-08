@@ -40,4 +40,25 @@ class StudentFormRevertTest extends TestCase
         $this->assertStringNotContainsString("Placeholder::make('expected_profit_preview')", $source);
         $this->assertStringNotContainsString("Action::make('addPayment')", $source);
     }
+
+    public function test_stage_section_shows_money_summary_on_existing_student(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $this->actingAs($sumit);
+
+        $student = Student::create([
+            'phone' => '9100000066', 'name' => 'SummaryTester', 'deal_amount' => 100000,
+            'owner_id' => $sumit->id, 'referrer_id' => $sumit->id, 'lead_source' => 'Sumit',
+        ]);
+        $student->payouts()->create([
+            'payee_type' => 'college', 'amount' => 30000, 'status' => 'to_pay',
+            'recorded_by_user_id' => $sumit->id,
+        ]);
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSee('Expected profit')
+            ->assertSeeHtml('data-testid="student-money-summary"');
+    }
 }
