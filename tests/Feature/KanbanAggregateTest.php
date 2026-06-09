@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Filament\Pages\KanbanBoard;
 use App\Models\Payment;
+use App\Models\Payout;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -72,5 +73,36 @@ class KanbanAggregateTest extends TestCase
         $this->assertSame(165000.0, (float) $column['received_total']);
         $this->assertSame(135000.0, (float) $column['pending_total']);
         $this->assertSame(2, $column['count']);
+    }
+
+    public function test_stage_column_reports_payouts_and_expected_profit(): void
+    {
+        $nikhil = User::where('email', 'nikhil@davya.local')->first();
+        $admin  = $this->admin();
+
+        // Column deal total = 300000; commit 80000 of payouts → profit 220000.
+        $s1 = $this->student(['stage' => 'Advance Received', 'deal_amount' => 200000]);
+        $s2 = $this->student(['stage' => 'Advance Received', 'deal_amount' => 100000]);
+
+        Payout::create([
+            'student_id'          => $s1->id,
+            'payee_type'          => 'college',
+            'amount'              => 50000,
+            'status'              => 'paid',
+            'recorded_by_user_id' => $nikhil->id,
+        ]);
+        Payout::create([
+            'student_id'          => $s2->id,
+            'payee_type'          => 'college',
+            'amount'              => 30000,
+            'status'              => 'to_pay',
+            'recorded_by_user_id' => $nikhil->id,
+        ]);
+
+        $this->actingAs($admin);
+        $column = collect((new KanbanBoard)->getBoard())->firstWhere('stage', 'Advance Received');
+
+        $this->assertSame(80000.0, (float) $column['payouts_total']);
+        $this->assertSame(220000.0, (float) $column['expected_profit']);
     }
 }

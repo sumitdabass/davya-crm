@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Models\Payment;
+use App\Models\Payout;
 use App\Models\RoundHistory;
 use App\Models\Stage;
 use App\Models\Student;
@@ -166,6 +167,12 @@ class KanbanBoard extends Page
             ->groupBy('student_id')
             ->pluck('total', 'student_id');
 
+        $payoutsByStudent = Payout::query()
+            ->whereIn('student_id', $visibleIds)
+            ->selectRaw('student_id, SUM(amount) as total')
+            ->groupBy('student_id')
+            ->pluck('total', 'student_id');
+
         $byStage = $students->groupBy('stage');
 
         $extrasFormatter = new KanbanExtrasFormatter();
@@ -176,17 +183,20 @@ class KanbanBoard extends Page
             $group = $byStage->get($stageName, collect());
             $deal = (float) $group->sum(fn ($s) => (float) ($s->deal_amount ?? 0));
             $received = (float) $group->sum(fn ($s) => (float) ($paymentsByStudent[$s->id] ?? 0));
+            $payouts = (float) $group->sum(fn ($s) => (float) ($payoutsByStudent[$s->id] ?? 0));
 
             // visual-v2: received_total / pending_total exposed for kanban column headers
             $columns[] = [
-                'stage'          => $stageName,
-                'stage_type'     => $stageModel ? $this->stageType($stageModel) : 'active',
-                'count'          => $group->count(),
-                'deal'           => $deal,
-                'received'       => $received,
-                'pending'        => max(0, $deal - $received),
-                'received_total' => $received,
-                'pending_total'  => max(0, $deal - $received),
+                'stage'           => $stageName,
+                'stage_type'      => $stageModel ? $this->stageType($stageModel) : 'active',
+                'count'           => $group->count(),
+                'deal'            => $deal,
+                'received'        => $received,
+                'pending'         => max(0, $deal - $received),
+                'received_total'  => $received,
+                'pending_total'   => max(0, $deal - $received),
+                'payouts_total'   => $payouts,
+                'expected_profit' => $deal - $payouts,
                 'students' => $group->map(fn ($s) => [
                     'id'              => $s->id,
                     'name'            => $s->name,
