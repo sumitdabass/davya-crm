@@ -109,7 +109,7 @@ class KanbanBoard extends Page
             ->distinct()->orderBy('lead_source')->pluck('lead_source')->all();
 
         // Plan: read from StudentField options, fall back to static defaults.
-        $plans = $this->optionsFromField('plan', ['Online', 'Offline', 'All']);
+        $plans = $this->optionsFromField('plan', ['Sitting', 'Counselling Online', 'Counselling Offline']);
 
         // Category: read from StudentField options, fall back to static defaults.
         $categories = $this->optionsFromField('category', ['Delhi', 'Outside']);
