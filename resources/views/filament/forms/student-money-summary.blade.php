@@ -17,6 +17,10 @@
                 class="hover:underline cursor-pointer" style="display:inline; color:inherit;"
                 title="Add / update / delete a payout">{{ $fmt($r->total_payouts) }} payouts</button>
         <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span @style(['color:var(--success,#059669)' => $r->payouts_paid > 0])>{{ $fmt($r->payouts_paid) }} paid out</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
+        <span @style(['color:var(--warning,#D97706)' => $r->payouts_outstanding > 0])>{{ $fmt($r->payouts_outstanding) }} to pay</span>
+        <span class="text-gray-300 dark:text-gray-600"> · </span>
         <span @style(['color:var(--danger,#DC2626)' => $r->expected_profit < 0])>{{ $fmt($r->expected_profit) }} profit</span>
     </div>
 @endif

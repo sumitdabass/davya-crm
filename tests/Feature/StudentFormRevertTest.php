@@ -63,6 +63,41 @@ class StudentFormRevertTest extends TestCase
             ->assertSeeHtml('data-testid="student-money-summary"');
     }
 
+    public function test_stage_summary_shows_payout_paid_and_to_pay_breakdown(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->firstOrFail();
+        $this->actingAs($sumit);
+
+        // Deal 10L, total payout commitment 10L: pay 2L now, 8L still to pay.
+        $student = Student::create([
+            'phone' => '9100000077', 'name' => 'PayoutBreakdown', 'deal_amount' => 1000000,
+            'owner_id' => $sumit->id, 'referrer_id' => $sumit->id, 'lead_source' => 'Sumit',
+        ]);
+        $student->payouts()->create([
+            'payee_type' => 'college', 'amount' => 200000, 'status' => 'paid',
+            'recorded_by_user_id' => $sumit->id,
+        ]);
+        $student->payouts()->create([
+            'payee_type' => 'college', 'amount' => 800000, 'status' => 'to_pay',
+            'recorded_by_user_id' => $sumit->id,
+        ]);
+
+        $this->assertSame(200000.0, $student->payouts_paid);
+        $this->assertSame(800000.0, $student->payouts_outstanding);
+
+        Livewire::test(EditStudent::class, ['record' => $student->getRouteKey()])
+            ->assertSuccessful()
+            ->assertSee('paid out')
+            ->assertSee('to pay');
+
+        // Mark the remaining payout paid → paid jumps to full, to-pay drops to zero.
+        $student->payouts()->where('status', 'to_pay')->first()->update(['status' => 'paid']);
+        $student->refresh();
+        $this->assertSame(1000000.0, $student->payouts_paid);
+        $this->assertSame(0.0, $student->payouts_outstanding);
+    }
+
     public function test_stage_summary_segments_are_clickable(): void
     {
         $this->seed();
