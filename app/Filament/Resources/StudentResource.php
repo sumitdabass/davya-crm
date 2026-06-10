@@ -22,6 +22,7 @@ use App\Services\Pipeline\StageTransitionEngine;
 use App\Services\PipelineSummary;
 use App\StudentFields\DynamicTableColumns;
 use App\StudentFields\FieldRenderer;
+use App\Filament\Forms\Components\StageStepper;
 use App\Support\Aging;
 use App\Support\MoneyFormat;
 use Filament\Forms\Components\Actions;
@@ -112,7 +113,7 @@ class StudentResource extends Resource
         $isAdmin = $authUser?->hasRole('admin') ?? false;
         $isHead = $authUser?->hasRole('head') ?? false;
 
-        $stageField = Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
+        $stageField = StageStepper::make('stage')->required()->default('Lead Captured')
             ->live()
             ->afterStateUpdated(function ($state, $record, $set) {
                 if (! $record) {
