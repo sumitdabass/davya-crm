@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Forms\Components\StageStepper;
 use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
@@ -22,7 +23,6 @@ use App\Services\Pipeline\StageTransitionEngine;
 use App\Services\PipelineSummary;
 use App\StudentFields\DynamicTableColumns;
 use App\StudentFields\FieldRenderer;
-use App\Filament\Forms\Components\StageStepper;
 use App\Support\Aging;
 use App\Support\MoneyFormat;
 use Filament\Forms\Components\Actions;
