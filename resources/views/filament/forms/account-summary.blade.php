@@ -48,12 +48,12 @@
                         <th style="padding: 6px 4px; font-weight: 600;">Mode</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="davya-tl">
                     @foreach ($payments as $p)
-                        <tr style="border-bottom: 1px solid #f9fafb;">
-                            <td style="padding: 6px 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;">{{ $p->received_at?->format('d M Y · H:i') }}</td>
+                        <tr class="ev pay" style="border-bottom: 1px solid #f9fafb;">
+                            <td style="padding: 6px 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;"><span class="pt"></span>{{ $p->received_at?->format('d M Y · H:i') }}</td>
                             <td style="padding: 6px 4px; text-transform: capitalize;">{{ $p->type }}</td>
-                            <td style="padding: 6px 4px; text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; {{ $p->amount < 0 ? 'color: #d97706;' : '' }}">₹{{ number_format(abs($p->amount), 0, '.', ',') }}</td>
+                            <td class="am" style="padding: 6px 4px; text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; {{ $p->amount < 0 ? 'color: #d97706;' : '' }}">₹{{ number_format(abs($p->amount), 0, '.', ',') }}</td>
                             <td style="padding: 6px 4px; text-transform: uppercase; color: #6b7280;">{{ $p->mode ?? '—' }}</td>
                         </tr>
                     @endforeach
@@ -71,10 +71,11 @@
         @if ($notes->isEmpty())
             <div style="{{ $emptyStyle }}">No notes yet — use "+ New Note" above.</div>
         @else
-            <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div class="davya-tl" style="display: flex; flex-direction: column; gap: 8px;">
                 @foreach ($notes as $n)
-                    <div style="border-left: 3px solid #d1d5db; padding: 6px 10px; background: #fafafa; border-radius: 0 4px 4px 0;">
-                        <div style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">
+                    <div class="ev" style="border-left: 3px solid #d1d5db; padding: 6px 10px; background: #fafafa; border-radius: 0 4px 4px 0;">
+                        <span class="pt"></span>
+                        <div class="by" style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">
                             {{ $n->author?->name ?? '—' }} · {{ $n->created_at?->diffForHumans() }}
                         </div>
                         <div style="font-size: 13px; color: #111827; white-space: pre-wrap;">{{ $n->body }}</div>
@@ -101,11 +102,11 @@
                         <th style="padding: 6px 4px; font-weight: 600;">What</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="davya-tl">
                     @foreach ($timeline as $a)
-                        <tr style="border-bottom: 1px solid #f9fafb;">
-                            <td style="padding: 6px 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap;">{{ $a->created_at?->format('d M · H:i') }}</td>
-                            <td style="padding: 6px 4px; color: #6b7280;">{{ $a->causer?->name ?? '—' }}</td>
+                        <tr class="ev" style="border-bottom: 1px solid #f9fafb;">
+                            <td style="padding: 6px 4px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; white-space: nowrap;"><span class="pt"></span>{{ $a->created_at?->format('d M · H:i') }}</td>
+                            <td class="by" style="padding: 6px 4px; color: #6b7280;">{{ $a->causer?->name ?? '—' }}</td>
                             <td style="padding: 6px 4px;">{{ $a->description }}</td>
                         </tr>
                     @endforeach
