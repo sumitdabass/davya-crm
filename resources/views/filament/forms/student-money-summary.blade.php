@@ -2,7 +2,7 @@
 @if ($r)
     @php($mf = \App\Support\MoneyFormat::class)
     @php($fmt = fn ($v) => ((float) $v < 0 ? '-₹' : '₹') . $mf::indianShort(abs((float) $v)))
-    <div class="text-sm text-gray-500 dark:text-gray-400" style="margin-top:4px; line-height:1.5;" data-testid="student-money-summary">
+    <div class="text-sm text-gray-500 dark:text-gray-400 davya-moneybar" style="margin-top:4px; line-height:1.5;" data-testid="student-money-summary">
         <button type="button" wire:click="mountAction('editDeal')"
                 class="hover:underline cursor-pointer" style="display:inline; color:inherit;"
                 title="Edit deal amount">{{ $fmt($r->deal_amount) }} deal</button>
