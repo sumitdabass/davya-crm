@@ -333,7 +333,31 @@
 
     @if (config('davyas.visual_v2'))
         {{-- ===== MOBILE (<768px): stage switcher + tap-to-move. Same $board data. ===== --}}
-        <div class="pl-mobile" x-data="kanbanMobile(@js($this->orderedStageNames()))">
+        <div class="pl-mobile" x-data="{ ...kanbanMobile(@js($this->orderedStageNames())), filtersOpen: false }">
+            <div class="pl-fbar">
+                <button type="button" class="pl-filters-btn" x-on:click="filtersOpen = true">
+                    Filters @if ($activeFilters)<span class="b">{{ $activeFilters }}</span>@endif
+                </button>
+                <button type="button" class="pl-qchip {{ $this->filterStuck ? 'on' : '' }}" wire:click="$toggle('filterStuck')">Stuck</button>
+                <button type="button" class="pl-qchip {{ $this->filterSeatFeePending ? 'on' : '' }}" wire:click="$toggle('filterSeatFeePending')">Seat-fee</button>
+                <button type="button" class="pl-qchip {{ $this->filterReEntry ? 'on' : '' }}" wire:click="$toggle('filterReEntry')">Re-entry</button>
+            </div>
+
+            <div class="pl-sheet-backdrop" x-show="filtersOpen" x-cloak x-on:click="filtersOpen = false" x-transition.opacity></div>
+            <div class="pl-sheet" x-show="filtersOpen" x-cloak x-transition>
+                <div class="pl-sheet-h">Filters</div>
+                <select class="pl-fsel" wire:model.live="filterOwner"><option value="">Owner · Anyone</option>@foreach ($opts['owners'] as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterCourse"><option value="">Course · All</option>@foreach ($opts['courses'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterRound"><option value="">Round · Any</option>@foreach ($opts['rounds'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterLeadSource"><option value="">Source · All</option>@foreach ($opts['sources'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterPlan"><option value="">Plan · All</option>@foreach ($opts['plans'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterCategory"><option value="">Category · All</option>@foreach ($opts['categories'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterResponse"><option value="">Response · All</option>@foreach ($opts['responses'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <label class="pl-fcheck"><input type="checkbox" wire:model.live="filterHasPending"> Has pending amount</label>
+                @if ($activeFilters)<button type="button" class="pl-sheet-row" wire:click="resetFilters">Clear all filters</button>@endif
+                <button type="button" class="pl-sheet-cancel" x-on:click="filtersOpen = false">Done</button>
+            </div>
+
             <div class="pl-switcher" x-ref="switcher">
                 @foreach ($board as $col)
                     <button type="button"
