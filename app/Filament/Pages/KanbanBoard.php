@@ -149,6 +149,17 @@ class KanbanBoard extends Page
     }
 
     /**
+     * Pipeline stage names in display order — drives the mobile stage-pill switcher
+     * and the Guided move sheet's next/back resolution (next = index+1, back = index-1).
+     *
+     * @return string[]
+     */
+    public function orderedStageNames(): array
+    {
+        return app(\App\Services\Pipeline\PipelineConfig::class)->stageNames();
+    }
+
+    /**
      * @return array<int, array{stage:string,count:int,deal:float,received:float,pending:float,students:\Illuminate\Support\Collection}>
      */
     public function getBoard(): array
