@@ -1,0 +1,32 @@
+/* Pipeline (kanban) mobile-first skin — every rule scoped under body.davya-pipeline-skin.
+   Inert on every other page (class added only on /admin/kanban). */
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+body.davya-pipeline-skin {
+  --paper:#f4efe4; --paper-2:#efe8d8; --card:#fbf8f0; --field:#fffdf8;
+  --ink:#16231c; --ink-soft:#3c4a40; --muted:#8c8475; --faint:#b7af9d;
+  --emerald:#0b5d40; --emerald-deep:#063a28; --emerald-bright:#15835c;
+  --vermilion:#e0431c; --vermilion-deep:#b8330f; --amber:#c2861a;
+  --line:rgba(22,35,28,.14); --line-soft:rgba(22,35,28,.07); --r:9px;
+}
+
+/* ---- Desktop board cream restyle (layout unchanged; existing .davya-kanban-col / .davya-dense-card) ---- */
+body.davya-pipeline-skin .fi-kanban-scroll { background:var(--paper); border-radius:14px; padding:12px; }
+body.davya-pipeline-skin .davya-kanban-col {
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+}
+body.davya-pipeline-skin .davya-kanban-col-head h4 { font-family:"Instrument Serif",serif; font-weight:400; font-size:18px; color:var(--ink); }
+body.davya-pipeline-skin .davya-kanban-col-count { font-family:"JetBrains Mono",monospace; }
+body.davya-pipeline-skin .davya-kanban-col-agg { font-family:"JetBrains Mono",monospace; color:var(--muted); }
+body.davya-pipeline-skin .davya-dense-card { background:var(--field); border-color:#eee4d2; }
+body.davya-pipeline-skin .davya-dense-card .amt { font-family:"JetBrains Mono",monospace; color:var(--emerald); }
+
+/* ---- Mobile/desktop visibility toggle ---- */
+body.davya-pipeline-skin .pl-mobile { display:none; }
+@media (max-width: 767px) {
+  body.davya-pipeline-skin .fi-kanban-scroll { display:none; }   /* hide desktop drag board */
+  body.davya-pipeline-skin .davya-subtoolbar { display:none; }    /* hide wide toolbar */
+  body.davya-pipeline-skin .pl-mobile { display:block; }          /* show mobile blocks */
+}
+
+/* ---- Mobile component styles are added in Tasks 5–7 below this line ---- */
