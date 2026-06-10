@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Form in Admin Chrome — Davya CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* current davya v3 chrome tokens (from tokens.css) */
+  --surface:#FFFEFB; --border:#E6E2D6; --border-muted:#F1EDE2; --bg:#F7F6F1;
+  --brand-600:#059669; --brand-700:#047857; --accent-600:#C8553D;
+  --text:#1A1814; --text-sub:#6B6760; --text-muted:#9C988F;
+  /* new form-skin tokens (scoped to .davya-student-form-skin) */
+  --paper:#f4efe4; --paper-2:#efe8d8; --card:#fbf8f0; --field:#fffdf8;
+  --ink:#16231c; --ink-soft:#3c4a40; --muted:#8c8475; --faint:#b7af9d;
+  --emerald:#0b5d40; --emerald-deep:#063a28; --emerald-bright:#15835c;
+  --vermilion:#e0431c; --vermilion-deep:#b8330f; --amber:#c2861a;
+  --line:rgba(22,35,28,.14); --line-soft:rgba(22,35,28,.07); --r:9px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased}
+body{font-family:"Bricolage Grotesque",system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:13px}
+
+/* ───────────── CURRENT ADMIN CHROME (unchanged look) ───────────── */
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;
+  display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:30}
+.topbar .brand{color:var(--brand-600);font-weight:800;font-size:14px;letter-spacing:.3px;text-decoration:none}
+.topbar nav{display:flex;gap:4px}
+.davya-tab{padding:6px 11px;border-radius:6px;color:var(--text-sub);text-decoration:none;font-size:12px;font-weight:500}
+.davya-tab:hover{background:var(--border-muted)}
+.davya-tab.is-active{background:var(--brand-600);color:#fff}
+.search{flex:1;max-width:280px;display:flex;align-items:center;gap:8px;background:var(--bg);
+  border:1px solid var(--border);border-radius:9999px;padding:7px 13px;color:var(--text-muted);font-size:12px}
+.spacer{flex:1}
+.newbtn{background:var(--brand-600);color:#fff;border-radius:6px;padding:7px 11px;font-size:11px;font-weight:600;text-decoration:none}
+.gear,.ai{color:var(--text-sub);display:grid;place-items:center;width:30px;height:30px}
+.ai{color:var(--accent-600)}
+.owner{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text);border:1px solid var(--border);
+  border-radius:9999px;padding:4px 10px 4px 4px;background:var(--surface)}
+.owner .av{width:24px;height:24px;border-radius:50%;background:#C8553D;color:#fff;display:grid;place-items:center;
+  font-size:10px;font-weight:700}
+
+/* breadcrumb (current look) */
+.crumbs{padding:14px 22px 0;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);
+  max-width:1080px;margin:0 auto}
+.crumbs a{color:var(--brand-600);text-decoration:none} .crumbs .sep{color:var(--border)}
+.pagehead{max-width:1080px;margin:2px auto 0;padding:4px 22px 14px;display:flex;align-items:center;justify-content:space-between}
+.pagehead h1{font-size:20px;font-weight:700;color:var(--text)}
+.pagehead .actions{display:flex;gap:8px}
+.pagehead .actions a{font-size:12px;color:var(--text-sub);border:1px solid var(--border);border-radius:6px;padding:7px 12px;text-decoration:none;background:var(--surface)}
+
+.content{max-width:1080px;margin:0 auto;padding:0 22px 60px}
+.note{max-width:1080px;margin:0 auto 14px;padding:0 22px}
+.note .b{background:#FBEFE8;border:1px solid #F5D6C5;color:#A03E2A;border-radius:8px;padding:10px 14px;
+  font-size:12px;display:flex;gap:9px;align-items:center}
+
+/* ───────────── NEW FORM SKIN (scoped) ───────────── */
+.davya-student-form-skin{font-family:"Bricolage Grotesque",sans-serif;color:var(--ink);
+  background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;position:relative;
+  box-shadow:0 30px 70px -40px rgba(22,35,28,.4)}
+.davya-student-form-skin::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;opacity:.45;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");mix-blend-mode:multiply}
+.davya-student-form-skin>*{position:relative;z-index:2}
+
+/* form masthead inside the skin */
+.fmast{display:flex;justify-content:space-between;align-items:baseline;padding:20px 26px 16px;border-bottom:1px solid var(--line)}
+.fmast .nm{font-family:"Instrument Serif",serif;font-size:32px;line-height:1}
+.fmast .nm em{font-style:italic;color:var(--emerald)}
+.fmast .fileno{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--faint);letter-spacing:.1em}
+
+/* stepper */
+.stepwrap{background:var(--card);border-bottom:1px solid var(--line)}
+.stepwrap .cap{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);padding:12px 26px 0}
+.stepper{display:flex;padding:12px 26px 10px;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.step{flex:1 0 auto;min-width:92px;position:relative;cursor:pointer;padding-right:8px}
+.step .dot{width:13px;height:13px;border-radius:50%;border:2px solid var(--faint);background:var(--paper);position:relative;z-index:2;transition:.25s}
+.step .bar{position:absolute;top:5.5px;left:13px;right:0;height:2px;background:var(--line)}
+.step:last-child .bar{display:none}
+.step.done .dot{background:var(--emerald);border-color:var(--emerald)} .step.done .bar{background:var(--emerald)}
+.step.cur .dot{background:var(--vermilion);border-color:var(--vermilion);box-shadow:0 0 0 4px rgba(224,67,28,.16)}
+.step.won .dot{border-color:var(--emerald-bright)} .step.lost .dot{border-color:var(--vermilion-deep)}
+.step .lbl{margin-top:10px;font-size:10.5px;color:var(--muted);line-height:1.2;max-width:88px}
+.step.done .lbl{color:var(--ink-soft)} .step.cur .lbl{color:var(--vermilion);font-weight:600}
+.step .when{font-family:"JetBrains Mono",monospace;font-size:9px;color:var(--faint);margin-top:2px}
+
+.moneybar{display:flex;flex-wrap:wrap;gap:5px 12px;align-items:center;padding:11px 26px;background:var(--emerald-deep);color:#eef3ee;font-family:"JetBrains Mono",monospace;font-size:12px}
+.moneybar b{font-weight:500}.moneybar .pos{color:#9fe7c8}.moneybar .neg{color:#f5b59f}.moneybar .sep{color:rgba(238,243,238,.3)}
+.moneybar .pf{margin-left:auto;font-family:"Instrument Serif",serif;font-size:20px;color:#fff}
+
+.tabs{display:flex;gap:7px;padding:14px 26px;border-bottom:1px solid var(--line-soft);background:var(--paper)}
+.tab{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+  padding:8px 14px;border-radius:30px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;transition:.2s}
+.tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab .c{margin-left:5px;color:var(--faint)} .tab.on .c{color:var(--paper-2)}
+
+.fbody{padding:24px 26px}
+.panel{display:none}.panel.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.grp-h{display:flex;align-items:baseline;gap:11px;margin:2px 0 18px}
+.grp-h h2{font-family:"Instrument Serif",serif;font-size:24px;font-weight:400}
+.grp-h .ix{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--vermilion)}
+.grp-h .rule{flex:1;height:1px;background:var(--line);align-self:center}
+.subgrp{font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:24px 0 14px;display:flex;align-items:center;gap:10px}
+.subgrp::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.fld{margin-bottom:2px}.fld.full{grid-column:1/-1}
+.fld label{display:block;font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;font-weight:500}
+.fld label .req{color:var(--vermilion);margin-left:2px}
+.fld .help{font-size:11px;color:var(--muted);margin-top:6px}
+.fld .lock{display:inline-flex;align-items:center;gap:4px;font-family:"JetBrains Mono",monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--amber);border:1px solid rgba(194,134,26,.4);border-radius:4px;padding:2px 6px;margin-left:7px}
+.inp,.sel,textarea{width:100%;font-family:inherit;font-size:14px;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;transition:.2s;-webkit-appearance:none;appearance:none}
+.inp:focus,.sel:focus,textarea:focus{outline:none;border-color:var(--emerald);box-shadow:0 0 0 3px rgba(11,93,64,.12);background:#fff}
+.inp.mono{font-family:"JetBrains Mono",monospace}
+.inp[disabled]{background:var(--paper-2);color:var(--muted)}
+textarea{resize:vertical;min-height:60px}
+.sel-wrap{position:relative}
+.sel-wrap::after{content:"";position:absolute;right:14px;top:50%;width:7px;height:7px;border-right:1.5px solid var(--muted);border-bottom:1.5px solid var(--muted);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.with-prefix{position:relative}.with-prefix .pre{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;color:var(--muted);font-size:14px}.with-prefix .inp{padding-left:30px}
+.seg{display:flex;flex-wrap:wrap;gap:7px}
+.seg .opt{font-size:13px;padding:8px 13px;border:1px solid var(--line);border-radius:30px;background:var(--field);color:var(--ink-soft);cursor:pointer;transition:.18s;white-space:nowrap}
+.seg .opt.on{background:var(--emerald);color:#fff;border-color:var(--emerald)}
+.seg .opt.on.v{background:var(--vermilion);border-color:var(--vermilion)}
+
+.qa{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 6px}
+.qa button{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.04em;text-transform:uppercase;padding:10px 14px;border-radius:var(--r);border:1px dashed var(--line);background:transparent;color:var(--ink-soft);cursor:pointer;transition:.2s}
+.qa button:hover{border-style:solid;border-color:var(--emerald);color:var(--emerald)}
+.qa button.v:hover{border-color:var(--vermilion);color:var(--vermilion)}
+.closecard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-top:4px}
+.closecard .desc{font-size:12px;color:var(--muted);margin:-2px 0 14px}
+.tl{position:relative;padding-left:4px;margin-top:8px}
+.tl .ev{position:relative;padding:0 0 18px 26px;border-left:1px solid var(--line)}
+.tl .ev:last-child{border-left-color:transparent}
+.tl .ev .pt{position:absolute;left:-6px;top:3px;width:11px;height:11px;border-radius:50%;background:var(--paper);border:2px solid var(--faint)}
+.tl .ev.pay .pt{background:var(--emerald);border-color:var(--emerald)} .tl .ev.meet .pt{border-color:var(--vermilion)}
+.tl .ev .row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.tl .ev .ti{font-size:14px;font-weight:600} .tl .ev .am{font-family:"JetBrains Mono",monospace;font-size:14px;color:var(--emerald);font-weight:500}
+.tl .ev .dt{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--faint)}
+.tl .ev .ds{font-size:12.5px;color:var(--muted);margin-top:3px}
+.tl .ev .by{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.09em;margin-top:5px}
+.savebar{display:flex;gap:10px;align-items:center;padding:16px 26px;border-top:1px solid var(--line);background:var(--card)}
+.savebar .hintx{font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+.savebar .sp{flex:1}
+.bsave{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding:12px 20px;border-radius:var(--r);border:none;cursor:pointer;background:var(--emerald);color:#fff}
+.bghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);font-family:"JetBrains Mono",monospace;font-size:12px;text-transform:uppercase;letter-spacing:.06em;padding:12px 16px;border-radius:var(--r);cursor:pointer}
+
+/* relation-manager panel BELOW the form — current Filament look (unchanged) */
+.rmpanel{margin-top:22px;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.rmtabs{display:flex;gap:4px;padding:10px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.rmtab{font-size:12px;color:var(--text-sub);padding:6px 11px;border-radius:6px;cursor:pointer}
+.rmtab.on{background:var(--brand-600);color:#fff}
+.rmbody{padding:14px}
+.rmrow{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid var(--border-muted);font-size:13px}
+.rmrow:last-child{border:none}.rmrow .m{color:var(--text-muted);font-size:11px}
+.rmrow .a{font-family:"JetBrains Mono",monospace;color:var(--brand-700);font-weight:500}
+</style>
+</head>
+<body>
+
+<!-- ===== CURRENT CHROME (stays as-is) ===== -->
+<div class="topbar">
+  <a class="brand" href="#">Davyas</a>
+  <nav>
+    <a class="davya-tab is-active" href="#">Students</a>
+    <a class="davya-tab" href="#">Pipeline</a>
+    <a class="davya-tab" href="#">Today</a>
+    <a class="davya-tab" href="#">Reports</a>
+    <a class="davya-tab" href="#">Finance</a>
+    <a class="davya-tab" href="#">Rank</a>
+    <a class="davya-tab" href="#">Books</a>
+  </nav>
+  <div class="search">🔍 Search students…</div>
+  <div class="spacer"></div>
+  <a class="newbtn" href="#">+ New Student</a>
+  <span class="gear">⚙</span>
+  <span class="ai">✦</span>
+  <span class="owner"><span class="av">NR</span> Nikhil R. ▾</span>
+</div>
+
+<div class="crumbs"><a href="#">Students</a><span class="sep">›</span><span>Edit</span></div>
+<div class="pagehead">
+  <h1>Edit student</h1>
+  <div class="actions"><a href="#">Delete</a><a href="#">View</a></div>
+</div>
+
+<div class="note"><div class="b">↓ Everything above this line (topbar, tabs, breadcrumb, page title) keeps the current davya look. Only the form card below is re-skinned.</div></div>
+
+<div class="content">
+
+  <!-- ===== NEW FORM SKIN (scoped) ===== -->
+  <div class="davya-student-form-skin">
+    <div class="fmast">
+      <div class="nm">Tanush <em>Singla</em></div>
+      <div class="fileno">#DV-2026-0418</div>
+    </div>
+
+    <div class="stepwrap">
+      <div class="cap">Pipeline · IPU Admission — tap a stage to move the lead</div>
+      <div class="stepper">
+        <div class="step done"><div class="dot"></div><div class="bar"></div><div class="lbl">Lead Captured</div><div class="when">02 JUN</div></div>
+        <div class="step done"><div class="dot"></div><div class="bar"></div><div class="lbl">Meeting Scheduled</div><div class="when">05 JUN</div></div>
+        <div class="step cur"><div class="dot"></div><div class="bar"></div><div class="lbl">Meeting Done</div><div class="when">09 JUN</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Advance Received</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">MQ</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Round 1</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Round 2</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Round 3</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Sliding</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Offline</div></div>
+        <div class="step"><div class="dot"></div><div class="bar"></div><div class="lbl">Seat Allotted</div></div>
+        <div class="step won"><div class="dot"></div><div class="bar"></div><div class="lbl">Complete Payment</div></div>
+        <div class="step lost"><div class="dot"></div><div class="bar"></div><div class="lbl">Closed</div></div>
+      </div>
+      <div class="moneybar">
+        <b>₹4.00L</b> deal <span class="sep">·</span>
+        <b class="pos">₹1.50L</b> received <span class="sep">·</span>
+        <b class="neg">₹2.50L</b> pending <span class="sep">·</span>
+        <b>₹2.20L</b> payouts <span class="sep">·</span>
+        <b class="pos">₹1.00L</b> paid out <span class="sep">·</span>
+        <b class="neg">₹1.20L</b> to pay
+        <span class="pf">₹1.80L profit</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-p="id">Identity</button>
+      <button class="tab" data-p="ac">Academic</button>
+      <button class="tab" data-p="dc">Deal &amp; Counselling</button>
+      <button class="tab" data-p="acc">Account</button>
+    </div>
+
+    <div class="fbody">
+      <!-- IDENTITY (shown) -->
+      <div class="panel on" data-p="id">
+        <div class="grp-h"><span class="ix">01</span><h2>Identity</h2><span class="rule"></span></div>
+        <div class="fgrid">
+          <div class="fld"><label>Owner <span class="req">*</span></label><div class="sel-wrap"><select class="sel" disabled><option>Nikhil R.</option></select></div><div class="help">Auto-assigned. Only admin can change owner.</div></div>
+          <div class="fld"><label>Lead Owner <span class="req">*</span><span class="lock">🔒 locked</span></label><div class="sel-wrap"><select class="sel"><option>Nikhil R.</option></select></div><div class="help">Head: editable once. After save, contact admin.</div></div>
+          <div class="fld full"><label>Lead Source <span class="req">*</span></label><div class="seg"><span class="opt">FB</span><span class="opt">Insta</span><span class="opt">Cold Calling</span><span class="opt on">Google</span><span class="opt">Personal Ref</span><span class="opt">Other</span></div></div>
+          <div class="fld full"><label>Student Response</label><div class="seg"><span class="opt">Ready</span><span class="opt">Not Interested</span><span class="opt on v">Needs Time</span></div></div>
+          <div class="fld"><label>Phone <span class="req">*</span></label><div class="with-prefix"><span class="pre">+91</span><input class="inp mono" value="85069 47147"></div></div>
+          <div class="fld"><label>Name <span class="req">*</span></label><input class="inp" value="Tanush Singla"></div>
+          <div class="fld"><label>Father's name</label><input class="inp" value="Sanjeev Singla"></div>
+          <div class="fld"><label>Alternate phone</label><div class="with-prefix"><span class="pre">+91</span><input class="inp mono" value="85069 47100"></div></div>
+          <div class="fld"><label>Email 1</label><input class="inp" value="tanush.s@gmail.com"></div>
+          <div class="fld"><label>Email 2</label><input class="inp" placeholder="—"></div>
+          <div class="fld full"><label>Address</label><textarea>Rohini, Delhi 110085</textarea></div>
+        </div>
+      </div>
+      <!-- ACADEMIC -->
+      <div class="panel" data-p="ac">
+        <div class="grp-h"><span class="ix">02</span><h2>Academic</h2><span class="rule"></span></div>
+        <div class="fgrid">
+          <div class="fld"><label>Course</label><input class="inp" value="B.Tech"></div>
+          <div class="fld"><label>University</label><input class="inp" value="GGSIPU"></div>
+          <div class="fld"><label>Exam appeared</label><input class="inp" value="JEE"></div>
+          <div class="fld"><label>Rank</label><input class="inp mono" value="262000"></div>
+          <div class="fld"><label>12th Marks %</label><input class="inp mono" value="89.6"></div>
+          <div class="fld"><label>Category</label><div class="seg"><span class="opt on">Delhi</span><span class="opt">Outside</span></div></div>
+          <div class="fld"><label>Sub Category</label><input class="inp" placeholder="—"></div>
+          <div class="fld"><label>State</label><input class="inp" value="Delhi"></div>
+        </div>
+        <div class="subgrp">College Preferences</div>
+        <div class="fgrid">
+          <div class="fld full"><label>1st choice <span class="req">*</span></label><input class="inp" value="MAIT — CSE"></div>
+          <div class="fld"><label>2nd choice (optional)</label><input class="inp" value="MSIT — IT"></div>
+          <div class="fld"><label>3rd choice (optional)</label><input class="inp" value="BVP — ECE"></div>
+        </div>
+      </div>
+
+      <!-- DEAL & COUNSELLING -->
+      <div class="panel" data-p="dc">
+        <div class="grp-h"><span class="ix">03</span><h2>Deal &amp; Counselling</h2><span class="rule"></span></div>
+        <div class="fgrid">
+          <div class="fld"><label>Deal amount</label><div class="with-prefix"><span class="pre">₹</span><input class="inp mono" value="4,00,000"></div></div>
+          <div class="fld"><label>Plan</label><div class="seg"><span class="opt">Sitting</span><span class="opt on">Counselling Online</span><span class="opt">Counselling Offline</span></div></div>
+          <div class="fld full"><label>IPU Registration Status</label><div class="seg"><span class="opt">Registration pending</span><span class="opt on">Registration done</span><span class="opt">Fee payment done</span></div></div>
+          <div class="fld full"><label>Counselling Registration Status</label><div class="seg"><span class="opt on v">Registration pending</span><span class="opt">Registration done</span><span class="opt">Fee payment done</span></div></div>
+          <div class="fld"><label>IPU User ID</label><input class="inp" placeholder="—"></div>
+          <div class="fld"><label>IPU Login Code</label><input class="inp" placeholder="—"><div class="help">Shared with the student during counselling.</div></div>
+          <div class="fld"><label>Current round</label><input class="inp" placeholder="—"></div>
+          <div class="fld full"><label>Seat Allotment Fee Status</label><div class="seg"><span class="opt on">Seat not allotted till now</span><span class="opt">Seat allotted, fee not paid</span><span class="opt">Seat allotted, fee paid</span><span class="opt">Fee paid — processing next round</span></div></div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="panel" data-p="acc">
+        <div class="grp-h"><span class="ix">04</span><h2>Account</h2><span class="rule"></span></div>
+        <div class="qa"><button>＋ New Note</button></div>
+        <div class="subgrp">Closure</div>
+        <div class="closecard">
+          <div class="desc">Fill these only when wrapping up the student.</div>
+          <div class="fgrid">
+            <div class="fld"><label>Close reason</label><div class="sel-wrap"><select class="sel"><option>—</option><option>Not Interested</option><option>Backed Out — Forfeit</option><option>Backed Out — Partial Refund</option><option>Completed</option><option>Other</option></select></div></div>
+            <div class="fld"><label>Refund amount</label><div class="with-prefix"><span class="pre">₹</span><input class="inp mono" placeholder="0"></div></div>
+            <div class="fld full"><label>Re-entry reason</label><textarea placeholder="If this lead came back…"></textarea></div>
+          </div>
+        </div>
+        <div class="subgrp">Recent activity</div>
+        <div class="tl">
+          <div class="ev pay"><span class="pt"></span><div class="row"><span class="ti">Advance received</span><span class="am">+₹1,00,000</span></div><div class="ds">UPI · ref DVY8841</div><div class="by">Nikhil R. · 09 Jun</div></div>
+          <div class="ev meet"><span class="pt"></span><div class="row"><span class="ti">Counselling meeting — Done</span><span class="dt">09 JUN</span></div><div class="ds">MAIT vs MSIT discussed</div><div class="by">Office · Online</div></div>
+          <div class="ev pay"><span class="pt"></span><div class="row"><span class="ti">Token received</span><span class="am">+₹50,000</span></div><div class="by">Nikhil R. · 05 Jun</div></div>
+        </div>
+      </div>
+
+      <!-- quick notes — visible on every tab (the description field) -->
+      <div style="margin-top:22px;background:var(--paper-2);border:1px dashed var(--line);border-radius:var(--r);padding:14px">
+        <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Quick notes · visible on every tab, saved with the student</label>
+        <textarea style="background:var(--field)">Balance ₹2.5L pending before counselling reg.</textarea>
+      </div>
+    </div>
+
+    <div class="savebar">
+      <span class="hintx">Quick notes saved · 16:05</span><span class="sp"></span>
+      <button class="bghost">Save</button><button class="bsave">Save &amp; close</button>
+    </div>
+  </div>
+
+  <!-- relation managers BELOW the form — current Filament look, unchanged -->
+  <div class="rmpanel">
+    <div class="rmtabs">
+      <span class="rmtab on">Payments</span><span class="rmtab">Payouts</span><span class="rmtab">Notes</span>
+      <span class="rmtab">Activity</span><span class="rmtab">Meetings</span><span class="rmtab">Round History</span>
+    </div>
+    <div class="rmbody">
+      <div class="rmrow"><div>Advance · UPI<div class="m">09 Jun · ref DVY8841</div></div><div class="a">+₹1,00,000</div></div>
+      <div class="rmrow"><div>Token · Cash<div class="m">05 Jun</div></div><div class="a">+₹50,000</div></div>
+    </div>
+  </div>
+  <p style="color:var(--text-muted);font-size:11px;margin-top:10px">↑ Relation managers stay exactly as Filament renders them today (current look) — just listed under the re-skinned form.</p>
+
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');document.querySelector('.panel[data-p="'+t.dataset.p+'"]').classList.add('on');
+  });
+  document.querySelectorAll('.seg').forEach(g=>g.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{
+    g.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));o.classList.add('on');}));
+  document.querySelectorAll('.step').forEach((s,i,all)=>s.onclick=()=>{
+    all.forEach((x,j)=>{x.classList.remove('cur');x.classList.toggle('done',j<=i)});s.classList.remove('done');s.classList.add('cur');});
+  document.querySelectorAll('.rmtab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.rmtab').forEach(x=>x.classList.remove('on'));t.classList.add('on')});
+</script>
+</body>
+</html>

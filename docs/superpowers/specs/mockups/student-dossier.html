@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Dossier — Davya CRM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#f4efe4;
+  --paper-2:#efe8d8;
+  --card:#fbf8f0;
+  --ink:#16231c;
+  --ink-soft:#3c4a40;
+  --muted:#8c8475;
+  --faint:#b7af9d;
+  --emerald:#0b5d40;
+  --emerald-deep:#063a28;
+  --emerald-bright:#15835c;
+  --vermilion:#e0431c;
+  --vermilion-deep:#b8330f;
+  --amber:#c2861a;
+  --line:rgba(22,35,28,.14);
+  --line-soft:rgba(22,35,28,.07);
+  --seal:#0b5d40;
+  --r:3px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+body{
+  font-family:"Bricolage Grotesque",sans-serif;
+  background:var(--paper);
+  color:var(--ink);
+  line-height:1.5;
+  position:relative;
+  overflow-x:hidden;
+}
+/* grain + atmosphere */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:1;
+  background:
+    radial-gradient(120% 80% at 12% -10%, rgba(21,131,92,.10), transparent 55%),
+    radial-gradient(90% 70% at 105% 10%, rgba(224,67,28,.07), transparent 50%);
+  mix-blend-mode:multiply;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:.55;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+.wrap{position:relative;z-index:3;max-width:1180px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
+
+/* ── top strip ── */
+.topbar{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:22px 0 18px;border-bottom:1px solid var(--line);
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--muted);
+}
+.topbar .brand{color:var(--emerald);font-weight:600}
+.topbar .brand b{color:var(--vermilion)}
+.topbar .meta{display:flex;gap:26px;align-items:center}
+.topbar .meta span{color:var(--ink-soft)}
+
+/* ── masthead ── */
+.masthead{
+  display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end;
+  padding:46px 0 30px;border-bottom:2px solid var(--ink);
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--emerald);margin-bottom:14px;
+}
+.eyebrow .pulse{width:7px;height:7px;border-radius:50%;background:var(--emerald-bright);
+  box-shadow:0 0 0 0 rgba(21,131,92,.5);animation:pulse 2.4s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(21,131,92,.45)}70%{box-shadow:0 0 0 9px rgba(21,131,92,0)}100%{box-shadow:0 0 0 0 rgba(21,131,92,0)}}
+.name{
+  font-family:"Instrument Serif",serif;font-weight:400;
+  font-size:clamp(52px,8vw,92px);line-height:.92;letter-spacing:-.01em;
+  color:var(--ink);
+}
+.name em{font-style:italic;color:var(--emerald)}
+.subline{
+  margin-top:18px;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;
+  color:var(--ink-soft);font-size:14.5px;
+}
+.subline .sep{width:4px;height:4px;border-radius:50%;background:var(--faint)}
+.subline b{color:var(--ink);font-weight:600}
+.tag{
+  font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 9px;border:1px solid var(--line);border-radius:var(--r);
+  color:var(--ink-soft);background:rgba(255,255,255,.4);
+}
+
+/* seal */
+.seal{
+  width:118px;height:118px;border-radius:50%;flex:none;position:relative;
+  display:grid;place-items:center;border:1.5px solid var(--emerald);
+  background:radial-gradient(circle at 50% 35%,rgba(21,131,92,.10),transparent 70%);
+}
+.seal svg{position:absolute;inset:0;animation:spin 38s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.seal .pct{font-family:"Instrument Serif",serif;font-size:34px;color:var(--emerald);line-height:1}
+.seal .pct small{display:block;font-family:"JetBrains Mono",monospace;font-size:8.5px;
+  letter-spacing:.16em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+
+/* ── pipeline tracker ── */
+.pipeline{
+  display:flex;gap:0;padding:24px 0 8px;border-bottom:1px solid var(--line);
+  overflow-x:auto;scrollbar-width:none;
+}
+.pipeline::-webkit-scrollbar{display:none}
+.stage{flex:1;min-width:96px;position:relative;padding-right:6px}
+.stage .dot{
+  width:13px;height:13px;border-radius:50%;border:2px solid var(--faint);
+  background:var(--paper);position:relative;z-index:2;
+}
+.stage .bar{position:absolute;top:5.5px;left:13px;right:0;height:2px;background:var(--line)}
+.stage:last-child .bar{display:none}
+.stage.done .dot{background:var(--emerald);border-color:var(--emerald)}
+.stage.done .bar{background:var(--emerald)}
+.stage.current .dot{background:var(--vermilion);border-color:var(--vermilion);
+  box-shadow:0 0 0 4px rgba(224,67,28,.16)}
+.stage .lbl{
+  margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.25;max-width:90px;
+}
+.stage.done .lbl{color:var(--ink-soft)}
+.stage.current .lbl{color:var(--vermilion);font-weight:600}
+.stage .when{font-family:"JetBrains Mono",monospace;font-size:9.5px;color:var(--faint);
+  letter-spacing:.04em;margin-top:3px}
+
+/* ── body grid ── */
+.grid{display:grid;grid-template-columns:1.55fr .95fr;gap:40px;padding:42px 0 70px;align-items:start}
+section{margin-bottom:40px}
+.sec-head{
+  display:flex;align-items:baseline;gap:14px;margin-bottom:20px;
+}
+.sec-head h2{
+  font-family:"Instrument Serif",serif;font-weight:400;font-size:27px;color:var(--ink);
+  letter-spacing:-.01em;
+}
+.sec-head .idx{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--vermilion);
+  letter-spacing:.1em}
+.sec-head .rule{flex:1;height:1px;background:var(--line);align-self:center}
+
+/* ── money ledger (hero) ── */
+.ledger{
+  background:var(--emerald-deep);color:#eef3ee;border-radius:6px;overflow:hidden;
+  position:relative;box-shadow:0 24px 60px -32px rgba(6,58,40,.7);
+}
+.ledger::before{content:"";position:absolute;inset:0;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.ledger .lh{position:relative;padding:22px 26px 18px;border-bottom:1px solid rgba(255,255,255,.1);
+  display:flex;justify-content:space-between;align-items:center}
+.ledger .lh span{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:rgba(238,243,238,.6)}
+.ledger .lh .plan{color:#9fe7c8;border:1px solid rgba(159,231,200,.4);padding:3px 9px;border-radius:3px}
+.lrow{position:relative;display:flex;justify-content:space-between;align-items:center;
+  padding:17px 26px;border-bottom:1px solid rgba(255,255,255,.07)}
+.lrow .k{font-size:14px;color:rgba(238,243,238,.78);display:flex;align-items:center;gap:11px}
+.lrow .k .mk{font-family:"JetBrains Mono",monospace;font-size:10px;color:rgba(238,243,238,.4)}
+.lrow .v{font-family:"JetBrains Mono",monospace;font-weight:500;font-size:20px;letter-spacing:-.01em}
+.lrow .v small{color:rgba(238,243,238,.5);font-size:12px}
+.lrow.out .v{color:#f5b59f}
+.lrow.in .v{color:#9fe7c8}
+.lrow .sub{font-size:11px;color:rgba(238,243,238,.45);font-family:"JetBrains Mono",monospace;
+  margin-top:3px;letter-spacing:.02em}
+.profit{
+  position:relative;padding:26px;display:flex;justify-content:space-between;align-items:flex-end;
+  background:linear-gradient(120deg,rgba(21,131,92,.32),rgba(224,67,28,.10));
+}
+.profit .k{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:rgba(238,243,238,.7)}
+.profit .k em{display:block;font-family:"Instrument Serif",serif;font-style:italic;
+  font-size:17px;letter-spacing:0;text-transform:none;color:#9fe7c8;margin-top:6px}
+.profit .v{font-family:"Instrument Serif",serif;font-size:54px;line-height:.9;color:#fff}
+.profit .v sup{font-size:24px;vertical-align:18px;color:#9fe7c8;margin-right:2px}
+
+/* pending callout */
+.pending{
+  margin-top:14px;display:flex;align-items:center;gap:13px;padding:13px 18px;
+  background:rgba(224,67,28,.08);border:1px solid rgba(224,67,28,.3);border-radius:5px;
+}
+.pending .ic{width:8px;height:8px;border-radius:50%;background:var(--vermilion);flex:none;
+  box-shadow:0 0 0 4px rgba(224,67,28,.13)}
+.pending .t{font-size:13px;color:var(--ink-soft)}
+.pending .t b{color:var(--vermilion-deep);font-weight:600}
+.pending .amt{margin-left:auto;font-family:"JetBrains Mono",monospace;font-weight:600;
+  font-size:17px;color:var(--vermilion-deep)}
+
+/* ── likelihood bars ── */
+.like{display:flex;flex-direction:column;gap:18px}
+.lk{display:grid;grid-template-columns:30px 1fr auto;gap:16px;align-items:center}
+.lk .ch{font-family:"Instrument Serif",serif;font-size:26px;color:var(--faint);font-style:italic}
+.lk .body .nm{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.lk .body .nm b{font-size:15px;color:var(--ink);font-weight:600}
+.lk .body .nm span{font-size:12px;color:var(--muted)}
+.lk .track{height:7px;background:var(--paper-2);border-radius:20px;overflow:hidden;
+  box-shadow:inset 0 1px 2px rgba(22,35,28,.08)}
+.lk .fill{height:100%;border-radius:20px;width:0;transition:width 1.4s cubic-bezier(.22,1,.36,1)}
+.lk .num{font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:500;min-width:54px;text-align:right}
+.g-hi{background:linear-gradient(90deg,#15835c,#1ca072)}.t-hi{color:var(--emerald-bright)}
+.g-md{background:linear-gradient(90deg,#c2861a,#dba33a)}.t-md{color:var(--amber)}
+.g-lo{background:linear-gradient(90deg,#e0431c,#ef6a45)}.t-lo{color:var(--vermilion)}
+
+/* ── timeline ── */
+.tl{position:relative;padding-left:4px}
+.tl .ev{position:relative;padding:0 0 26px 30px;border-left:1px solid var(--line)}
+.tl .ev:last-child{border-left-color:transparent;padding-bottom:0}
+.tl .ev .pt{position:absolute;left:-6px;top:3px;width:11px;height:11px;border-radius:50%;
+  background:var(--paper);border:2px solid var(--faint)}
+.tl .ev.pay .pt{border-color:var(--emerald);background:var(--emerald)}
+.tl .ev.meet .pt{border-color:var(--vermilion)}
+.tl .ev.note .pt{border-color:var(--faint)}
+.tl .ev .row{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+.tl .ev .ti{font-size:14.5px;color:var(--ink);font-weight:600}
+.tl .ev .am{font-family:"JetBrains Mono",monospace;font-size:15px;color:var(--emerald);font-weight:500}
+.tl .ev .dt{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint);letter-spacing:.03em}
+.tl .ev .ds{font-size:13px;color:var(--muted);margin-top:4px;max-width:46ch}
+.tl .ev .by{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--faint);
+  text-transform:uppercase;letter-spacing:.1em;margin-top:6px}
+
+/* ── side dossier ── */
+.aside{position:sticky;top:24px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:6px;
+  padding:22px 24px;margin-bottom:22px;box-shadow:0 8px 30px -22px rgba(22,35,28,.4)}
+.panel h3{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--vermilion);margin-bottom:18px;
+  display:flex;align-items:center;gap:10px}
+.panel h3::after{content:"";flex:1;height:1px;background:var(--line-soft)}
+.dl{display:flex;flex-direction:column;gap:13px}
+.dl .di{display:flex;justify-content:space-between;align-items:baseline;gap:14px}
+.dl .di .dt{font-size:12.5px;color:var(--muted)}
+.dl .di .dd{font-size:13.5px;color:var(--ink);font-weight:500;text-align:right}
+.dl .di .dd.mono{font-family:"JetBrains Mono",monospace;letter-spacing:-.01em}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chip{font-size:11.5px;padding:5px 11px;border-radius:20px;background:var(--paper-2);
+  color:var(--ink-soft);border:1px solid var(--line-soft)}
+.status{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--ink-soft);
+  padding:9px 0;border-bottom:1px solid var(--line-soft)}
+.status:last-child{border-bottom:none}
+.status .d{width:7px;height:7px;border-radius:50%;flex:none}
+.d.ok{background:var(--emerald-bright)}.d.wait{background:var(--amber)}.d.no{background:var(--faint)}
+.status b{margin-left:auto;font-weight:600;color:var(--ink);font-size:12px}
+.contact a{display:flex;align-items:center;justify-content:space-between;gap:12px;
+  text-decoration:none;color:var(--ink);padding:10px 0;border-bottom:1px solid var(--line-soft);
+  font-size:13.5px;transition:color .25s}
+.contact a:last-child{border-bottom:none}
+.contact a:hover{color:var(--emerald)}
+.contact a .v{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);transition:color .25s}
+.contact a:hover .v{color:var(--emerald)}
+.contact a .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:"JetBrains Mono",monospace}
+
+/* footer actions */
+.actions{display:flex;gap:12px;flex-wrap:wrap;padding:30px 0 60px;border-top:1px solid var(--line)}
+.btn{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+  padding:13px 22px;border-radius:4px;border:1px solid var(--ink);background:transparent;color:var(--ink);
+  cursor:pointer;transition:all .2s}
+.btn:hover{background:var(--ink);color:var(--paper)}
+.btn.pri{background:var(--emerald);border-color:var(--emerald);color:#fff}
+.btn.pri:hover{background:var(--emerald-deep);border-color:var(--emerald-deep)}
+.btn.acc{border-color:var(--vermilion);color:var(--vermilion-deep)}
+.btn.acc:hover{background:var(--vermilion);color:#fff}
+
+/* reveal */
+.rv{opacity:0;transform:translateY(16px);animation:rise .85s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+@media(max-width:880px){
+  .grid{grid-template-columns:1fr;gap:0}
+  .masthead{grid-template-columns:1fr}
+  .seal{display:none}
+  .aside{position:static}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar rv" style="animation-delay:.05s">
+    <div class="brand">DAVYA<b>·</b>CRM — STUDENT DOSSIER</div>
+    <div class="meta">
+      <span>FILE&nbsp;#DV-2026-0418</span>
+      <span>OWNER&nbsp;NIKHIL&nbsp;R.</span>
+      <span>UPD&nbsp;09&nbsp;JUN</span>
+    </div>
+  </div>
+
+  <!-- masthead -->
+  <header class="masthead">
+    <div class="rv" style="animation-delay:.12s">
+      <span class="eyebrow"><span class="pulse"></span>Active Lead · Stage 04 of 09</span>
+      <h1 class="name">Tanush <em>Singla</em></h1>
+      <div class="subline">
+        <span>S/o <b>Sanjeev Singla</b></span><span class="sep"></span>
+        <span>Delhi</span><span class="sep"></span>
+        <span class="tag">B.Tech · JEE</span>
+        <span class="tag">Counselling Online</span>
+        <span class="tag">Google</span>
+      </div>
+    </div>
+    <div class="seal rv" style="animation-delay:.3s" title="Top admission likelihood">
+      <svg viewBox="0 0 118 118" aria-hidden="true">
+        <defs><path id="circ" d="M59,59 m-46,0 a46,46 0 1,1 92,0 a46,46 0 1,1 -92,0"/></defs>
+        <text fill="#0b5d40" font-family="JetBrains Mono" font-size="8.5" letter-spacing="3.4">
+          <textPath href="#circ" startOffset="0">ADMISSION&nbsp;PROBABILITY&nbsp;·&nbsp;TOP&nbsp;CHOICE&nbsp;·&nbsp;</textPath>
+        </text>
+      </svg>
+      <div class="pct">72<small>MAIT</small></div>
+    </div>
+  </header>
+
+  <!-- pipeline -->
+  <nav class="pipeline rv" style="animation-delay:.2s">
+    <div class="stage done"><div class="dot"></div><div class="bar"></div><div class="lbl">Lead Captured</div><div class="when">02 JUN</div></div>
+    <div class="stage done"><div class="dot"></div><div class="bar"></div><div class="lbl">Contacted</div><div class="when">03 JUN</div></div>
+    <div class="stage done"><div class="dot"></div><div class="bar"></div><div class="lbl">Meeting Set</div><div class="when">05 JUN</div></div>
+    <div class="stage current"><div class="dot"></div><div class="bar"></div><div class="lbl">Meeting Done</div><div class="when">09 JUN</div></div>
+    <div class="stage"><div class="dot"></div><div class="bar"></div><div class="lbl">Counselling</div></div>
+    <div class="stage"><div class="dot"></div><div class="bar"></div><div class="lbl">Seat Allotted</div></div>
+    <div class="stage"><div class="dot"></div><div class="bar"></div><div class="lbl">Registration</div></div>
+    <div class="stage"><div class="dot"></div><div class="bar"></div><div class="lbl">Fee Paid</div></div>
+    <div class="stage"><div class="dot"></div><div class="bar"></div><div class="lbl">Closed Won</div></div>
+  </nav>
+
+  <div class="grid">
+    <!-- MAIN -->
+    <main>
+      <!-- money ledger -->
+      <section class="rv" style="animation-delay:.34s">
+        <div class="sec-head"><span class="idx">01</span><h2>The Ledger</h2><span class="rule"></span></div>
+        <div class="ledger">
+          <div class="lh"><span>Deal &amp; Margin</span><span class="plan">Counselling&nbsp;Online</span></div>
+          <div class="lrow"><div class="k"><span class="mk">A</span>Deal value agreed</div><div class="v">₹4,00,000</div></div>
+          <div class="lrow in"><div class="k"><span class="mk">B</span>Received from student</div>
+            <div style="text-align:right"><div class="v">₹1,50,000</div><div class="sub">2 payments · last 09 Jun</div></div></div>
+          <div class="lrow out"><div class="k"><span class="mk">C</span>Payouts to college</div>
+            <div style="text-align:right"><div class="v">₹2,20,000</div><div class="sub">paid ₹1,00,000 · to&nbsp;pay ₹1,20,000</div></div></div>
+          <div class="profit">
+            <div class="k">Expected Profit<em>Deal − all committed payouts</em></div>
+            <div class="v"><sup>₹</sup>1,80,000</div>
+          </div>
+        </div>
+        <div class="pending">
+          <span class="ic"></span>
+          <span class="t"><b>₹2,50,000</b> still to collect from the student</span>
+          <span class="amt">62.5%</span>
+        </div>
+      </section>
+
+      <!-- likelihood -->
+      <section class="rv" style="animation-delay:.42s">
+        <div class="sec-head"><span class="idx">02</span><h2>Admission Likelihood</h2><span class="rule"></span></div>
+        <div class="like">
+          <div class="lk">
+            <div class="ch">I</div>
+            <div class="body"><div class="nm"><b>MAIT</b><span>CSE · cushion +1,240 ranks</span></div>
+              <div class="track"><div class="fill g-hi" data-w="72"></div></div></div>
+            <div class="num t-hi">72%</div>
+          </div>
+          <div class="lk">
+            <div class="ch">II</div>
+            <div class="body"><div class="nm"><b>MSIT</b><span>IT · borderline cutoff</span></div>
+              <div class="track"><div class="fill g-md" data-w="48"></div></div></div>
+            <div class="num t-md">48%</div>
+          </div>
+          <div class="lk">
+            <div class="ch">III</div>
+            <div class="body"><div class="nm"><b>BVP</b><span>ECE · stretch</span></div>
+              <div class="track"><div class="fill g-lo" data-w="31"></div></div></div>
+            <div class="num t-lo">31%</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- timeline -->
+      <section class="rv" style="animation-delay:.5s">
+        <div class="sec-head"><span class="idx">03</span><h2>Activity</h2><span class="rule"></span></div>
+        <div class="tl">
+          <div class="ev pay"><span class="pt"></span>
+            <div class="row"><span class="ti">Advance payment received</span><span class="am">+₹1,00,000</span></div>
+            <div class="ds">UPI · ref DVY8841. Receipt shared on WhatsApp.</div>
+            <div class="by">Nikhil R. · 09 Jun 16:02</div></div>
+          <div class="ev meet"><span class="pt"></span>
+            <div class="row"><span class="ti">Counselling meeting — Done</span><span class="dt">09 JUN</span></div>
+            <div class="ds">Walked through MAIT vs MSIT trade-off. Father keen on CSE; flagged seat-fee timeline. Needs time to arrange balance.</div>
+            <div class="by">Office · Counselling Online</div></div>
+          <div class="ev pay"><span class="pt"></span>
+            <div class="row"><span class="ti">Token payment received</span><span class="am">+₹50,000</span></div>
+            <div class="ds">Cash. Booked against deal of ₹4,00,000.</div>
+            <div class="by">Nikhil R. · 05 Jun 11:20</div></div>
+          <div class="ev note"><span class="pt"></span>
+            <div class="row"><span class="ti">Lead qualified</span><span class="dt">03 JUN</span></div>
+            <div class="ds">JEE rank 2,62,000 · 89.6% in XII. Google search lead, responded same day. Marked "Needs Time".</div>
+            <div class="by">Nikhil R. · 03 Jun 09:48</div></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ASIDE -->
+    <aside class="aside">
+      <div class="panel rv" style="animation-delay:.4s">
+        <h3>Academic Profile</h3>
+        <div class="dl">
+          <div class="di"><span class="dt">JEE rank</span><span class="dd mono">2,62,000</span></div>
+          <div class="di"><span class="dt">Class XII</span><span class="dd mono">89.6%</span></div>
+          <div class="di"><span class="dt">Course</span><span class="dd">B.Tech</span></div>
+          <div class="di"><span class="dt">Category</span><span class="dd">Delhi · General</span></div>
+          <div class="di"><span class="dt">University</span><span class="dd">GGSIPU</span></div>
+        </div>
+        <div class="chips">
+          <span class="chip">MAIT — CSE</span><span class="chip">MSIT — IT</span><span class="chip">BVP — ECE</span>
+        </div>
+      </div>
+
+      <div class="panel rv" style="animation-delay:.48s">
+        <h3>Statuses</h3>
+        <div class="status"><span class="d ok"></span> Registration <b>Done</b></div>
+        <div class="status"><span class="d wait"></span> Counselling reg. <b>Pending</b></div>
+        <div class="status"><span class="d no"></span> Seat allotment fee <b>Not allotted</b></div>
+      </div>
+
+      <div class="panel rv" style="animation-delay:.56s">
+        <h3>Attribution</h3>
+        <div class="dl">
+          <div class="di"><span class="dt">Lead source</span><span class="dd">Google</span></div>
+          <div class="di"><span class="dt">Lead owner</span><span class="dd">Nikhil R.</span></div>
+          <div class="di"><span class="dt">Response</span><span class="dd">Needs Time</span></div>
+          <div class="di"><span class="dt">In stage</span><span class="dd mono">0 days</span></div>
+        </div>
+      </div>
+
+      <div class="panel contact rv" style="animation-delay:.64s">
+        <h3>Contact</h3>
+        <a href="tel:8506947147"><span class="k">Phone</span><span class="v">85069&nbsp;47147</span></a>
+        <a href="tel:8506947100"><span class="k">Alt</span><span class="v">85069&nbsp;47100</span></a>
+        <a href="#"><span class="k">Email</span><span class="v">tanush.s@gmail.com</span></a>
+        <a href="#"><span class="k">Locality</span><span class="v">Rohini, Delhi</span></a>
+      </div>
+    </aside>
+  </div>
+
+  <div class="actions rv" style="animation-delay:.6s">
+    <button class="btn pri">＋ Record Payment</button>
+    <button class="btn acc">＋ Record Payout</button>
+    <button class="btn">Log Meeting</button>
+    <button class="btn">Add Note</button>
+    <button class="btn">Advance Stage →</button>
+  </div>
+
+</div>
+
+<script>
+  // animate likelihood fills once revealed
+  window.addEventListener('load',()=>{
+    setTimeout(()=>document.querySelectorAll('.fill').forEach(f=>{f.style.width=f.dataset.w+'%'}),700);
+  });
+</script>
+</body>
+</html>

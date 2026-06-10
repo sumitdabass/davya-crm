@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Forms\Components\StageStepper;
 use App\Filament\Resources\Shared\PaymentFormSchema;
 use App\Filament\Resources\StudentResource\Pages;
 use App\Filament\Resources\StudentResource\RelationManagers\ActivityRelationManager;
@@ -31,6 +32,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Tabs;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Forms\Components\View;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -112,7 +114,7 @@ class StudentResource extends Resource
         $isAdmin = $authUser?->hasRole('admin') ?? false;
         $isHead = $authUser?->hasRole('head') ?? false;
 
-        $stageField = Select::make('stage')->options(fn () => self::stageOptions())->required()->default('Lead Captured')
+        $stageField = StageStepper::make('stage')->required()->default('Lead Captured')
             ->live()
             ->afterStateUpdated(function ($state, $record, $set) {
                 if (! $record) {
@@ -193,12 +195,12 @@ class StudentResource extends Resource
                                     return $record !== null && $record->referrer_id_locked_at !== null;
                                 })
                                 ->dehydrated(),
-                            Select::make('lead_source')
+                            ToggleButtons::make('lead_source')
                                 ->label('Lead Source')
                                 ->options(fn () => self::optionsFor('lead_source', ['FB', 'Insta', 'Cold Calling', 'Google', 'Personal Ref', 'Other']))
-                                ->required()
-                                ->searchable(),
-                            Select::make('student_response')->options(fn () => self::optionsFor('student_response', ['Ready', 'Not Interested', 'Needs Time'])),
+                                ->inline()
+                                ->required(),
+                            ToggleButtons::make('student_response')->inline()->options(fn () => self::optionsFor('student_response', ['Ready', 'Not Interested', 'Needs Time'])),
                             TextInput::make('phone')->required()->unique(ignoreRecord: true)->tel(),
                             TextInput::make('name')->required(),
                             TextInput::make('father_name'),
@@ -219,7 +221,7 @@ class StudentResource extends Resource
                             TextInput::make('exam_appeared'),
                             TextInput::make('rank')->maxLength(40),
                             TextInput::make('twelfth_marks')->label('12th Marks %'),
-                            Select::make('category')->options(fn () => self::optionsFor('category', ['Delhi', 'Outside'])),
+                            ToggleButtons::make('category')->inline()->options(fn () => self::optionsFor('category', ['Delhi', 'Outside'])),
                             TextInput::make('sub_category')->label('Sub Category')->maxLength(60),
                             TextInput::make('state')->maxLength(40),
                             TextInput::make('preference_r1')->label('1st choice')->required()->maxLength(120),
@@ -236,9 +238,10 @@ class StudentResource extends Resource
                         ->icon('heroicon-o-banknotes')
                         ->schema(array_merge([
                             TextInput::make('deal_amount')->numeric()->prefix('₹'),
-                            Select::make('plan')->options(fn () => self::optionsFor('plan', ['Sitting', 'Counselling Online', 'Counselling Offline'])),
-                            Select::make('registration_status')
+                            ToggleButtons::make('plan')->inline()->options(fn () => self::optionsFor('plan', ['Sitting', 'Counselling Online', 'Counselling Offline'])),
+                            ToggleButtons::make('registration_status')
                                 ->label('IPU Registration Status')
+                                ->inline()
                                 ->options([
                                     'pending' => 'Registration pending',
                                     'registration_done' => 'Registration done',
@@ -246,8 +249,9 @@ class StudentResource extends Resource
                                 ])
                                 ->default('pending')
                                 ->required(),
-                            Select::make('counselling_registration_status')
+                            ToggleButtons::make('counselling_registration_status')
                                 ->label('Counselling Registration Status')
+                                ->inline()
                                 ->options([
                                     'pending' => 'Registration pending',
                                     'registration_done' => 'Registration done',
@@ -261,8 +265,9 @@ class StudentResource extends Resource
                                 ->maxLength(60)
                                 ->helperText('Shared with the student during counselling.'),
                             TextInput::make('current_round'),
-                            Select::make('seat_allotment_fee_status')
+                            ToggleButtons::make('seat_allotment_fee_status')
                                 ->label('Seat Allotment Fee Status')
+                                ->inline()
                                 ->options([
                                     'not_allotted' => 'Seat not allotted till now',
                                     'allotted_fee_pending' => 'Seat allotted, fee not paid',
