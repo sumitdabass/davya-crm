@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\KanbanBoard;
 use App\Filament\Resources\StudentResource\Pages\CreateStudent;
 use App\Filament\Resources\StudentResource\Pages\EditStudent;
 use Filament\Http\Middleware\Authenticate;
@@ -66,6 +67,14 @@ class AdminPanelProvider extends PanelProvider
                     <script>document.body.classList.add('davya-student-form-skin');</script>
                     HTML,
                 scopes: [CreateStudent::class, EditStudent::class],
+            )
+            ->renderHook(
+                PanelsRenderHook::PAGE_START,
+                fn (): string => <<<'HTML'
+                    <link rel="stylesheet" href="/css/pipeline-skin.css?v=1" id="davya-pipeline-skin-css">
+                    <script>document.body.classList.add('davya-pipeline-skin');</script>
+                    HTML,
+                scopes: [KanbanBoard::class],
             )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
                 <link rel="manifest" href="/manifest.json">
