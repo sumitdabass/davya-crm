@@ -51,3 +51,17 @@ body.davya-pipeline-skin .pl-card .sub { font:500 11px/1 "JetBrains Mono",monosp
 body.davya-pipeline-skin .pl-card .amt { color:var(--emerald); }
 body.davya-pipeline-skin .pl-move { flex:0 0 auto; font:600 10px/1 "JetBrains Mono",monospace; color:var(--vermilion); background:transparent; border:none; border-left:1px solid var(--line); padding:0 12px; cursor:pointer; }
 body.davya-pipeline-skin .pl-empty { font:italic 400 13px/1 "Instrument Serif",serif; color:var(--muted); padding:18px 2px; }
+body.davya-pipeline-skin .pl-sheet-backdrop { position:fixed; inset:0; background:rgba(22,35,28,.4); z-index:60; }
+body.davya-pipeline-skin .pl-sheet {
+  position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--card);
+  border-top:1px solid var(--line); border-radius:16px 16px 0 0; padding:16px 16px calc(16px + env(safe-area-inset-bottom));
+  box-shadow:0 -12px 30px -18px rgba(22,35,28,.5); max-height:80vh; overflow-y:auto;
+}
+body.davya-pipeline-skin .pl-sheet-h { font:italic 400 18px/1 "Instrument Serif",serif; color:var(--ink); margin-bottom:14px; }
+body.davya-pipeline-skin .pl-sheet-fwd { display:block; width:100%; text-align:center; padding:14px; border:none; border-radius:10px; background:var(--emerald); color:#fff; font:600 15px/1 "Bricolage Grotesque",sans-serif; margin-bottom:8px; cursor:pointer; }
+body.davya-pipeline-skin .pl-sheet-row { display:flex; width:100%; justify-content:space-between; align-items:center; padding:12px 14px; border:1px solid var(--line); border-radius:9px; background:var(--field); color:var(--ink); font:500 14px/1 "Bricolage Grotesque",sans-serif; margin-bottom:6px; cursor:pointer; text-align:left; }
+body.davya-pipeline-skin .pl-sheet-row.cur { opacity:.5; }
+body.davya-pipeline-skin .pl-sheet-row .c { font:500 10px/1 "JetBrains Mono",monospace; color:var(--muted); }
+body.davya-pipeline-skin .pl-sheet-any { margin:6px 0; }
+body.davya-pipeline-skin .pl-sheet-any summary { font:600 11px/1 "JetBrains Mono",monospace; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); padding:10px 2px; cursor:pointer; }
+body.davya-pipeline-skin .pl-sheet-cancel { display:block; width:100%; padding:12px; border:none; background:transparent; color:var(--muted); font:600 12px/1 "JetBrains Mono",monospace; text-transform:uppercase; letter-spacing:.08em; margin-top:6px; cursor:pointer; }
