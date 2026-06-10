@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\StudentResource\Pages\CreateStudent;
+use App\Filament\Resources\StudentResource\Pages\EditStudent;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -56,6 +58,14 @@ class AdminPanelProvider extends PanelProvider
                 fn (): string => str_starts_with(request()->path(), 'admin/rank')
                     ? view('filament.partials.rank-subnav')->render()
                     : '',
+            )
+            ->renderHook(
+                PanelsRenderHook::PAGE_START,
+                fn (): string => <<<'HTML'
+                    <link rel="stylesheet" href="/css/student-form-skin.css?v=1" id="davya-student-form-skin-css">
+                    <script>document.body.classList.add('davya-student-form-skin');</script>
+                    HTML,
+                scopes: [CreateStudent::class, EditStudent::class],
             )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
                 <link rel="manifest" href="/manifest.json">
