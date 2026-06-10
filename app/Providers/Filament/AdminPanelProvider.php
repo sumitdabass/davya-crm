@@ -62,7 +62,7 @@ class AdminPanelProvider extends PanelProvider
             ->renderHook(
                 PanelsRenderHook::PAGE_START,
                 fn (): string => <<<'HTML'
-                    <link rel="stylesheet" href="/css/student-form-skin.css?v=1" id="davya-student-form-skin-css">
+                    <link rel="stylesheet" href="/css/student-form-skin.css?v=2" id="davya-student-form-skin-css">
                     <script>document.body.classList.add('davya-student-form-skin');</script>
                     HTML,
                 scopes: [CreateStudent::class, EditStudent::class],

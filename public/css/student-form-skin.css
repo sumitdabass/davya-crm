@@ -52,14 +52,23 @@ body.davya-student-form-skin .davya-moneybar {
 body.davya-student-form-skin .davya-moneybar button { color:inherit; background:none; border:none; cursor:pointer; font:inherit; }
 body.davya-student-form-skin .davya-moneybar button:hover { text-decoration:underline; }
 
-/* ---- Segmented chips (ToggleButtons) ---- */
-body.davya-student-form-skin .fi-fo-toggle-buttons .fi-fo-toggle-buttons-options { display:flex; flex-wrap:wrap; gap:7px; }
-body.davya-student-form-skin .fi-fo-toggle-buttons label {
+/* ---- Segmented chips (ToggleButtons) ----
+   Filament 3 ToggleButtons DOM: <input.peer ...> + <label.fi-btn ...> as ADJACENT
+   siblings (the input is visually hidden; the label is the pill). The selected state
+   MUST be targeted via `input:checked + label` — NOT `label:has(input:checked)`,
+   because the input is a sibling, not a descendant. The checked rule below is also
+   given higher specificity than the base rule so it isn't clobbered (and so it beats
+   Filament's own `[input:checked+&]:bg-custom-600` utility). */
+body.davya-student-form-skin .fi-fo-toggle-buttons label.fi-btn {
   font-size:13px; padding:8px 13px; border:1px solid var(--line); border-radius:30px;
   background:var(--field); color:var(--ink-soft); cursor:pointer; transition:.18s; white-space:nowrap;
+  box-shadow:none;
 }
-body.davya-student-form-skin .fi-fo-toggle-buttons label:has(input:checked) {
+body.davya-student-form-skin .fi-fo-toggle-buttons input:checked + label.fi-btn {
   background:var(--emerald); color:#fff; border-color:var(--emerald);
+}
+body.davya-student-form-skin .fi-fo-toggle-buttons label.fi-btn:hover {
+  border-color:var(--emerald-bright);
 }
 
 /* ---- Field typography / inputs ---- */

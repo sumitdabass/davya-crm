@@ -35,4 +35,21 @@ class FormSkinScopeTest extends TestCase
             ->assertOk()
             ->assertDontSee('student-form-skin.css', false);
     }
+
+    /**
+     * Contract guard for the chip selected-state CSS. The skin styles the selected
+     * ToggleButton via `input:checked + label.fi-btn`, which only works because
+     * Filament renders each option as a hidden `.peer` <input> immediately followed
+     * by a `.fi-btn` <label>. If a Filament upgrade changes that DOM, this fails and
+     * tells us the skin's chip selector needs updating (regression that shipped
+     * 2026-06-10: `label:has(input:checked)` matched nothing — the input is a sibling).
+     */
+    public function test_toggle_buttons_render_peer_input_plus_label_for_skin_selector(): void
+    {
+        $this->actingAs($this->admin())
+            ->get('/admin/students/create')
+            ->assertOk()
+            ->assertSee('fi-fo-toggle-buttons', false)
+            ->assertSee('peer pointer-events-none absolute opacity-0', false);
+    }
 }
