@@ -5,6 +5,7 @@ namespace App\Dashboard;
 use App\Dashboard\Cards\ListCards\ReEntryCandidatesCard;
 use App\Dashboard\Cards\ListCards\SeatFeePendingCard;
 use App\Dashboard\Cards\ListCards\StuckLeadsCard;
+use App\Dashboard\Cards\ListCards\PaymentsToChaseCard;
 use App\Dashboard\Cards\ListCards\TodayMeetingsCard;
 use App\Dashboard\Cards\ListCards\TodayPaymentsCard;
 use App\Dashboard\Cards\Stat\AdmissionsClosedTodayCard;
@@ -48,6 +49,7 @@ class CardRegistry
         $static = [
             new TodayMeetingsCard,
             new TodayPaymentsCard,
+            new PaymentsToChaseCard,
             new StuckLeadsCard,
             new ReEntryCandidatesCard,
             new SeatFeePendingCard,

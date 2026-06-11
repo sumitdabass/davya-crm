@@ -11,7 +11,7 @@ class SeatFeePendingCard implements Card
     public function id(): string { return 'seat_fee_pending'; }
     public function label(): string { return 'Seat Fee Pending'; }
     public function surface(): string { return 'any'; }
-    public function isDefaultOn(string $surface): bool { return $surface === 'dashboard'; }
+    public function isDefaultOn(string $surface): bool { return in_array($surface, ['dashboard', 'today'], true); }
     public function type(): string { return 'list'; }
 
     public function render(User $viewer): string

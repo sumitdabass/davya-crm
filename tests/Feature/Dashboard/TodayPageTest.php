@@ -29,8 +29,10 @@ class TodayPageTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/today');
 
         $response->assertOk();
-        $response->assertSee('Today Meetings');
-        $response->assertSee('Today Payments');
+        // List cards now render as checklist sections (SectionRegistry labels).
+        $response->assertSee('Meetings today');
+        $response->assertSee('Received today');
+        // Stat cards render in the stats strip with their card label beneath the value.
         $response->assertSee('Meetings Held Today');
         $response->assertSee('Leads Captured Today');
         $response->assertSee('Admissions Closed Today');
@@ -48,11 +50,13 @@ class TodayPageTest extends TestCase
         $response->assertOk();
 
         $body = $response->getContent();
+        // Stat strip (with the 'Leads Captured Today' label) renders above the
+        // 'Meetings today' checklist section.
         $leadsPos = strpos($body, 'Leads Captured Today');
-        $meetingsPos = strpos($body, 'Today Meetings');
+        $meetingsPos = strpos($body, 'Meetings today');
         $this->assertNotFalse($leadsPos);
         $this->assertNotFalse($meetingsPos);
-        $this->assertLessThan($meetingsPos, $leadsPos, 'Leads Captured should render before Today Meetings');
+        $this->assertLessThan($meetingsPos, $leadsPos, 'Leads Captured should render before Meetings today');
     }
 
     public function test_empty_prefs_array_renders_empty_state_with_reset_link(): void
@@ -63,7 +67,7 @@ class TodayPageTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin/today');
         $response->assertOk();
-        $response->assertDontSee('Today Meetings');
+        $response->assertDontSee('Meetings today');
         $response->assertSee('hidden all cards');
         $response->assertSee('Reset to defaults');
     }
@@ -76,7 +80,7 @@ class TodayPageTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/admin/today');
         $response->assertOk();
-        // Unknown id dropped, defaults auto-append.
-        $response->assertSee('Today Meetings');
+        // Unknown id dropped, defaults auto-append (rendered as a section).
+        $response->assertSee('Meetings today');
     }
 }

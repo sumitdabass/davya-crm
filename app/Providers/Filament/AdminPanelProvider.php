@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\KanbanBoard;
+use App\Filament\Pages\TodayPage;
 use App\Filament\Resources\StudentResource\Pages\CreateStudent;
 use App\Filament\Resources\StudentResource\Pages\EditStudent;
 use Filament\Http\Middleware\Authenticate;
@@ -75,6 +76,14 @@ class AdminPanelProvider extends PanelProvider
                     <script>document.body.classList.add('davya-pipeline-skin');</script>
                     HTML,
                 scopes: [KanbanBoard::class],
+            )
+            ->renderHook(
+                PanelsRenderHook::PAGE_START,
+                fn (): string => <<<'HTML'
+                    <link rel="stylesheet" href="/css/today-skin.css?v=1" id="davya-today-skin-css">
+                    <script>document.body.classList.add('davya-today-skin');</script>
+                    HTML,
+                scopes: [TodayPage::class],
             )
             ->renderHook(PanelsRenderHook::HEAD_END, fn (): string => Blade::render(<<<'BLADE'
                 <link rel="manifest" href="/manifest.json">
