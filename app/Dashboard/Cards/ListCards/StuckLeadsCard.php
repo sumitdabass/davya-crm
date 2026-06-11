@@ -11,7 +11,7 @@ class StuckLeadsCard implements Card
     public function id(): string { return 'stuck_leads'; }
     public function label(): string { return 'Stuck Leads'; }
     public function surface(): string { return 'any'; }
-    public function isDefaultOn(string $surface): bool { return $surface === 'dashboard'; }
+    public function isDefaultOn(string $surface): bool { return in_array($surface, ['dashboard', 'today'], true); }
     public function type(): string { return 'list'; }
 
     public function render(User $viewer): string

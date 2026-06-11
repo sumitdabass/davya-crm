@@ -11,7 +11,7 @@ class ReEntryCandidatesCard implements Card
     public function id(): string { return 're_entry_candidates'; }
     public function label(): string { return 'Re-Entry Candidates'; }
     public function surface(): string { return 'any'; }
-    public function isDefaultOn(string $surface): bool { return $surface === 'dashboard'; }
+    public function isDefaultOn(string $surface): bool { return in_array($surface, ['dashboard', 'today'], true); }
     public function type(): string { return 'list'; }
 
     public function render(User $viewer): string
