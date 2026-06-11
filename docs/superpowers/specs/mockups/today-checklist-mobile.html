@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Today — Action Checklist (mobile-first mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FAF6EF;
+    --paper:#FFFFFF;
+    --ink:#1F2A24;
+    --muted:#6B7A72;
+    --line:#E7DFD2;
+    --emerald:#0F6B4F;
+    --emerald-soft:#E6F0EB;
+    --vermilion:#D6452B;
+    --vermilion-soft:#FBE9E4;
+    --amber:#C98A18;
+    --green-dot:#10B981;
+    --amber-dot:#F59E0B;
+    --red-dot:#EF4444;
+    --shadow:0 1px 2px rgba(31,42,36,.06), 0 6px 18px rgba(31,42,36,.06);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0;background:#EDE6DA;color:var(--ink);
+    font-family:'Bricolage Grotesque',system-ui,sans-serif;
+    font-size:15px;line-height:1.45;
+    padding:24px 0;
+  }
+  /* phone frame for the mockup only — not part of the real build */
+  .frame{
+    width:390px;max-width:calc(100vw - 24px);margin:0 auto;
+    background:var(--cream);border-radius:28px;overflow:hidden;
+    box-shadow:0 18px 50px rgba(0,0,0,.22);min-height:760px;
+    border:1px solid #d8cfbf;
+  }
+  .scroll{padding:18px 16px 40px;}
+
+  /* ── header ───────────────────────────────── */
+  .hd{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:14px;}
+  .hd .t{
+    font-family:'Instrument Serif',serif;font-style:italic;
+    font-size:40px;line-height:.95;color:var(--ink);
+  }
+  .hd .d{font-size:12.5px;color:var(--muted);margin-top:4px;letter-spacing:.2px;}
+  .hd .cz{
+    font-size:12px;color:var(--emerald);text-decoration:none;font-weight:600;
+    border:1px solid var(--line);background:var(--paper);
+    padding:6px 11px;border-radius:999px;white-space:nowrap;
+  }
+
+  /* ── stats strip ──────────────────────────── */
+  .stats{display:flex;gap:8px;margin-bottom:20px;}
+  .stat{
+    flex:1;background:var(--paper);border:1px solid var(--line);
+    border-radius:14px;padding:10px 10px 9px;box-shadow:var(--shadow);text-align:center;
+  }
+  .stat .n{font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:600;color:var(--ink);}
+  .stat .l{font-size:10.5px;color:var(--muted);margin-top:1px;text-transform:uppercase;letter-spacing:.5px;}
+  .stat.accent .n{color:var(--emerald);}
+
+  /* ── section card ─────────────────────────── */
+  .sec{
+    background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden;
+  }
+  .sec.empty{opacity:.72;}
+  .sec-h{
+    display:flex;align-items:center;gap:10px;padding:14px 15px;cursor:pointer;
+    user-select:none;
+  }
+  .sec-h .ic{
+    width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:var(--emerald-soft);color:var(--emerald);flex:none;
+  }
+  .sec-h .ic svg{width:17px;height:17px;}
+  .sec-h.urgent .ic{background:var(--vermilion-soft);color:var(--vermilion);}
+  .sec-h .ttl{
+    font-family:'Instrument Serif',serif;font-style:italic;font-size:20px;
+    flex:1;color:var(--ink);line-height:1;
+  }
+  .sec-h .cnt{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;
+    background:var(--ink);color:#fff;border-radius:999px;padding:2px 9px;min-width:24px;text-align:center;
+  }
+  .sec-h.urgent .cnt{background:var(--vermilion);}
+  .sec-h .chev{color:var(--muted);transition:transform .18s;flex:none;}
+  .sec.collapsed .chev{transform:rotate(-90deg);}
+  .sec.collapsed .sec-b{display:none;}
+  .sec-b{border-top:1px solid var(--line);}
+
+  /* ── row ──────────────────────────────────── */
+  .row{
+    display:flex;align-items:center;gap:11px;padding:12px 15px;
+    border-bottom:1px solid #F1ECE2;text-decoration:none;color:inherit;
+  }
+  .row:last-child{border-bottom:none;}
+  .row:active{background:#FBF8F2;}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none;}
+  .time{
+    font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;
+    color:var(--emerald);width:52px;flex:none;
+  }
+  .row .body{flex:1;min-width:0;}
+  .row .nm{font-weight:600;font-size:14.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .row .sub{font-size:12px;color:var(--muted);margin-top:1px;}
+  .amt{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--ink);}
+  .amt .w{display:block;font-size:10px;color:var(--muted);font-family:'Bricolage Grotesque';font-weight:400;}
+  .row .rt{text-align:right;flex:none;}
+  .pill{
+    display:inline-block;font-size:10.5px;font-weight:600;border-radius:999px;
+    padding:2px 8px;background:#F0EADF;color:var(--muted);white-space:nowrap;
+  }
+  .pill.warn{background:var(--vermilion-soft);color:var(--vermilion);}
+  .row .arrow{color:#C7BEB0;flex:none;}
+
+  .sub-label{
+    font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--muted);padding:9px 15px 4px;background:#FCFAF5;
+  }
+  .clear{padding:16px 15px;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;}
+  .clear svg{color:var(--green-dot);}
+
+  .note{width:390px;max-width:calc(100vw - 24px);margin:14px auto 0;color:#5b5145;font-size:12.5px;text-align:center;font-family:'Bricolage Grotesque';}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="scroll">
+
+    <!-- header -->
+    <div class="hd">
+      <div>
+        <div class="t">Today</div>
+        <div class="d">Wednesday, 11 June 2026</div>
+      </div>
+      <a href="#" class="cz">⚙ Customize</a>
+    </div>
+
+    <!-- stats strip -->
+    <div class="stats">
+      <div class="stat"><div class="n">12</div><div class="l">Leads</div></div>
+      <div class="stat accent"><div class="n">2</div><div class="l">Closed</div></div>
+      <div class="stat"><div class="n">5</div><div class="l">Meetings</div></div>
+    </div>
+
+    <!-- Meetings today -->
+    <div class="sec">
+      <div class="sec-h" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+        <div class="ttl">Meetings today</div>
+        <div class="cnt">3</div>
+        <div class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="sec-b">
+        <a class="row" href="#">
+          <span class="time">11:00</span>
+          <div class="body"><div class="nm">Shubham</div><div class="sub">B.Tech · Nikhil Saini</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="row" href="#">
+          <span class="time">13:30</span>
+          <div class="body"><div class="nm">Aarunnay Singh Nagal</div><div class="sub">B.Tech CSE · Sonam</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="row" href="#">
+          <span class="time">16:00</span>
+          <div class="body"><div class="nm">Ankita Pandit</div><div class="sub">B.Tech IT · Sumit</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Payments to chase -->
+    <div class="sec">
+      <div class="sec-h urgent" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+        <div class="ttl">Payments to chase</div>
+        <div class="cnt">4</div>
+        <div class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="sec-b">
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--red-dot)"></span>
+          <div class="body"><div class="nm">Raghav Adlakha</div><div class="sub">Advance pending · last note 6d ago</div></div>
+          <div class="rt"><span class="amt">₹25,000<span class="w">Twenty-Five Thousand</span></span></div>
+        </a>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--amber-dot)"></span>
+          <div class="body"><div class="nm">Rupam</div><div class="sub">Partial paid · last note 2d ago</div></div>
+          <div class="rt"><span class="amt">₹40,000<span class="w">Forty Thousand</span></span></div>
+        </a>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--amber-dot)"></span>
+          <div class="body"><div class="nm">Tejas</div><div class="sub">Advance pending · last note 3d ago</div></div>
+          <div class="rt"><span class="amt">₹15,000<span class="w">Fifteen Thousand</span></span></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Stuck leads -->
+    <div class="sec">
+      <div class="sec-h" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div class="ttl">Stuck leads</div>
+        <div class="cnt">5</div>
+        <div class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="sec-b">
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--red-dot)"></span>
+          <div class="body"><div class="nm">Arnav</div><div class="sub">Meeting Scheduled</div></div>
+          <div class="rt"><span class="pill warn">21 days</span></div>
+        </a>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--red-dot)"></span>
+          <div class="body"><div class="nm">Pari Saini</div><div class="sub">Advance Received</div></div>
+          <div class="rt"><span class="pill warn">18 days</span></div>
+        </a>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--amber-dot)"></span>
+          <div class="body"><div class="nm">Aneesh</div><div class="sub">New Lead</div></div>
+          <div class="rt"><span class="pill">12 days</span></div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Admission actions -->
+    <div class="sec">
+      <div class="sec-h urgent" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        <div class="ttl">Admission actions</div>
+        <div class="cnt">3</div>
+        <div class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="sec-b">
+        <div class="sub-label">Seat-fee pending</div>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--red-dot)"></span>
+          <div class="body"><div class="nm">Saanvi Sharma</div><div class="sub">Round 2 · allotment fee due</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--amber-dot)"></span>
+          <div class="body"><div class="nm">Ansh</div><div class="sub">Round 1 · allotment fee due</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+        <div class="sub-label">Re-entry candidates</div>
+        <a class="row" href="#">
+          <span class="dot" style="background:var(--amber-dot)"></span>
+          <div class="body"><div class="nm">Jhanavi Soni</div><div class="sub">Dropped at Counselling · re-eligible</div></div>
+          <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+        </a>
+      </div>
+    </div>
+
+    <!-- empty example (sinks to bottom) -->
+    <div class="sec empty collapsed">
+      <div class="sec-h" onclick="this.parentElement.classList.toggle('collapsed')">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div>
+        <div class="ttl">Follow-ups</div>
+        <div class="cnt">0</div>
+        <div class="chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+      <div class="sec-b">
+        <div class="clear"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> All clear — nothing pending today.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div class="note">Mockup — tap a section header to collapse/expand. Tapping any row opens the existing student slide-over (deal · context · probability · tabs). Sections, order &amp; visibility come from your Customize prefs.</div>
+</body>
+</html>
