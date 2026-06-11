@@ -17,7 +17,7 @@ class OrderedStagesTest extends TestCase
 
         $expected = app(PipelineConfig::class)->stageNames(); // already display_order
 
-        $names = (new KanbanBoard())->orderedStageNames();
+        $names = (new KanbanBoard)->orderedStageNames();
 
         $this->assertSame($expected, $names);
         $this->assertNotEmpty($names);
