@@ -331,8 +331,81 @@
         </div>
     </div>
 
+    @if (config('davyas.visual_v2'))
+        {{-- ===== MOBILE (<768px): stage switcher + tap-to-move. Same $board data. ===== --}}
+        <div class="pl-mobile" x-data="{ ...kanbanMobile(@js($this->orderedStageNames())), filtersOpen: false }">
+            <div class="pl-fbar">
+                <button type="button" class="pl-filters-btn" x-on:click="filtersOpen = true">
+                    Filters @if ($activeFilters)<span class="b">{{ $activeFilters }}</span>@endif
+                </button>
+                <button type="button" class="pl-qchip {{ $this->filterStuck ? 'on' : '' }}" wire:click="$toggle('filterStuck')">Stuck</button>
+                <button type="button" class="pl-qchip {{ $this->filterSeatFeePending ? 'on' : '' }}" wire:click="$toggle('filterSeatFeePending')">Seat-fee</button>
+                <button type="button" class="pl-qchip {{ $this->filterReEntry ? 'on' : '' }}" wire:click="$toggle('filterReEntry')">Re-entry</button>
+            </div>
+
+            <div class="pl-sheet-backdrop" x-show="filtersOpen" x-cloak x-on:click="filtersOpen = false" x-transition.opacity></div>
+            <div class="pl-sheet" x-show="filtersOpen" x-cloak x-transition>
+                <div class="pl-sheet-h">Filters</div>
+                <select class="pl-fsel" wire:model.live="filterOwner"><option value="">Owner · Anyone</option>@foreach ($opts['owners'] as $id => $name)<option value="{{ $id }}">{{ $name }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterCourse"><option value="">Course · All</option>@foreach ($opts['courses'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterRound"><option value="">Round · Any</option>@foreach ($opts['rounds'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterLeadSource"><option value="">Source · All</option>@foreach ($opts['sources'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterPlan"><option value="">Plan · All</option>@foreach ($opts['plans'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterCategory"><option value="">Category · All</option>@foreach ($opts['categories'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <select class="pl-fsel" wire:model.live="filterResponse"><option value="">Response · All</option>@foreach ($opts['responses'] as $value => $label)<option value="{{ $value }}">{{ $label }}</option>@endforeach</select>
+                <label class="pl-fcheck"><input type="checkbox" wire:model.live="filterHasPending"> Has pending amount</label>
+                @if ($activeFilters)<button type="button" class="pl-sheet-row" wire:click="resetFilters">Clear all filters</button>@endif
+                <button type="button" class="pl-sheet-cancel" x-on:click="filtersOpen = false">Done</button>
+            </div>
+
+            <div class="pl-switcher" x-ref="switcher">
+                @foreach ($board as $col)
+                    <button type="button"
+                            class="pl-pill"
+                            data-stage="{{ $col['stage'] }}"
+                            :class="active === @js($col['stage']) ? 'on' : ''"
+                            x-on:click="setActive(@js($col['stage']), $event.target)">
+                        {{ $col['stage'] }}
+                        <span class="c">{{ $col['count'] }}</span>
+                    </button>
+                @endforeach
+            </div>
+
+            @foreach ($board as $col)
+                <div class="pl-stage" data-stage="{{ $col['stage'] }}" x-show="active === @js($col['stage'])" x-cloak>
+                    <div class="pl-agg">
+                        ₹{{ \App\Support\MoneyFormat::indianShort($col['deal']) }} deal ·
+                        ₹{{ \App\Support\MoneyFormat::indianShort($col['received_total']) }} recd ·
+                        ₹{{ \App\Support\MoneyFormat::indianShort($col['pending_total']) }} pend
+                    </div>
+
+                    @forelse ($col['students'] as $s)
+                        @php($age = (int) ($s['days_in_stage'] ?? 0))
+                        @php($ageDotColor = $age <= 3 ? '#10B981' : ($age <= 14 ? '#F59E0B' : '#EF4444'))
+                        <div class="pl-card" data-response="{{ $s['student_response'] ?? 'unknown' }}"
+                             wire:key="m-card-{{ $s['id'] }}">
+                            <div class="pl-card-main"
+                                 wire:click="$dispatch('open-student-peek', { studentId: {{ $s['id'] }} })">
+                                <div class="nm"><span class="dot" style="background: {{ $ageDotColor }};"></span>{{ $s['name'] }}</div>
+                                <div class="sub">{{ $s['course'] ?? '—' }}@if($s['current_round']) · R{{ $s['current_round'] }}@endif
+                                    <span class="amt">₹{{ \App\Support\MoneyFormat::indianShort($s['received'] ?? 0) }}</span></div>
+                            </div>
+                            <button type="button" class="pl-move"
+                                    x-on:click.stop="openMove({{ $s['id'] }}, @js($s['name']), @js($col['stage']))">⤳ Move</button>
+                        </div>
+                    @empty
+                        <div class="pl-empty">No leads in this stage.</div>
+                    @endforelse
+                </div>
+            @endforeach
+
+            @include('filament.pages.partials.kanban-move-sheet')
+        </div>
+    @endif
+
     <script>
         function wireKanban(root, wire) {
+            if (window.matchMedia('(max-width: 767px)').matches) { return; } // mobile uses the move sheet, not drag
             root.querySelectorAll('.fi-kanban-col-items').forEach((el) => {
                 if (el._sortable) return;
                 el._sortable = new Sortable(el, {
@@ -391,6 +464,36 @@
                     }
                 });
             }
+        }
+
+        function kanbanMobile(stages) {
+            return {
+                stages: stages,              // ordered stage names
+                active: stages[0] ?? null,
+                move: { open: false, id: null, name: '', from: '', next: null, prev: null },
+                setActive(stage, btn) {
+                    this.active = stage;
+                    if (btn && btn.scrollIntoView) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+                },
+                openMove(id, name, from) {
+                    const i = this.stages.indexOf(from);
+                    this.move = {
+                        open: true, id, name, from,
+                        next: (i >= 0 && i < this.stages.length - 1) ? this.stages[i + 1] : null,
+                        prev: (i > 0) ? this.stages[i - 1] : null,
+                    };
+                },
+                async go(target) {
+                    const res = await this.$wire.call('moveStudentToStage', this.move.id, target);
+                    this.move.open = false;
+                    if (res && !res.ok && res.missing_fields && res.missing_fields.length > 0) {
+                        window.dispatchEvent(new CustomEvent('open-fix-modal', { detail: {
+                            studentId: res.student_id, studentName: res.student_name,
+                            targetStage: res.target_stage, missingFields: res.missing_fields,
+                        }}));
+                    }
+                },
+            };
         }
     </script>
 
