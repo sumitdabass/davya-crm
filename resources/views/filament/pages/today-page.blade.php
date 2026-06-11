@@ -35,6 +35,7 @@
                         <button type="button" class="dt-stat"
                                 wire:click="$dispatch('open-slide-over', { cardId: '{{ $card->id() }}' })">
                             {!! $card->render($viewer) !!}
+                            <div class="l">{{ $card->label() }}</div>
                         </button>
                     @endforeach
                 </div>

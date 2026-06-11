@@ -34,7 +34,11 @@ class UserPrefsResolverTest extends TestCase
 
         $this->assertContains('today_meetings', $ids);
         $this->assertContains('today_payments', $ids);
-        $this->assertNotContains('stuck_leads', $ids);
+        // The Today action checklist made these default-on for the today surface.
+        $this->assertContains('payments_to_chase', $ids);
+        $this->assertContains('stuck_leads', $ids);
+        $this->assertContains('seat_fee_pending', $ids);
+        $this->assertContains('re_entry_candidates', $ids);
     }
 
     public function test_saved_prefs_respect_order(): void

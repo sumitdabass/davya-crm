@@ -51,7 +51,7 @@ class ChecklistSectionsTest extends TestCase
             'status' => 'scheduled',
         ]);
 
-        $rows = (new ChecklistSections())->forCard('today_meetings', $viewer);
+        $rows = (new ChecklistSections)->forCard('today_meetings', $viewer);
 
         $this->assertCount(1, $rows);
         $this->assertSame($student->id, $rows[0]['student_id']);
@@ -65,7 +65,7 @@ class ChecklistSectionsTest extends TestCase
         $s = Student::factory()->create(['name' => 'Raghav', 'deal_amount' => 50000, 'stage' => 'Advance Received']);
         Payment::factory()->create(['student_id' => $s->id, 'amount' => 25000]);
 
-        $rows = (new ChecklistSections())->forCard('payments_to_chase', $viewer);
+        $rows = (new ChecklistSections)->forCard('payments_to_chase', $viewer);
 
         $this->assertCount(1, $rows);
         $this->assertSame($s->id, $rows[0]['student_id']);
@@ -87,7 +87,7 @@ class ChecklistSectionsTest extends TestCase
             'received_at' => Carbon::now('Asia/Kolkata')->subDays(3),
         ]);
 
-        $rows = (new ChecklistSections())->forCard('today_payments', $viewer);
+        $rows = (new ChecklistSections)->forCard('today_payments', $viewer);
 
         $this->assertCount(1, $rows);
         $this->assertSame('09:40', $rows[0]['time']);
@@ -97,6 +97,6 @@ class ChecklistSectionsTest extends TestCase
     public function test_unknown_card_returns_empty(): void
     {
         $viewer = $this->admin();
-        $this->assertSame([], (new ChecklistSections())->forCard('nope', $viewer));
+        $this->assertSame([], (new ChecklistSections)->forCard('nope', $viewer));
     }
 }

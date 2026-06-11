@@ -48,7 +48,7 @@ class PaymentsToChaseCardTest extends TestCase
 
         $closed = Student::factory()->create(['deal_amount' => 20000, 'stage' => 'Closed']);
 
-        $ids = (new PaymentsToChaseCard())->query($viewer)->pluck('id')->all();
+        $ids = (new PaymentsToChaseCard)->query($viewer)->pluck('id')->all();
 
         $this->assertContains($pending->id, $ids);
         $this->assertNotContains($fullyPaid->id, $ids);

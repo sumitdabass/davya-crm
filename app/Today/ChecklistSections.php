@@ -18,13 +18,13 @@ class ChecklistSections
     public function forCard(string $cardId, User $viewer): array
     {
         return match ($cardId) {
-            'today_meetings'      => $this->meetingsToday($viewer),
-            'payments_to_chase'   => $this->paymentsToChase($viewer),
-            'today_payments'      => $this->paymentsReceivedToday($viewer),
-            'stuck_leads'         => $this->stuck($viewer),
-            'seat_fee_pending'    => $this->seatFeePending($viewer),
+            'today_meetings' => $this->meetingsToday($viewer),
+            'payments_to_chase' => $this->paymentsToChase($viewer),
+            'today_payments' => $this->paymentsReceivedToday($viewer),
+            'stuck_leads' => $this->stuck($viewer),
+            'seat_fee_pending' => $this->seatFeePending($viewer),
             're_entry_candidates' => $this->reEntry($viewer),
-            default               => [],
+            default => [],
         };
     }
 
@@ -32,7 +32,7 @@ class ChecklistSections
     private function meetingsToday(User $viewer): array
     {
         $start = Carbon::now(self::TZ)->startOfDay();
-        $end   = Carbon::now(self::TZ)->endOfDay();
+        $end = Carbon::now(self::TZ)->endOfDay();
 
         return Meeting::query()
             ->whereBetween('scheduled_at', [$start, $end])
@@ -43,12 +43,12 @@ class ChecklistSections
             ->get()
             ->map(fn (Meeting $m) => [
                 'student_id' => $m->student_id,
-                'title'      => $m->student?->name ?? '—',
-                'subtitle'   => trim(($m->student?->course ?? '—').' · '.($m->student?->owner?->name ?? 'Unassigned'), ' ·'),
-                'time'       => $m->scheduled_at?->setTimezone(self::TZ)->format('H:i'),
-                'amount'     => null,
-                'dot'        => null,
-                'pill'       => $m->status === 'held' ? 'held' : null,
+                'title' => $m->student?->name ?? '—',
+                'subtitle' => trim(($m->student?->course ?? '—').' · '.($m->student?->owner?->name ?? 'Unassigned'), ' ·'),
+                'time' => $m->scheduled_at?->setTimezone(self::TZ)->format('H:i'),
+                'amount' => null,
+                'dot' => null,
+                'pill' => $m->status === 'held' ? 'held' : null,
             ])
             ->values()
             ->all();
@@ -57,17 +57,17 @@ class ChecklistSections
     /** @return array<int, array<string, mixed>> */
     private function paymentsToChase(User $viewer): array
     {
-        return (new PaymentsToChaseCard())->query($viewer)
+        return (new PaymentsToChaseCard)->query($viewer)
             ->limit(50)
             ->get()
             ->map(fn (Student $s) => [
                 'student_id' => $s->id,
-                'title'      => $s->name,
-                'subtitle'   => $s->stage.' · '.($s->owner?->name ?? 'Unassigned'),
-                'time'       => null,
-                'amount'     => $s->pending_amount,
-                'dot'        => $this->agingDot($s->updated_at),
-                'pill'       => null,
+                'title' => $s->name,
+                'subtitle' => $s->stage.' · '.($s->owner?->name ?? 'Unassigned'),
+                'time' => null,
+                'amount' => $s->pending_amount,
+                'dot' => $this->agingDot($s->updated_at),
+                'pill' => null,
             ])
             ->all();
     }
@@ -76,7 +76,7 @@ class ChecklistSections
     private function paymentsReceivedToday(User $viewer): array
     {
         $start = Carbon::now(self::TZ)->startOfDay();
-        $end   = Carbon::now(self::TZ)->endOfDay();
+        $end = Carbon::now(self::TZ)->endOfDay();
 
         return Payment::query()
             ->whereBetween('received_at', [$start, $end])
@@ -86,12 +86,12 @@ class ChecklistSections
             ->get()
             ->map(fn (Payment $p) => [
                 'student_id' => $p->student_id,
-                'title'      => $p->student?->name ?? '—',
-                'subtitle'   => ucfirst((string) $p->type).' · '.($p->mode ?? '—'),
-                'time'       => $p->received_at?->setTimezone(self::TZ)->format('H:i'),
-                'amount'     => (float) $p->amount,
-                'dot'        => null,
-                'pill'       => null,
+                'title' => $p->student?->name ?? '—',
+                'subtitle' => ucfirst((string) $p->type).' · '.($p->mode ?? '—'),
+                'time' => $p->received_at?->setTimezone(self::TZ)->format('H:i'),
+                'amount' => (float) $p->amount,
+                'dot' => null,
+                'pill' => null,
             ])
             ->all();
     }
@@ -108,12 +108,12 @@ class ChecklistSections
             ->get()
             ->map(fn (Student $s) => [
                 'student_id' => $s->id,
-                'title'      => $s->name,
-                'subtitle'   => (string) $s->stage,
-                'time'       => null,
-                'amount'     => null,
-                'dot'        => $this->agingDot($s->updated_at),
-                'pill'       => $s->updated_at ? $s->updated_at->diffInDays(now()).' days' : null,
+                'title' => $s->name,
+                'subtitle' => (string) $s->stage,
+                'time' => null,
+                'amount' => null,
+                'dot' => $this->agingDot($s->updated_at),
+                'pill' => $s->updated_at ? $s->updated_at->diffInDays(now()).' days' : null,
             ])
             ->all();
     }
@@ -130,12 +130,12 @@ class ChecklistSections
             ->get()
             ->map(fn (RoundHistory $r) => [
                 'student_id' => $r->student_id,
-                'title'      => $r->student?->name ?? '—',
-                'subtitle'   => trim(($r->round_name ?? '—').' · '.($r->allotted_college ?? 'fee due'), ' ·'),
-                'time'       => null,
-                'amount'     => $r->seat_fee_amount !== null ? (float) $r->seat_fee_amount : null,
-                'dot'        => $this->agingDot($r->created_at),
-                'pill'       => null,
+                'title' => $r->student?->name ?? '—',
+                'subtitle' => trim(($r->round_name ?? '—').' · '.($r->allotted_college ?? 'fee due'), ' ·'),
+                'time' => null,
+                'amount' => $r->seat_fee_amount !== null ? (float) $r->seat_fee_amount : null,
+                'dot' => $this->agingDot($r->created_at),
+                'pill' => null,
             ])
             ->all();
     }
@@ -152,12 +152,12 @@ class ChecklistSections
             ->get()
             ->map(fn (RoundHistory $r) => [
                 'student_id' => $r->student_id,
-                'title'      => $r->student?->name ?? '—',
-                'subtitle'   => ($r->round_name ?? '—').' · re-eligible',
-                'time'       => null,
-                'amount'     => null,
-                'dot'        => $this->agingDot($r->student?->updated_at),
-                'pill'       => null,
+                'title' => $r->student?->name ?? '—',
+                'subtitle' => ($r->round_name ?? '—').' · re-eligible',
+                'time' => null,
+                'amount' => null,
+                'dot' => $this->agingDot($r->student?->updated_at),
+                'pill' => null,
             ])
             ->all();
     }

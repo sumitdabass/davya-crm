@@ -10,11 +10,30 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 
 class PaymentsToChaseCard implements Card
 {
-    public function id(): string { return 'payments_to_chase'; }
-    public function label(): string { return 'Payments to Chase'; }
-    public function surface(): string { return 'any'; }
-    public function isDefaultOn(string $surface): bool { return $surface === 'today'; }
-    public function type(): string { return 'list'; }
+    public function id(): string
+    {
+        return 'payments_to_chase';
+    }
+
+    public function label(): string
+    {
+        return 'Payments to Chase';
+    }
+
+    public function surface(): string
+    {
+        return 'any';
+    }
+
+    public function isDefaultOn(string $surface): bool
+    {
+        return $surface === 'today';
+    }
+
+    public function type(): string
+    {
+        return 'list';
+    }
 
     /** Students with a positive pending balance who are not closed. */
     public function query(User $viewer): Builder
@@ -38,7 +57,18 @@ class PaymentsToChaseCard implements Card
         return view('filament.widgets.payments-to-chase-card', ['rows' => $rows])->render();
     }
 
-    public function drillDown(User $viewer): ?DrillDownPayload { return null; }
-    public function viewAllHref(User $viewer): ?string { return null; }
-    public function isAvailableFor(User $viewer): bool { return true; }
+    public function drillDown(User $viewer): ?DrillDownPayload
+    {
+        return null;
+    }
+
+    public function viewAllHref(User $viewer): ?string
+    {
+        return null;
+    }
+
+    public function isAvailableFor(User $viewer): bool
+    {
+        return true;
+    }
 }
