@@ -9,16 +9,29 @@
 
 Turn `/admin/today` from a generic customizable **card grid** into an opinionated **daily action checklist** — a tap-to-act agenda that answers "what do I need to do today" for a phone-first operator. Same aesthetic and scoped-skin mechanism proven on the student-form pilot and Pipeline surface.
 
-## Approach (A — reorganize in place, reuse data sources)
+## Approach (A — reorganize in place, prefs-driven sections)
 
-`TodayPage::cards()` already resolves the cards for `surface='today'` through the existing prefs system (show/hide/order). The redesign **re-renders those resolved cards** instead of re-querying:
+`TodayPage::cards()` already resolves the cards for `surface='today'` through the existing prefs system (show/hide/order). The redesign keeps that resolution to drive **which sections appear and their order**, but renders each as a purpose-built checklist section rather than the existing heavyweight Filament widget.
 
-- **`stat`-type cards** (`leads_captured_today`, `admissions_closed_today`, `meetings_held_today`) → rendered together as the **compact stats strip** at the top.
-- **`list`-type cards** (`today_meetings`, `today_payments`, `stuck_leads`, `seat_fee_pending`, `re_entry_candidates`) → rendered as **stacked full-width checklist sections** in prefs order.
+- **`stat`-type cards** (`leads_captured_today`, `admissions_closed_today`, `meetings_held_today`) → rendered together as the **compact stats strip** at the top (reusing each card's count).
+- **`list`-type cards** → rendered as **stacked full-width checklist sections** in prefs order, via a uniform `checklist-section` partial fed by a small row-provider service.
 
-This means Customize, undo, and prefs persistence keep working **unchanged** — a section *is* a card; show/hide/reorder a section = show/hide/reorder its card. No new backend queries.
+**Why purpose-built rows (not the existing widgets):** the existing list widgets don't match the action-checklist intent — `today_meetings` renders a **5-day grid** (we want today only) and `today_payments` is a **received-today log** (we also want a *to-chase* list). So presentation is new; the prefs/Customize/order machinery is reused unchanged. A section *is* a card id; show/hide/reorder a section = show/hide/reorder its card in the existing prefs.
 
-**Default-on fix (required):** `StuckLeadsCard`, `SeatFeePendingCard`, and `ReEntryCandidatesCard` currently `isDefaultOn` only for `dashboard`. To make all four action groups appear on Today by default (as requested), each gets a one-line change to default-on for `today` as well (e.g. `in_array($surface, ['dashboard','today'], true)`). This is the only logic change to a card class. Note: users who have *already* saved custom `today` prefs won't retroactively gain the new sections — they can add them via Customize; new/default users get all four.
+### Section ↔ card mapping
+
+| Section | Card id | Data source |
+|---|---|---|
+| Meetings today | `today_meetings` | `Meeting` scoped to **today** (reuse the widget's query, day[0] only) |
+| Payments to chase | `payments_to_chase` (**NEW card**) | Students with pending/partial balance, not closed |
+| Payments received today | `today_payments` | reuse `TodayPaymentsWidget::getRowsProperty()` |
+| Stuck leads | `stuck_leads` | reuse existing stuck-leads query (`FilterKeys`) |
+| Seat-fee pending | `seat_fee_pending` | reuse existing query |
+| Re-entry candidates | `re_entry_candidates` | reuse existing query |
+
+**New card (required):** `PaymentsToChaseCard` (`id = payments_to_chase`, `type = list`, `surface = any`, `isDefaultOn = today`) exposing the to-chase query. It appears in Customize like any other card.
+
+**Default-on fix (required):** `StuckLeadsCard`, `SeatFeePendingCard`, and `ReEntryCandidatesCard` currently `isDefaultOn` only for `dashboard`. Each gets a one-line change to default-on for `today` as well (e.g. `in_array($surface, ['dashboard','today'], true)`) so all groups appear by default. Note: users who have *already* saved custom `today` prefs won't retroactively gain the new sections — they can add them via Customize; new/default users get all of them.
 
 Rejected: a fresh `AgendaToday` Livewire page (more code, abandons the prefs/card model, higher regression surface) and a re-skin-only grid (already declined — the operator wants an action hub, not a dashboard).
 
@@ -29,9 +42,11 @@ Rejected: a fresh `AgendaToday` Livewire page (more code, abandons the prefs/car
 3. **Action sections**, urgency-ordered by default, each a collapsible card with an icon + Instrument-Serif title + count badge + chevron:
    - **Meetings today** — rows: `time · name · course/owner`
    - **Payments to chase** (urgent styling) — rows: `name · context · pending ₹ with Indian-words subtext`
+   - **Payments received today** — rows: `time · name · amount` (log; reuse existing card)
    - **Stuck leads** — rows: `aging-dot · name · stage · days-stuck pill`
-   - **Admission actions** — one section, two labelled sub-groups: **Seat-fee pending** and **Re-entry candidates**
-4. **Rows** are tap-anywhere → dispatch `open-slide-over` with the student id; a chevron hints it.
+   - **Seat-fee pending** — rows: `aging-dot · name · round · fee-due`
+   - **Re-entry candidates** — rows: `name · last stage · re-eligible`
+4. **Rows** are tap-anywhere → dispatch `open-student-peek` with the student id; a chevron hints it.
 5. **Empty sections** render a muted "All clear ✓" and sink to the bottom (collapsed by default when count = 0).
 6. **Whole-page empty** (all sections hidden via Customize) keeps the existing "You've hidden all cards / Reset to defaults" state.
 
@@ -45,16 +60,24 @@ Rejected: a fresh `AgendaToday` Livewire page (more code, abandons the prefs/car
 
 | File | Change |
 |---|---|
-| `resources/views/filament/pages/today-page.blade.php` | Replace the card-grid body with: stats strip (stat cards) + stacked checklist sections (list cards), wrapped in skin classes. Keep Customize button, `StudentSlideOver`, `CustomizeCardsModal`, undo toast. |
-| List-card blades (`today-meetings-card`, `today-payments-card`, `stuck-leads`, `seat-fee-pending`, `re-entry`) | **Additive** skin classes so each renders as a tap-row list under the skin (same technique as the pilot's money-bar/timeline blades). No query changes. |
-| `app/Providers/Filament/AdminPanelProvider.php` | One new `PAGE_START` render hook scoped to `[TodayPage::class]`. |
-| `resources/css/today-skin.css` + `public/css/today-skin.css` | New scoped stylesheet. |
+| `app/Today/ChecklistSections.php` (**new**) | Row-provider service. One method per section id returning a normalized row list `['student_id','title','subtitle','meta','dot'(?),'time'(?),'amount'(?)]`. Reuses existing queries (meetings today, today payments, stuck/seat-fee/re-entry) + the new to-chase query. Single source of section data. |
+| `app/Today/SectionRegistry.php` (**new**) | Maps a `list` card id → `['label','icon','urgent'(bool),'provider' method]`. Drives presentation for whatever cards prefs resolve. |
+| `app/Dashboard/Cards/ListCards/PaymentsToChaseCard.php` (**new**) | New card (`payments_to_chase`, list, default-on today) exposing the to-chase query. |
+| `resources/views/filament/pages/today-page.blade.php` | Replace the card-grid body: stats strip (iterate `stat` cards) + stacked checklist sections (iterate `list` cards in prefs order → `checklist-section` partial via registry). Keep Customize button, `StudentSlideOver`, `CustomizeCardsModal`, undo toast. |
+| `resources/views/filament/pages/partials/checklist-section.blade.php` (**new**) | Uniform collapsible section: header (icon/title/count/chevron) + rows; each row taps to `open-student-peek`; empty → "All clear ✓". |
+| `app/Providers/Filament/AdminPanelProvider.php` | One new `PAGE_START` render hook scoped to `[TodayPage::class]` (skin link + body class). |
+| `resources/css/today-skin.css` + `public/css/today-skin.css` (**new**) | Scoped stylesheet under `body.davya-today-skin`. |
+| `StuckLeadsCard`, `SeatFeePendingCard`, `ReEntryCandidatesCard` | One-line `isDefaultOn` change to include `today`. |
 
-`StuckLeadsCard` / `SeatFeePendingCard` / `ReEntryCandidatesCard` get the one-line `isDefaultOn` change above. `TodayPage.php`, the stat/meetings/payments card classes, `UserPrefsResolver`, `CustomizeCardsModal`, and `StudentSlideOver` are otherwise **unchanged** (logic-wise) — no query changes anywhere.
+`TodayPage.php`, `UserPrefsResolver`, `CustomizeCardsModal`, `StudentSlideOver`, and the existing widget classes are **unchanged**. Existing list-card render() / widgets stay as-is (still used on the Dashboard surface); the Today checklist reads their underlying queries via `ChecklistSections`, it does not call `card->render()`.
 
 ## Drawer / consistency note
 
-Today's drawer is **`StudentSlideOver`** (listens to `open-slide-over`); Pipeline's is `StudentPeekDrawer` (`open-student-peek`). They are separate components. This surface **keeps Today on its existing `StudentSlideOver`** — no regression, no scope creep. Unifying the two drawers is explicitly out of scope (a possible later task).
+Two distinct drawers exist and both are reused correctly:
+- **`StudentPeekDrawer`** (`open-student-peek` + `studentId`) — the per-student peek with deal/context/probability + tabs. It is **globally mounted** (`AdminPanelProvider` render hook), so it is already present on `/admin/today`. **Checklist rows dispatch `open-student-peek`** → this opens the *same* drawer as Pipeline (consistency win, no new component).
+- **`StudentSlideOver`** (`open-slide-over` + `cardId`) — a **stat-card drill-down list** (paginated students behind a stat). Only opens for `type='stat'` cards. **Kept for the stats-strip taps** (tapping a stat number drills into its list), exactly as today.
+
+So: tapping a **row** → peek a student (`StudentPeekDrawer`); tapping a **stat** → drill the stat list (`StudentSlideOver`). No drawer is removed; the per-student peek is now unified with Pipeline.
 
 ## Feature parity (hard constraint — zero loss)
 
@@ -68,7 +91,9 @@ Mobile-first single column. On `≥768px` the checklist renders in a centered ma
 
 New tests under `tests/Feature/MobileToday/`:
 - **Skin scope** — `today-skin.css` link + `davya-today-skin` body class present on `/admin/today`, **absent** on `/admin/dashboard` and `/admin/students` (no leak).
-- **Checklist render** — stat strip renders the 3 stat cards; list cards render as sections in prefs order; section count badges match item counts; rows carry `open-slide-over` dispatch with the right student id.
+- **ChecklistSections provider** (unit) — each provider returns the right rows: meetings scoped to today only (not the 5-day spread); `payments_to_chase` returns students with pending > 0 and excludes closed/fully-paid; `today_payments` matches the existing widget rows; stuck/seat-fee/re-entry match their existing queries. Rows carry `student_id`.
+- **Checklist render** — stat strip renders the 3 stat counts; list cards render as sections in prefs order; count badges match row counts; rows carry `open-student-peek` dispatch with the right student id.
+- **New card** — `PaymentsToChaseCard` is registered, default-on for `today`, off for `dashboard`, available to a viewer.
 - **Customize parity** — hiding a card via prefs removes its section; reordering changes section order.
 - **Empty state** — a zero-count section shows the "All clear" state; all-hidden shows the reset state.
 
@@ -77,5 +102,4 @@ Full suite must stay green (currently 919 pass / 0 fail / 1 skip). Test runner: 
 ## Out of scope
 
 - Per-item "mark done" / swipe-to-complete state (would need new persistence — not in this surface).
-- Unifying `StudentSlideOver` and `StudentPeekDrawer`.
-- Any change to card queries or the Dashboard surface (Today and Dashboard share the card system; this only re-renders the `today` surface).
+- Any change to the existing widget classes or the Dashboard surface (Today and Dashboard share the card system; the Dashboard keeps rendering the existing widgets via `card->render()`; only the `today` surface gets the checklist treatment).
