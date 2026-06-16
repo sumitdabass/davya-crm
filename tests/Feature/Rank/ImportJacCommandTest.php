@@ -14,6 +14,17 @@ class ImportJacCommandTest extends TestCase
 
     protected $connectionsToTransact = ['ranks'];
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Isolate from any JAC cutoffs already imported into the shared ranks DB;
+        // the delete rolls back with the ranks transaction.
+        $jac = University::where('code', 'JAC')->first();
+        if ($jac) {
+            Cutoff::where('university_id', $jac->id)->forceDelete();
+        }
+    }
+
     /** @test */
     public function command_imports_csv(): void
     {
