@@ -104,7 +104,12 @@ return new class extends Migration
         );
 
         // 3. Rebuild the unique index to include the new dimensions.
+        //    NOTE: `cutoffs_unique` leads with `university_id` and is the supporting
+        //    index for the university FK, so MySQL won't drop it (errno 1553) until
+        //    the FK is dropped. Drop FK -> swap unique -> re-add FK (cascadeOnDelete,
+        //    matching the original create migration).
         Schema::connection($this->connection)->table('cutoffs', function (Blueprint $table) {
+            $table->dropForeign('cutoffs_university_id_foreign');
             $table->dropUnique('cutoffs_unique');
             $table->unique(
                 ['university_id', 'course_id', 'qualifying_exam_id', 'admission_process_id',
@@ -112,12 +117,14 @@ return new class extends Migration
                  'category', 'sub_category'],
                 'cutoffs_unique'
             );
+            $table->foreign('university_id')->references('id')->on('universities')->cascadeOnDelete();
         });
     }
 
     public function down(): void
     {
         Schema::connection($this->connection)->table('cutoffs', function (Blueprint $table) {
+            $table->dropForeign('cutoffs_university_id_foreign');
             $table->dropUnique('cutoffs_unique');
             $table->dropColumn(['category', 'sub_category']);
             $table->unique(
@@ -125,6 +132,7 @@ return new class extends Migration
                  'year', 'round', 'institute_id', 'branch_id', 'shift', 'region'],
                 'cutoffs_unique'
             );
+            $table->foreign('university_id')->references('id')->on('universities')->cascadeOnDelete();
         });
         DB::connection($this->connection)->statement(
             "ALTER TABLE cutoffs MODIFY COLUMN round ENUM('1','2','3','sliding') NOT NULL"
