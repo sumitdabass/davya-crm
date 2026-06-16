@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Rank;
 
-use App\Filament\Resources\Rank\Concerns\RestrictsToRankRoles;
+use App\Filament\Resources\Rank\Concerns\ScopesToRankDataset;
 use App\Filament\Resources\Rank\UniversityResource\Pages;
 use App\Models\Rank\University;
 use Filament\Forms\Components\TextInput;
@@ -15,9 +15,14 @@ use Filament\Tables\Table;
 
 class UniversityResource extends Resource
 {
-    use RestrictsToRankRoles;
+    use ScopesToRankDataset;
 
     protected static ?string $model = University::class;
+
+    protected static function scopeToRankUniversityCodes(\Illuminate\Database\Eloquent\Builder $query, array $codes): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->whereIn('code', $codes);
+    }
 
     protected static ?string $navigationGroup = 'Rank Predictor';
 

@@ -3,7 +3,7 @@
 namespace App\Filament\Resources\Rank;
 
 use App\Filament\Resources\Rank\BranchResource\Pages;
-use App\Filament\Resources\Rank\Concerns\RestrictsToRankRoles;
+use App\Filament\Resources\Rank\Concerns\ScopesToRankDataset;
 use App\Models\Rank\Branch;
 use App\Models\Rank\Course;
 use Filament\Forms\Components\Select;
@@ -18,9 +18,14 @@ use Filament\Tables\Table;
 
 class BranchResource extends Resource
 {
-    use RestrictsToRankRoles;
+    use ScopesToRankDataset;
 
     protected static ?string $model = Branch::class;
+
+    protected static function scopeToRankUniversityCodes(\Illuminate\Database\Eloquent\Builder $query, array $codes): \Illuminate\Database\Eloquent\Builder
+    {
+        return $query->whereHas('course.university', fn ($q) => $q->whereIn('code', $codes));
+    }
 
     protected static ?string $navigationGroup = 'Rank Predictor';
 

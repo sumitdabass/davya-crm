@@ -8,7 +8,8 @@ trait RestrictsToRankRoles
     {
         $user = auth()->user();
 
-        return $user && $user->hasAnyRole(['admin', 'rank-admin']);
+        return \App\Rank\RankAccess::isLegacyAdmin($user)
+            || \App\Rank\RankAccess::analysableDatasets($user) !== [];
     }
 
     public static function shouldRegisterNavigation(): bool
