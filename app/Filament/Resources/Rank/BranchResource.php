@@ -15,6 +15,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class BranchResource extends Resource
 {
@@ -22,7 +23,7 @@ class BranchResource extends Resource
 
     protected static ?string $model = Branch::class;
 
-    protected static function scopeToRankUniversityCodes(\Illuminate\Database\Eloquent\Builder $query, array $codes): \Illuminate\Database\Eloquent\Builder
+    protected static function scopeToRankUniversityCodes(Builder $query, array $codes): Builder
     {
         return $query->whereHas('course.university', fn ($q) => $q->whereIn('code', $codes));
     }

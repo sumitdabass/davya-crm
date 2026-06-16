@@ -27,30 +27,36 @@ class RankLandingTest extends TestCase
     {
         $u->must_change_password = false;
         $u->save();
+
         return $u;
     }
 
-    public function test_admin_sees_primary_plus_all_eight_manage_cards(): void
+    private function keys(array $cards): array
+    {
+        return array_map(fn ($c) => $c['key'], $cards);
+    }
+
+    public function test_admin_sees_predict_manage_and_legacy_cards(): void
     {
         $admin = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
         $this->actingAs($admin);
 
-        $cards = RankRegistry::accessibleFor($admin);
-        $this->assertCount(9, $cards);
-
-        $primary = array_filter($cards, fn ($c) => ($c['group'] ?? null) === 'primary');
-        $manage  = array_filter($cards, fn ($c) => ($c['group'] ?? null) === 'manage');
-        $this->assertCount(1, $primary);
-        $this->assertCount(8, $manage);
+        // Legacy admins get both datasets' predict cards + 6 manage cards + the legacy lookup.
+        $keys = $this->keys(RankRegistry::cardsFor($admin));
+        $this->assertContains('predict-ipu', $keys);
+        $this->assertContains('predict-dtu', $keys);
+        $this->assertContains('manage-cutoffs', $keys);
+        $this->assertContains('legacy-lookup', $keys);
+        $this->assertCount(9, $keys); // 2 predict + 6 manage + 1 legacy
 
         $this->assertTrue(RankLanding::canAccess());
 
         Livewire::actingAs($admin)
             ->test(RankLanding::class)
-            ->assertSee('Rank Lookup')
+            ->assertSee('Predict')
             ->assertSee('Universities')
             ->assertSee('Cutoffs')
-            ->assertSee('Admission Processes');
+            ->assertSee('IPU Rank Lookup');
     }
 
     public function test_rank_admin_only_user_sees_full_landing(): void
@@ -60,7 +66,7 @@ class RankLandingTest extends TestCase
         $this->unblock($u);
         $this->actingAs($u);
 
-        $this->assertCount(9, RankRegistry::accessibleFor($u));
+        $this->assertCount(9, RankRegistry::cardsFor($u));
         $this->assertTrue(RankLanding::canAccess());
     }
 
@@ -70,7 +76,7 @@ class RankLandingTest extends TestCase
         $this->actingAs($sonam);
 
         $this->assertFalse(RankLanding::canAccess());
-        $this->assertSame([], RankRegistry::accessibleFor($sonam));
+        $this->assertSame([], RankRegistry::cardsFor($sonam));
     }
 
     public function test_member_cannot_access(): void
@@ -84,6 +90,6 @@ class RankLandingTest extends TestCase
     public function test_guest_cannot_access(): void
     {
         $this->assertFalse(RankLanding::canAccess());
-        $this->assertSame([], RankRegistry::accessibleFor(null));
+        $this->assertSame([], RankRegistry::cardsFor(null));
     }
 }

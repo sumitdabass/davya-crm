@@ -12,6 +12,7 @@ use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class UniversityResource extends Resource
 {
@@ -19,7 +20,7 @@ class UniversityResource extends Resource
 
     protected static ?string $model = University::class;
 
-    protected static function scopeToRankUniversityCodes(\Illuminate\Database\Eloquent\Builder $query, array $codes): \Illuminate\Database\Eloquent\Builder
+    protected static function scopeToRankUniversityCodes(Builder $query, array $codes): Builder
     {
         return $query->whereIn('code', $codes);
     }

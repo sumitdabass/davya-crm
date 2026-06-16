@@ -25,7 +25,7 @@ class RankLandingTest extends TestCase
         $u->assignRole('rank-ipu-predict');
         $this->actingAs($u);
 
-        $page = new RankLanding();
+        $page = new RankLanding;
         $this->assertCount(1, $page->getPredictCards());
         $this->assertSame([], $page->getManageCards());
     }

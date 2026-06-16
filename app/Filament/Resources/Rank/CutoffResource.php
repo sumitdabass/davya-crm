@@ -20,6 +20,7 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CutoffResource extends Resource
 {
@@ -27,7 +28,7 @@ class CutoffResource extends Resource
 
     protected static ?string $model = Cutoff::class;
 
-    protected static function scopeToRankUniversityCodes(\Illuminate\Database\Eloquent\Builder $query, array $codes): \Illuminate\Database\Eloquent\Builder
+    protected static function scopeToRankUniversityCodes(Builder $query, array $codes): Builder
     {
         return $query->whereHas('university', fn ($q) => $q->whereIn('code', $codes));
     }

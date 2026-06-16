@@ -29,12 +29,12 @@ class RankRegistry
         foreach (RankAccess::predictableDatasets($user) as $token) {
             $label = RankDataset::label($token);
             $cards[] = [
-                'key'   => "predict-{$token}",
+                'key' => "predict-{$token}",
                 'group' => 'predict',
                 'title' => "{$label} — Predict",
-                'desc'  => "Predict eligible colleges + branches for a {$label} rank, with category, sub-category, gender, and chance scale.",
-                'icon'  => $token === 'ipu' ? 'heroicon-o-magnifying-glass' : 'heroicon-o-academic-cap',
-                'url'   => "/admin/rank/{$token}/predict",
+                'desc' => "Predict eligible colleges + branches for a {$label} rank, with category, sub-category, gender, and chance scale.",
+                'icon' => $token === 'ipu' ? 'heroicon-o-magnifying-glass' : 'heroicon-o-academic-cap',
+                'url' => "/admin/rank/{$token}/predict",
             ];
         }
 
@@ -49,12 +49,12 @@ class RankRegistry
         if (in_array('ipu', RankAccess::predictableDatasets($user), true)
             || in_array('ipu', RankAccess::analysableDatasets($user), true)) {
             $cards[] = [
-                'key'   => 'legacy-lookup',
+                'key' => 'legacy-lookup',
                 'group' => 'legacy',
                 'title' => 'IPU Rank Lookup (legacy)',
-                'desc'  => 'Older IPU branch-family lookup. Use “IPU — Predict” for the new category-aware tool.',
-                'icon'  => 'heroicon-o-clock',
-                'url'   => '/admin/rank-lookup',
+                'desc' => 'Older IPU branch-family lookup. Use “IPU — Predict” for the new category-aware tool.',
+                'icon' => 'heroicon-o-clock',
+                'url' => '/admin/rank-lookup',
             ];
         }
 
