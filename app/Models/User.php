@@ -36,12 +36,15 @@ class User extends Authenticatable implements FilamentUser
 
     public function canRankPredict(string $dataset): bool
     {
-        return $this->hasPermissionTo("rank.{$dataset}.predict");
+        // checkPermissionTo (not hasPermissionTo) so an unseeded permission
+        // returns false instead of throwing — these run during Filament nav
+        // rendering on every admin page. See RankAccessGracefulTest.
+        return $this->checkPermissionTo("rank.{$dataset}.predict");
     }
 
     public function canRankAnalyse(string $dataset): bool
     {
-        return $this->hasPermissionTo("rank.{$dataset}.analyse");
+        return $this->checkPermissionTo("rank.{$dataset}.analyse");
     }
 
     /** @return array<int,string> datasets visible to this user, in canonical order */
