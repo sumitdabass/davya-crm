@@ -22,16 +22,59 @@ class JacCutoffImporter
         'pwd' => 'pwd', 'defense-cw' => 'defense_cw', 'kashmiri-migrant' => 'kashmiri_migrant',
     ];
 
-    private function instituteName(string $raw): string
-    {
-        $r = trim($raw);
+    /**
+     * NSUT branch code -> [full branch name, campus]. The source CSV encodes NSUT
+     * campus in the branch code's asterisks (* = East, ** = West, none = Main);
+     * the institute column is just "NSUT". Mirrors the offline tool's mapping.
+     *
+     * @var array<string, array{0:string,1:string}>
+     */
+    private const NSUT_MAP = [
+        'CSAI' => ['Computer Science & Engineering (AI)', 'Main (Dwarka)'],
+        'CSE'  => ['Computer Science & Engineering', 'Main (Dwarka)'],
+        'CSDS' => ['Computer Science & Engineering (Data Science)', 'Main (Dwarka)'],
+        'IT'   => ['Information Technology', 'Main (Dwarka)'],
+        'ITNS' => ['Information Technology (Network & Info Security)', 'Main (Dwarka)'],
+        'MAC'  => ['Mathematics & Computing', 'Main (Dwarka)'],
+        'EVDT' => ['Electronics Engg (VLSI Design & Technology)', 'Main (Dwarka)'],
+        'ECE'  => ['Electronics & Communication Engineering', 'Main (Dwarka)'],
+        'EE'   => ['Electrical Engineering', 'Main (Dwarka)'],
+        'ICE'  => ['Instrumentation & Control Engineering', 'Main (Dwarka)'],
+        'ME'   => ['Mechanical Engineering', 'Main (Dwarka)'],
+        'BT'   => ['Bio-Technology', 'Main (Dwarka)'],
+        'CSDA' => ['Computer Science & Engineering (Big Data Analytics)', 'East Campus'],
+        'CIOT' => ['Computer Science & Engineering (IoT)', 'East Campus'],
+        'ECAM' => ['Electronics & Comm Engg (AI & ML)', 'East Campus'],
+        'MEEV' => ['Mechanical Engineering (Electric Vehicles)', 'West Campus'],
+        'CE'   => ['Civil Engineering', 'West Campus'],
+        'GI'   => ['Geoinformatics', 'West Campus'],
+    ];
 
-        return match (true) {
-            str_contains(strtolower($r), 'east')  => 'NSUT East Campus',
-            str_contains(strtolower($r), 'west')  => 'NSUT West Campus',
-            strtolower($r) === 'nsut'              => 'NSUT Main (Dwarka)',
-            default                                 => $r,
-        };
+    /**
+     * Resolve the CSV (institute, branch) cells to the seeded institute name and
+     * a clean branch name. NSUT rows get campus + full name from the branch code;
+     * other institutes (DTU, IGDTUW) pass through unchanged.
+     *
+     * @return array{0:string,1:string} [instituteName, branchName]
+     */
+    private function resolve(string $instRaw, string $branchRaw): array
+    {
+        $inst = trim($instRaw);
+        $branch = trim($branchRaw);
+
+        if (strtolower($inst) === 'nsut') {
+            $stripped = preg_replace('/^Branch\s+/i', '', $branch);
+            $code = strtoupper(preg_replace('/[^A-Za-z]/', '', $stripped));
+            if (isset(self::NSUT_MAP[$code])) {
+                [$full, $campus] = self::NSUT_MAP[$code];
+
+                return ['NSUT '.$campus, $full];
+            }
+
+            return ['NSUT Main (Dwarka)', $stripped];
+        }
+
+        return [$inst, $branch];
     }
 
     /**
@@ -66,7 +109,7 @@ class JacCutoffImporter
                 continue;
             }
 
-            $instName = $this->instituteName($instRaw);
+            [$instName, $branchName] = $this->resolve($instRaw, $branchName);
             $institute = $institutes->get($instName);
             if (! $institute) {
                 $institute = Institute::create(['university_id' => $jac->id, 'name' => $instName]);
