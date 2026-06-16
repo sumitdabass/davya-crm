@@ -12,14 +12,6 @@ class IpuPredictPageTest extends TestCase
 {
     use RefreshDatabase;
 
-    protected $connectionsToTransact = ['sqlite', 'ranks'];
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-    }
-
     /** @test */
     public function ipu_predict_access_follows_ipu_role(): void
     {
