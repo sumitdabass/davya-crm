@@ -7,6 +7,7 @@ use App\Models\Rank\Cutoff;
 use App\Models\Rank\QualifyingExam;
 use App\Models\Rank\University;
 use App\Models\Student;
+use App\Services\Rank\BenchmarkRoundStrategy;
 
 class StudentChoicePredictor
 {
@@ -22,9 +23,10 @@ class StudentChoicePredictor
             return [];
         }
 
+        $category = mb_strtolower(trim((string) ($student->reservation_category ?? 'general'))) ?: 'general';
         $region = $this->mapRegion($student->category);
-        $predictionRound = $region === 'delhi' ? 'sliding' : '3';
-        $predictionRegion = 'delhi'; // matches the RankLookup convention — delhi cutoffs are the predictor signal
+        $predictionRegion = 'delhi'; // delhi cutoffs are the predictor signal (unchanged convention)
+        $strategy = new BenchmarkRoundStrategy;
 
         $ipu = University::where('code', 'IPU')->first();
         $btech = $ipu ? Course::where('university_id', $ipu->id)->where('name', 'B.Tech')->first() : null;
@@ -61,9 +63,11 @@ class StudentChoicePredictor
 
         $eligible = [];
         foreach ($byKey as $row) {
-            $cell = $row['rounds'][$predictionRound] ?? null;
-            if (! $cell || ! $this->predictor->isEligible($rank, $cell)) {
-                continue;
+            $present = array_keys(array_filter($row['rounds'], fn ($c) => $c !== null));
+            $round = $strategy->pick('ipu', $category, $present);
+            $cell = $round ? $row['rounds'][$round] : null;
+            if (! $cell || $rank > $cell['max']) {
+                continue; // not reachable: ranked worse than the closing rank
             }
             $cushion = $this->predictor->cushionPct($rank, $cell['max']);
             $eligible[] = [
@@ -73,7 +77,7 @@ class StudentChoicePredictor
                 'cushion_pct'      => $cushion,
                 'bucket'           => $this->predictor->bucket($rank, $cell['max']),
                 'priority'         => CollegePreferenceOrder::sortKey($row['institute']),
-                'probability_pct'  => $this->probabilityFromCushion($cushion),
+                'probability_pct'  => $this->probabilityFromCushion(max(0, $cushion)),
             ];
         }
 

@@ -34,6 +34,28 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasRole('super_admin');
     }
 
+    public function canRankPredict(string $dataset): bool
+    {
+        // checkPermissionTo (not hasPermissionTo) so an unseeded permission
+        // returns false instead of throwing — these run during Filament nav
+        // rendering on every admin page. See RankAccessGracefulTest.
+        return $this->checkPermissionTo("rank.{$dataset}.predict");
+    }
+
+    public function canRankAnalyse(string $dataset): bool
+    {
+        return $this->checkPermissionTo("rank.{$dataset}.analyse");
+    }
+
+    /** @return array<int,string> datasets visible to this user, in canonical order */
+    public function rankDatasets(): array
+    {
+        return array_values(array_filter(
+            \App\Rank\RankDataset::tokens(),
+            fn (string $t) => $this->canRankPredict($t) || $this->canRankAnalyse($t),
+        ));
+    }
+
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable, HasRoles, LogsActivity;
 

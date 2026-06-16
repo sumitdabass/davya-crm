@@ -15,6 +15,7 @@ class Cutoff extends Model
     protected $fillable = [
         'university_id', 'course_id', 'qualifying_exam_id', 'admission_process_id',
         'year', 'round', 'institute_id', 'branch_id', 'shift', 'region',
+        'category', 'sub_category',
         'min_rank', 'max_rank', 'source', 'created_by', 'updated_by',
     ];
 
