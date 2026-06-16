@@ -144,6 +144,14 @@ class RankLookupTest extends TestCase
         $this->assertEmpty($result['notes'] ?? []);
     }
 
+    /** @test */
+    public function lookup_source_drops_exam_and_process_select_inputs(): void
+    {
+        $src = file_get_contents(app_path('Filament/Pages/Rank/RankLookup.php'));
+        $this->assertStringNotContainsString("Select::make('qualifying_exam_id')", $src);
+        $this->assertStringNotContainsString("Select::make('admission_process_id')", $src);
+    }
+
     private function bindCounsellorMock(): void
     {
         $mock = Mockery::mock(GeminiCounsellor::class);
