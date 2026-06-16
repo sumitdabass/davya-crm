@@ -58,4 +58,29 @@ class RankPredictor
 
         return (int) round(($later['max'] - $earlier['max']) / $earlier['max'] * 100);
     }
+
+    /**
+     * Admission chance measured off the closing rank (last admitted).
+     * Lower rank number = stronger candidate.
+     *
+     * @return 'SAFE'|'LIKELY'|'BORDERLINE'|'STRETCH'|'UNLIKELY'
+     */
+    public function chance(int $rank, int $closingRank): string
+    {
+        if ($closingRank <= 0) {
+            return 'UNLIKELY';
+        }
+        $ratio = $rank / $closingRank;
+        if ($ratio <= 0.85) return 'SAFE';
+        if ($ratio <= 1.00) return 'LIKELY';
+        if ($ratio <= 1.08) return 'BORDERLINE';
+        if ($ratio <= 1.25) return 'STRETCH';
+
+        return 'UNLIKELY';
+    }
+
+    public function withinReach(int $rank, int $closingRank): bool
+    {
+        return $this->chance($rank, $closingRank) !== 'UNLIKELY';
+    }
 }
