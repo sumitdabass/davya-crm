@@ -17,7 +17,6 @@ use Filament\Tables\Table;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Spatie\Permission\Models\Role;
 
 class UserResource extends Resource
 {
@@ -57,12 +56,12 @@ class UserResource extends Resource
     protected static function ownedRecordCounts(User $user): array
     {
         return [
-            'students_owned'    => Student::where('owner_id', $user->id)->count(),
+            'students_owned' => Student::where('owner_id', $user->id)->count(),
             'students_referred' => Student::where('referrer_id', $user->id)->count(),
-            'payments'          => Payment::where('recorded_by_user_id', $user->id)->count(),
-            'meetings_owned'    => Meeting::where('owner_id', $user->id)->count(),
-            'meetings_created'  => Meeting::where('created_by_id', $user->id)->count(),
-            'notes'             => DB::table('student_notes')->where('author_id', $user->id)->count(),
+            'payments' => Payment::where('recorded_by_user_id', $user->id)->count(),
+            'meetings_owned' => Meeting::where('owner_id', $user->id)->count(),
+            'meetings_created' => Meeting::where('created_by_id', $user->id)->count(),
+            'notes' => DB::table('student_notes')->where('author_id', $user->id)->count(),
         ];
     }
 
@@ -88,8 +87,7 @@ class UserResource extends Resource
             Forms\Components\Select::make('roles')
                 ->multiple()
                 ->relationship('roles', 'name')
-                ->preload()
-                ->options(fn () => Role::pluck('name', 'name')),
+                ->preload(),
         ]);
     }
 
@@ -170,8 +168,9 @@ class UserResource extends Resource
                         if ($total === 0) {
                             return "{$record->name} owns no students, payments, meetings, or notes. Safe to delete.";
                         }
+
                         return sprintf(
-                            "%s owns: %d students (as owner), %d students (as referrer), %d payments, %d meetings (as owner), %d meetings (as creator), %d notes. Pick a replacement user below — all of these will be reassigned in a single transaction, then the account will be deleted.",
+                            '%s owns: %d students (as owner), %d students (as referrer), %d payments, %d meetings (as owner), %d meetings (as creator), %d notes. Pick a replacement user below — all of these will be reassigned in a single transaction, then the account will be deleted.',
                             $record->name,
                             $c['students_owned'],
                             $c['students_referred'],
@@ -185,6 +184,7 @@ class UserResource extends Resource
                         if (array_sum(static::ownedRecordCounts($record)) === 0) {
                             return [];
                         }
+
                         return [
                             Forms\Components\Select::make('reassign_to')
                                 ->label('Reassign all records to')

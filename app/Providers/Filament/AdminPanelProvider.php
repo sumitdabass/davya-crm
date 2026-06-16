@@ -38,6 +38,10 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset('davyas-logo.png'))
             ->font('Figtree', url: 'https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap')
+            // The davya skin (tokens.css + davya-* classes) is light-only by design;
+            // Filament dark mode bleeds through unstyled surfaces (white-on-white login
+            // inputs, change-password, etc.). Force light until a dark theme is built.
+            ->darkMode(false)
             ->colors([
                 'primary' => Color::Emerald,
                 'gray'    => Color::Slate,
