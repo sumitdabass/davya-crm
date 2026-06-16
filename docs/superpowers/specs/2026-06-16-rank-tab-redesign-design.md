@@ -180,6 +180,8 @@ Per dataset (gated by `rank-*-analyse`):
 
 ## 13. Out of scope / notes
 
+- **HARD RULE — IPU and DTU never merge.** They are independent universities (`IPU` vs `JAC`), with independent roles, data, queries, and results. No query spans both; no list combines them; student auto-probability is IPU-only. Shared engine code (chance math, DTO, benchmark strategy) always receives the dataset token and operates on one dataset at a time — reusing a function is not merging data.
+
 - IIITD and B.Arch remain excluded from predictions (separate exam / no JEE rank).
 - IPU category-level accuracy depends on the category-wise IPU data the user will provide; until then IPU runs region-only (back-compat path).
 - Naming: the menu label "DTU" represents the JAC Delhi dataset (DTU + NSUT + IGDTUW). Roles use the `dtu` token.
