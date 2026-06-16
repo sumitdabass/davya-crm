@@ -6,98 +6,64 @@ use App\Models\User;
 
 class RankRegistry
 {
-    public static function descriptors(): array
-    {
-        return [
-            // Primary daily-use tool
-            [
-                'key'   => 'lookup',
-                'group' => 'primary',
-                'title' => 'Rank Lookup',
-                'desc'  => 'Predict eligible colleges + branches for a given rank, exam, and category. Cushion %, prediction bucket, AI counsellor notes.',
-                'icon'  => 'heroicon-o-magnifying-glass',
-                'url'   => '/admin/rank-lookup',
-            ],
+    /** Manage (source-data) cards, shown to analyse-capable users. */
+    private const MANAGE = [
+        ['key' => 'manage-universities', 'title' => 'Universities', 'desc' => 'University records (name, code, state, website).', 'icon' => 'heroicon-o-building-library', 'url' => '/admin/rank/universities'],
+        ['key' => 'manage-institutes', 'title' => 'Institutes', 'desc' => 'Colleges + institutes per university.', 'icon' => 'heroicon-o-building-office', 'url' => '/admin/rank/institutes'],
+        ['key' => 'manage-courses', 'title' => 'Courses', 'desc' => 'Courses offered per university.', 'icon' => 'heroicon-o-academic-cap', 'url' => '/admin/rank/courses'],
+        ['key' => 'manage-branches', 'title' => 'Branches', 'desc' => 'Specialisations inside each course.', 'icon' => 'heroicon-o-rectangle-stack', 'url' => '/admin/rank/branches'],
+        ['key' => 'manage-cutoffs', 'title' => 'Cutoffs', 'desc' => 'Historical cutoffs per year / round / region. Bulk-paste import.', 'icon' => 'heroicon-o-chart-bar', 'url' => '/admin/rank/cutoffs'],
+        ['key' => 'manage-seats', 'title' => 'Seats', 'desc' => 'Seat counts per year / branch / institute.', 'icon' => 'heroicon-o-squares-2x2', 'url' => '/admin/rank/seats'],
+    ];
 
-            // Source data management — rare-use bulk editing
-            [
-                'key'   => 'universities',
-                'group' => 'manage',
-                'title' => 'Universities',
-                'desc'  => 'University records (name, code, state, official website).',
-                'icon'  => 'heroicon-o-building-library',
-                'url'   => '/admin/rank/universities',
-            ],
-            [
-                'key'   => 'institutes',
-                'group' => 'manage',
-                'title' => 'Institutes',
-                'desc'  => 'Colleges + institutes affiliated to each university.',
-                'icon'  => 'heroicon-o-building-office',
-                'url'   => '/admin/rank/institutes',
-            ],
-            [
-                'key'   => 'courses',
-                'group' => 'manage',
-                'title' => 'Courses',
-                'desc'  => 'Courses offered per university (B.Tech, MBA, etc.).',
-                'icon'  => 'heroicon-o-academic-cap',
-                'url'   => '/admin/rank/courses',
-            ],
-            [
-                'key'   => 'branches',
-                'group' => 'manage',
-                'title' => 'Branches',
-                'desc'  => 'Specialisations / branches inside each course.',
-                'icon'  => 'heroicon-o-rectangle-stack',
-                'url'   => '/admin/rank/branches',
-            ],
-            [
-                'key'   => 'cutoffs',
-                'group' => 'manage',
-                'title' => 'Cutoffs',
-                'desc'  => 'Historical cutoffs per year / round / region. Bulk-paste import available.',
-                'icon'  => 'heroicon-o-chart-bar',
-                'url'   => '/admin/rank/cutoffs',
-            ],
-            [
-                'key'   => 'seats',
-                'group' => 'manage',
-                'title' => 'Seats',
-                'desc'  => 'Seat counts per year / branch / institute. Bulk-paste import available.',
-                'icon'  => 'heroicon-o-squares-2x2',
-                'url'   => '/admin/rank/seats',
-            ],
-            [
-                'key'   => 'qualifying-exams',
-                'group' => 'manage',
-                'title' => 'Qualifying Exams',
-                'desc'  => 'JEE, CUET, CLAT and other entrance exam reference data.',
-                'icon'  => 'heroicon-o-pencil-square',
-                'url'   => '/admin/rank/qualifying-exams',
-            ],
-            [
-                'key'   => 'admission-processes',
-                'group' => 'manage',
-                'title' => 'Admission Processes',
-                'desc'  => 'Process codes (CSAB, JAC, JoSAA) used in cutoff records.',
-                'icon'  => 'heroicon-o-clipboard-document-list',
-                'url'   => '/admin/rank/admission-processes',
-            ],
-        ];
-    }
-
-    public static function accessibleFor(?User $user): array
+    /** @return array<int,array<string,string>> role-filtered cards for the landing */
+    public static function cardsFor(?User $user): array
     {
-        if ($user === null) {
+        if (! RankAccess::canSeeAnyRankTool($user)) {
             return [];
         }
 
-        return self::canAccess($user) ? self::descriptors() : [];
+        $cards = [];
+
+        // Predict cards — one per predictable dataset, links to the new predictor page.
+        foreach (RankAccess::predictableDatasets($user) as $token) {
+            $label = RankDataset::label($token);
+            $cards[] = [
+                'key'   => "predict-{$token}",
+                'group' => 'predict',
+                'title' => "{$label} — Predict",
+                'desc'  => "Predict eligible colleges + branches for a {$label} rank, with category, sub-category, gender, and chance scale.",
+                'icon'  => $token === 'ipu' ? 'heroicon-o-magnifying-glass' : 'heroicon-o-academic-cap',
+                'url'   => "/admin/rank/{$token}/predict",
+            ];
+        }
+
+        // Manage cards — shown if the user can analyse ANY dataset (resources self-scope).
+        if (RankAccess::analysableDatasets($user) !== []) {
+            foreach (self::MANAGE as $card) {
+                $cards[] = $card + ['group' => 'manage'];
+            }
+        }
+
+        // Legacy IPU Rank Lookup — kept reachable until category-wise IPU data lands.
+        if (in_array('ipu', RankAccess::predictableDatasets($user), true)
+            || in_array('ipu', RankAccess::analysableDatasets($user), true)) {
+            $cards[] = [
+                'key'   => 'legacy-lookup',
+                'group' => 'legacy',
+                'title' => 'IPU Rank Lookup (legacy)',
+                'desc'  => 'Older IPU branch-family lookup. Use “IPU — Predict” for the new category-aware tool.',
+                'icon'  => 'heroicon-o-clock',
+                'url'   => '/admin/rank-lookup',
+            ];
+        }
+
+        return $cards;
     }
 
+    /** Back-compat: landing access gate. */
     public static function canAccess(?User $user): bool
     {
-        return $user?->hasAnyRole(['admin', 'rank-admin']) ?? false;
+        return RankAccess::canSeeAnyRankTool($user);
     }
 }
