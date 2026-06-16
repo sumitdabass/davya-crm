@@ -22,8 +22,11 @@ class DatasetCutoffPredictorTest extends TestCase
     protected $connectionsToTransact = ['ranks'];
 
     private University $jac;
+
     private Course $course;
+
     private QualifyingExam $exam;
+
     private AdmissionProcess $process;
 
     protected function setUp(): void

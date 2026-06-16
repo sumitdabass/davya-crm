@@ -120,10 +120,6 @@ class RankLookup extends Page implements HasForms
                 Select::make('course_id')->label('Course')
                     ->options(fn ($get) => Course::where('university_id', $get('university_id'))->pluck('name', 'id'))
                     ->required()->reactive(),
-                Select::make('qualifying_exam_id')->label('Qualifying Exam')
-                    ->options(QualifyingExam::pluck('name', 'id'))->required(),
-                Select::make('admission_process_id')->label('Admission Process')
-                    ->options(AdmissionProcess::pluck('name', 'id'))->required(),
                 Select::make('year')->options(fn () => Cutoff::distinct()->orderBy('year', 'desc')->pluck('year', 'year')->toArray())->required(),
                 Select::make('region')->options(['delhi' => 'Delhi', 'outside_delhi' => 'Outside Delhi'])->required(),
                 Select::make('branch_families')

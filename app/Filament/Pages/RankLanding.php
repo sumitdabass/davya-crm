@@ -26,21 +26,29 @@ class RankLanding extends Page
         return RankRegistry::canAccess(auth()->user());
     }
 
-    public function getPrimaryCard(): ?array
+    /** @return array<int,array<string,string>> */
+    public function getPredictCards(): array
     {
-        foreach (RankRegistry::accessibleFor(auth()->user()) as $c) {
-            if (($c['group'] ?? null) === 'primary') {
-                return $c;
-            }
-        }
-        return null;
+        return $this->cardsByGroup('predict');
     }
 
+    /** @return array<int,array<string,string>> */
     public function getManageCards(): array
     {
+        return $this->cardsByGroup('manage');
+    }
+
+    /** @return array<int,array<string,string>> */
+    public function getLegacyCards(): array
+    {
+        return $this->cardsByGroup('legacy');
+    }
+
+    private function cardsByGroup(string $group): array
+    {
         return array_values(array_filter(
-            RankRegistry::accessibleFor(auth()->user()),
-            fn (array $c) => ($c['group'] ?? null) === 'manage',
+            RankRegistry::cardsFor(auth()->user()),
+            fn (array $c) => ($c['group'] ?? null) === $group,
         ));
     }
 }

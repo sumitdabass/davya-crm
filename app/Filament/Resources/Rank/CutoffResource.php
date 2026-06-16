@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Rank;
 
-use App\Filament\Resources\Rank\Concerns\RestrictsToRankRoles;
+use App\Filament\Resources\Rank\Concerns\ScopesToRankDataset;
 use App\Filament\Resources\Rank\CutoffResource\Pages;
 use App\Models\Rank\AdmissionProcess;
 use App\Models\Rank\Branch;
@@ -20,12 +20,18 @@ use Filament\Tables\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CutoffResource extends Resource
 {
-    use RestrictsToRankRoles;
+    use ScopesToRankDataset;
 
     protected static ?string $model = Cutoff::class;
+
+    protected static function scopeToRankUniversityCodes(Builder $query, array $codes): Builder
+    {
+        return $query->whereHas('university', fn ($q) => $q->whereIn('code', $codes));
+    }
 
     protected static ?string $navigationGroup = 'Rank Predictor';
 
