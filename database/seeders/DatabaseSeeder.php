@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             FinanceRoleSeeder::class,
             \Database\Seeders\Rank\RankRoleSeeder::class,
             \Database\Seeders\Rank\RankReferenceDataSeeder::class,
+            \Database\Seeders\Rank\JacDelhiSeeder::class,
             \Database\Seeders\Rank\SumitSuperAdminSeeder::class,
         ]);
     }
