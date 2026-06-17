@@ -1,0 +1,847 @@
+institute,branch,round,region,category,sub_category,closing_rank
+DTU,Computer Science and Engineering,1,delhi,general,gender-neutral,9170
+DTU,Computer Science and Engineering,1,delhi,general,girl,12243
+DTU,Computer Science and Engineering,1,delhi,ews,gender-neutral,24019
+DTU,Computer Science and Engineering,1,delhi,ews,girl,31101
+DTU,Computer Science and Engineering,1,delhi,obc,gender-neutral,41031
+DTU,Computer Science and Engineering,1,delhi,obc,girl,66166
+DTU,Computer Science and Engineering,1,delhi,sc,gender-neutral,100225
+DTU,Computer Science and Engineering,1,delhi,sc,girl,117723
+DTU,Computer Science and Engineering,1,delhi,st,gender-neutral,261198
+DTU,Computer Science and Engineering,1,delhi,st,girl,339743
+DTU,Computer Science and Engineering,1,delhi,general,single-girl,19957
+DTU,Computer Science and Engineering,1,delhi,general,pwd,103810
+DTU,Computer Science and Engineering,1,delhi,ews,pwd,233585
+DTU,Computer Science and Engineering,1,delhi,obc,pwd,356814
+DTU,Computer Science and Engineering,1,delhi,sc,pwd,846056
+DTU,Computer Science and Engineering,1,delhi,st,pwd,1287380
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,general,gender-neutral,10274
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,general,girl,12957
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,ews,gender-neutral,26893
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,ews,girl,34476
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,obc,gender-neutral,47321
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,obc,girl,49320
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,sc,gender-neutral,106615
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,sc,girl,125819
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,st,gender-neutral,281792
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,general,single-girl,20396
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,general,pwd,83757
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,obc,pwd,333955
+DTU,Information Technology,1,delhi,general,gender-neutral,13499
+DTU,Information Technology,1,delhi,general,girl,17274
+DTU,Information Technology,1,delhi,ews,gender-neutral,33309
+DTU,Information Technology,1,delhi,ews,girl,40896
+DTU,Information Technology,1,delhi,obc,gender-neutral,57324
+DTU,Information Technology,1,delhi,obc,girl,81865
+DTU,Information Technology,1,delhi,sc,gender-neutral,133457
+DTU,Information Technology,1,delhi,sc,girl,136375
+DTU,Information Technology,1,delhi,st,gender-neutral,351096
+DTU,Information Technology,1,delhi,st,girl,461504
+DTU,Information Technology,1,delhi,general,single-girl,24690
+DTU,Information Technology,1,delhi,general,pwd,123208
+DTU,Information Technology,1,delhi,ews,pwd,407519
+DTU,Information Technology,1,delhi,obc,pwd,415661
+DTU,Information Technology (Cyber Security),1,delhi,general,gender-neutral,17650
+DTU,Information Technology (Cyber Security),1,delhi,general,girl,21218
+DTU,Information Technology (Cyber Security),1,delhi,ews,gender-neutral,34018
+DTU,Information Technology (Cyber Security),1,delhi,obc,gender-neutral,76895
+DTU,Information Technology (Cyber Security),1,delhi,obc,girl,89361
+DTU,Information Technology (Cyber Security),1,delhi,sc,gender-neutral,156722
+DTU,Information Technology (Cyber Security),1,delhi,sc,girl,224767
+DTU,Information Technology (Cyber Security),1,delhi,st,gender-neutral,473550
+DTU,Information Technology (Cyber Security),1,delhi,st,girl,876713
+DTU,Information Technology (Cyber Security),1,delhi,general,single-girl,25328
+DTU,Information Technology (Cyber Security),1,delhi,general,pwd,169047
+DTU,Information Technology (Cyber Security),1,delhi,obc,pwd,560768
+DTU,Software Engineering,1,delhi,general,gender-neutral,16857
+DTU,Software Engineering,1,delhi,general,girl,22206
+DTU,Software Engineering,1,delhi,ews,gender-neutral,38763
+DTU,Software Engineering,1,delhi,ews,girl,43342
+DTU,Software Engineering,1,delhi,obc,gender-neutral,75460
+DTU,Software Engineering,1,delhi,obc,girl,95474
+DTU,Software Engineering,1,delhi,sc,gender-neutral,150358
+DTU,Software Engineering,1,delhi,sc,girl,192476
+DTU,Software Engineering,1,delhi,st,gender-neutral,526524
+DTU,Software Engineering,1,delhi,st,girl,685912
+DTU,Software Engineering,1,delhi,general,single-girl,25387
+DTU,Software Engineering,1,delhi,general,pwd,168096
+DTU,Software Engineering,1,delhi,ews,pwd,327406
+DTU,Software Engineering,1,delhi,obc,pwd,556611
+DTU,Mathematics and Computing,1,delhi,general,gender-neutral,19022
+DTU,Mathematics and Computing,1,delhi,general,girl,25676
+DTU,Mathematics and Computing,1,delhi,ews,gender-neutral,41651
+DTU,Mathematics and Computing,1,delhi,ews,girl,47384
+DTU,Mathematics and Computing,1,delhi,obc,gender-neutral,86302
+DTU,Mathematics and Computing,1,delhi,obc,girl,132193
+DTU,Mathematics and Computing,1,delhi,sc,gender-neutral,168077
+DTU,Mathematics and Computing,1,delhi,sc,girl,207365
+DTU,Mathematics and Computing,1,delhi,st,gender-neutral,701802
+DTU,Mathematics and Computing,1,delhi,st,girl,761032
+DTU,Mathematics and Computing,1,delhi,general,single-girl,25790
+DTU,Mathematics and Computing,1,delhi,general,pwd,178659
+DTU,Mathematics and Computing,1,delhi,ews,pwd,852529
+DTU,Mathematics and Computing,1,delhi,obc,pwd,743666
+DTU,Electronics and Communication Engineering,1,delhi,general,gender-neutral,21428
+DTU,Electronics and Communication Engineering,1,delhi,general,girl,28719
+DTU,Electronics and Communication Engineering,1,delhi,ews,gender-neutral,45197
+DTU,Electronics and Communication Engineering,1,delhi,ews,girl,59866
+DTU,Electronics and Communication Engineering,1,delhi,obc,gender-neutral,94929
+DTU,Electronics and Communication Engineering,1,delhi,obc,girl,152819
+DTU,Electronics and Communication Engineering,1,delhi,sc,gender-neutral,171875
+DTU,Electronics and Communication Engineering,1,delhi,sc,girl,193895
+DTU,Electronics and Communication Engineering,1,delhi,st,gender-neutral,732943
+DTU,Electronics and Communication Engineering,1,delhi,st,girl,899864
+DTU,Electronics and Communication Engineering,1,delhi,general,single-girl,29939
+DTU,Electronics and Communication Engineering,1,delhi,general,pwd,123237
+DTU,Electronics and Communication Engineering,1,delhi,obc,pwd,996647
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,general,gender-neutral,23597
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,general,girl,31363
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,ews,gender-neutral,49827
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,ews,girl,77950
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,obc,gender-neutral,101366
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,obc,girl,171193
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,sc,gender-neutral,188900
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,sc,girl,263818
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,st,gender-neutral,1217445
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,general,single-girl,32497
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,general,pwd,211813
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,ews,pwd,701837
+DTU,Electrical Engineering,1,delhi,general,gender-neutral,30596
+DTU,Electrical Engineering,1,delhi,general,girl,41729
+DTU,Electrical Engineering,1,delhi,ews,gender-neutral,62064
+DTU,Electrical Engineering,1,delhi,ews,girl,119162
+DTU,Electrical Engineering,1,delhi,obc,gender-neutral,127387
+DTU,Electrical Engineering,1,delhi,obc,girl,306083
+DTU,Electrical Engineering,1,delhi,sc,gender-neutral,228722
+DTU,Electrical Engineering,1,delhi,sc,girl,357865
+DTU,Electrical Engineering,1,delhi,st,gender-neutral,1313413
+DTU,Electrical Engineering,1,delhi,general,single-girl,42808
+DTU,Electrical Engineering,1,delhi,general,pwd,289265
+DTU,Electrical Engineering,1,delhi,obc,pwd,1277335
+DTU,Mechanical Engineering,1,delhi,general,gender-neutral,39267
+DTU,Mechanical Engineering,1,delhi,general,girl,65596
+DTU,Mechanical Engineering,1,delhi,ews,gender-neutral,72599
+DTU,Mechanical Engineering,1,delhi,ews,girl,190814
+DTU,Mechanical Engineering,1,delhi,obc,gender-neutral,155310
+DTU,Mechanical Engineering,1,delhi,obc,girl,365531
+DTU,Mechanical Engineering,1,delhi,sc,gender-neutral,266777
+DTU,Mechanical Engineering,1,delhi,sc,girl,484504
+DTU,Mechanical Engineering,1,delhi,st,gender-neutral,1436790
+DTU,Mechanical Engineering,1,delhi,general,single-girl,69332
+DTU,Mechanical Engineering,1,delhi,general,pwd,389175
+DTU,Mechanical and Automation Engineering,1,delhi,general,gender-neutral,41102
+DTU,Mechanical and Automation Engineering,1,delhi,general,girl,88314
+DTU,Mechanical and Automation Engineering,1,delhi,ews,gender-neutral,70775
+DTU,Mechanical and Automation Engineering,1,delhi,ews,girl,137498
+DTU,Mechanical and Automation Engineering,1,delhi,obc,gender-neutral,155856
+DTU,Mechanical and Automation Engineering,1,delhi,obc,girl,314405
+DTU,Mechanical and Automation Engineering,1,delhi,sc,gender-neutral,271178
+DTU,Mechanical and Automation Engineering,1,delhi,sc,girl,484784
+DTU,Mechanical and Automation Engineering,1,delhi,general,single-girl,100082
+DTU,Mechanical and Automation Engineering,1,delhi,general,pwd,431456
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,general,gender-neutral,42305
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,general,girl,82576
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,ews,gender-neutral,73820
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,obc,gender-neutral,158878
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,obc,girl,259556
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,sc,gender-neutral,273618
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,sc,girl,364515
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,st,gender-neutral,1098204
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,general,single-girl,91280
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,general,pwd,386305
+DTU,Engineering Physics,1,delhi,general,gender-neutral,43665
+DTU,Engineering Physics,1,delhi,general,girl,70149
+DTU,Engineering Physics,1,delhi,ews,gender-neutral,72665
+DTU,Engineering Physics,1,delhi,ews,girl,190393
+DTU,Engineering Physics,1,delhi,obc,gender-neutral,165541
+DTU,Engineering Physics,1,delhi,obc,girl,223132
+DTU,Engineering Physics,1,delhi,sc,gender-neutral,287126
+DTU,Engineering Physics,1,delhi,sc,girl,351345
+DTU,Engineering Physics,1,delhi,st,gender-neutral,569476
+DTU,Engineering Physics,1,delhi,general,single-girl,83501
+DTU,Engineering Physics,1,delhi,general,pwd,367131
+DTU,Chemical Engineering,1,delhi,general,gender-neutral,46915
+DTU,Chemical Engineering,1,delhi,general,girl,93220
+DTU,Chemical Engineering,1,delhi,ews,gender-neutral,82616
+DTU,Chemical Engineering,1,delhi,obc,gender-neutral,175163
+DTU,Chemical Engineering,1,delhi,obc,girl,295003
+DTU,Chemical Engineering,1,delhi,sc,gender-neutral,291214
+DTU,Chemical Engineering,1,delhi,sc,girl,458233
+DTU,Chemical Engineering,1,delhi,st,gender-neutral,221211
+DTU,Chemical Engineering,1,delhi,general,single-girl,102660
+DTU,Chemical Engineering,1,delhi,general,pwd,867954
+DTU,Civil Engineering,1,delhi,general,gender-neutral,53519
+DTU,Civil Engineering,1,delhi,general,girl,101230
+DTU,Civil Engineering,1,delhi,ews,gender-neutral,90594
+DTU,Civil Engineering,1,delhi,ews,girl,171924
+DTU,Civil Engineering,1,delhi,obc,gender-neutral,188807
+DTU,Civil Engineering,1,delhi,obc,girl,371364
+DTU,Civil Engineering,1,delhi,sc,gender-neutral,296921
+DTU,Civil Engineering,1,delhi,sc,girl,371107
+DTU,Civil Engineering,1,delhi,st,gender-neutral,461712
+DTU,Civil Engineering,1,delhi,st,girl,466313
+DTU,Civil Engineering,1,delhi,general,single-girl,114000
+DTU,Civil Engineering,1,delhi,general,pwd,626463
+DTU,Civil Engineering,1,delhi,obc,pwd,973291
+DTU,Production & Industrial Engineering,1,delhi,general,gender-neutral,48274
+DTU,Production & Industrial Engineering,1,delhi,general,girl,103921
+DTU,Production & Industrial Engineering,1,delhi,ews,gender-neutral,84086
+DTU,Production & Industrial Engineering,1,delhi,ews,girl,211425
+DTU,Production & Industrial Engineering,1,delhi,obc,gender-neutral,187637
+DTU,Production & Industrial Engineering,1,delhi,obc,girl,371587
+DTU,Production & Industrial Engineering,1,delhi,sc,gender-neutral,306472
+DTU,Production & Industrial Engineering,1,delhi,sc,girl,496166
+DTU,Production & Industrial Engineering,1,delhi,general,single-girl,113315
+DTU,Production & Industrial Engineering,1,delhi,general,pwd,583939
+DTU,Environmental Engineering,1,delhi,general,gender-neutral,55999
+DTU,Environmental Engineering,1,delhi,general,girl,81414
+DTU,Environmental Engineering,1,delhi,ews,gender-neutral,95086
+DTU,Environmental Engineering,1,delhi,obc,gender-neutral,197523
+DTU,Environmental Engineering,1,delhi,obc,girl,399179
+DTU,Environmental Engineering,1,delhi,sc,gender-neutral,341238
+DTU,Environmental Engineering,1,delhi,sc,girl,418682
+DTU,Environmental Engineering,1,delhi,st,gender-neutral,557453
+DTU,Environmental Engineering,1,delhi,general,single-girl,107248
+DTU,Environmental Engineering,1,delhi,general,pwd,872712
+DTU,Bio-Technology,1,delhi,general,gender-neutral,56089
+DTU,Bio-Technology,1,delhi,general,girl,89684
+DTU,Bio-Technology,1,delhi,ews,gender-neutral,95505
+DTU,Bio-Technology,1,delhi,obc,gender-neutral,198937
+DTU,Bio-Technology,1,delhi,obc,girl,360197
+DTU,Bio-Technology,1,delhi,sc,gender-neutral,341827
+DTU,Bio-Technology,1,delhi,sc,girl,351347
+DTU,Bio-Technology,1,delhi,st,gender-neutral,574407
+DTU,Bio-Technology,1,delhi,general,single-girl,108706
+DTU,Bio-Technology,1,delhi,general,pwd,899143
+DTU,Computer Science and Engineering,1,delhi,general,defense-cw,897590
+DTU,Computer Science and Engineering,1,delhi,ews,defense-cw,41049
+DTU,Computer Science and Engineering,1,delhi,obc,defense-cw,114079
+DTU,Computer Science and Engineering,1,delhi,sc,defense-cw,272413
+DTU,Computer Science and Engineering,1,delhi,st,defense-cw,542932
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,general,defense-cw,116417
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,ews,defense-cw,52422
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,obc,defense-cw,112047
+DTU,Computer Science and Engineering (Data Science & Analytics),1,delhi,sc,defense-cw,249540
+DTU,Information Technology,1,delhi,general,defense-cw,14253
+DTU,Information Technology,1,delhi,obc,defense-cw,136118
+DTU,Information Technology (Cyber Security),1,delhi,general,defense-cw,30783
+DTU,Information Technology (Cyber Security),1,delhi,ews,defense-cw,77934
+DTU,Information Technology (Cyber Security),1,delhi,sc,defense-cw,632875
+DTU,Software Engineering,1,delhi,general,defense-cw,26829
+DTU,Software Engineering,1,delhi,ews,defense-cw,66507
+DTU,Software Engineering,1,delhi,obc,defense-cw,144690
+DTU,Software Engineering,1,delhi,sc,defense-cw,246888
+DTU,Software Engineering,1,delhi,st,defense-cw,617908
+DTU,Mathematics and Computing,1,delhi,general,defense-cw,36631
+DTU,Mathematics and Computing,1,delhi,ews,defense-cw,112666
+DTU,Mathematics and Computing,1,delhi,obc,defense-cw,157948
+DTU,Mathematics and Computing,1,delhi,sc,defense-cw,508356
+DTU,Electronics and Communication Engineering,1,delhi,general,defense-cw,40021
+DTU,Electronics and Communication Engineering,1,delhi,ews,defense-cw,78785
+DTU,Electronics and Communication Engineering,1,delhi,obc,defense-cw,171340
+DTU,Electronics and Communication Engineering,1,delhi,sc,defense-cw,395762
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,general,defense-cw,44131
+DTU,Electronics Engineering (VLSI Design and Technology),1,delhi,obc,defense-cw,172203
+DTU,Electrical Engineering,1,delhi,general,defense-cw,79722
+DTU,Electrical Engineering,1,delhi,ews,defense-cw,137884
+DTU,Electrical Engineering,1,delhi,obc,defense-cw,214717
+DTU,Electrical Engineering,1,delhi,sc,defense-cw,1101551
+DTU,Mechanical Engineering,1,delhi,general,defense-cw,103734
+DTU,Mechanical Engineering,1,delhi,ews,defense-cw,245559
+DTU,Mechanical Engineering,1,delhi,obc,defense-cw,249926
+DTU,Mechanical and Automation Engineering,1,delhi,general,defense-cw,97148
+DTU,Mechanical and Automation Engineering,1,delhi,obc,defense-cw,287913
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,general,defense-cw,110052
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,ews,defense-cw,286891
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,delhi,obc,defense-cw,285693
+DTU,Engineering Physics,1,delhi,general,defense-cw,88327
+DTU,Engineering Physics,1,delhi,obc,defense-cw,332622
+DTU,Chemical Engineering,1,delhi,general,defense-cw,115655
+DTU,Chemical Engineering,1,delhi,ews,defense-cw,220101
+DTU,Chemical Engineering,1,delhi,obc,defense-cw,366236
+DTU,Civil Engineering,1,delhi,general,defense-cw,131725
+DTU,Civil Engineering,1,delhi,ews,defense-cw,142652
+DTU,Civil Engineering,1,delhi,obc,defense-cw,355559
+DTU,Civil Engineering,1,delhi,sc,defense-cw,1356375
+DTU,Production & Industrial Engineering,1,delhi,general,defense-cw,128209
+DTU,Production & Industrial Engineering,1,delhi,obc,defense-cw,368972
+DTU,Environmental Engineering,1,delhi,general,defense-cw,135943
+DTU,Environmental Engineering,1,delhi,obc,defense-cw,342205
+DTU,Bio-Technology,1,delhi,general,defense-cw,144729
+DTU,Bio-Technology,1,delhi,obc,defense-cw,357248
+DTU,Computer Science and Engineering,1,outside_delhi,general,gender-neutral,3430
+DTU,Computer Science and Engineering,1,outside_delhi,general,girl,4817
+DTU,Computer Science and Engineering,1,outside_delhi,ews,gender-neutral,6736
+DTU,Computer Science and Engineering,1,outside_delhi,ews,girl,13479
+DTU,Computer Science and Engineering,1,outside_delhi,obc,gender-neutral,9777
+DTU,Computer Science and Engineering,1,outside_delhi,obc,girl,14654
+DTU,Computer Science and Engineering,1,outside_delhi,sc,gender-neutral,35953
+DTU,Computer Science and Engineering,1,outside_delhi,sc,girl,47322
+DTU,Computer Science and Engineering,1,outside_delhi,st,gender-neutral,80073
+DTU,Computer Science and Engineering,1,outside_delhi,st,girl,86561
+DTU,Computer Science and Engineering,1,outside_delhi,general,pwd,49886
+DTU,Computer Science and Engineering,1,outside_delhi,ews,pwd,66338
+DTU,Computer Science and Engineering,1,outside_delhi,obc,pwd,98262
+DTU,Computer Science and Engineering,1,outside_delhi,sc,pwd,219537
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,general,gender-neutral,4383
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,general,girl,5190
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,ews,gender-neutral,5748
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,obc,gender-neutral,11447
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,sc,gender-neutral,41118
+DTU,Computer Science and Engineering (Data Science & Analytics),1,outside_delhi,st,gender-neutral,89658
+DTU,Information Technology,1,outside_delhi,general,gender-neutral,4840
+DTU,Information Technology,1,outside_delhi,general,girl,7477
+DTU,Information Technology,1,outside_delhi,ews,gender-neutral,7493
+DTU,Information Technology,1,outside_delhi,obc,gender-neutral,12410
+DTU,Information Technology,1,outside_delhi,sc,gender-neutral,54877
+DTU,Information Technology,1,outside_delhi,sc,girl,80588
+DTU,Information Technology,1,outside_delhi,st,gender-neutral,102943
+DTU,Information Technology,1,outside_delhi,general,pwd,50925
+DTU,Information Technology (Cyber Security),1,outside_delhi,general,gender-neutral,5624
+DTU,Information Technology (Cyber Security),1,outside_delhi,general,girl,8204
+DTU,Information Technology (Cyber Security),1,outside_delhi,ews,gender-neutral,9301
+DTU,Information Technology (Cyber Security),1,outside_delhi,obc,gender-neutral,13166
+DTU,Information Technology (Cyber Security),1,outside_delhi,sc,gender-neutral,64815
+DTU,Information Technology (Cyber Security),1,outside_delhi,st,gender-neutral,126530
+DTU,Software Engineering,1,outside_delhi,general,gender-neutral,6206
+DTU,Software Engineering,1,outside_delhi,general,girl,7949
+DTU,Software Engineering,1,outside_delhi,ews,gender-neutral,8436
+DTU,Software Engineering,1,outside_delhi,obc,gender-neutral,13848
+DTU,Software Engineering,1,outside_delhi,obc,girl,23893
+DTU,Software Engineering,1,outside_delhi,sc,gender-neutral,61196
+DTU,Software Engineering,1,outside_delhi,sc,girl,72669
+DTU,Software Engineering,1,outside_delhi,st,gender-neutral,124544
+DTU,Software Engineering,1,outside_delhi,general,pwd,65551
+DTU,Software Engineering,1,outside_delhi,ews,pwd,106559
+DTU,Mathematics and Computing,1,outside_delhi,general,gender-neutral,5634
+DTU,Mathematics and Computing,1,outside_delhi,general,girl,8100
+DTU,Mathematics and Computing,1,outside_delhi,ews,gender-neutral,10005
+DTU,Mathematics and Computing,1,outside_delhi,ews,girl,15473
+DTU,Mathematics and Computing,1,outside_delhi,obc,gender-neutral,15246
+DTU,Mathematics and Computing,1,outside_delhi,obc,girl,19539
+DTU,Mathematics and Computing,1,outside_delhi,sc,gender-neutral,70590
+DTU,Mathematics and Computing,1,outside_delhi,st,gender-neutral,109768
+DTU,Mathematics and Computing,1,outside_delhi,obc,pwd,174707
+DTU,Mathematics and Computing,1,outside_delhi,st,pwd,1244773
+DTU,Electronics and Communication Engineering,1,outside_delhi,general,gender-neutral,6660
+DTU,Electronics and Communication Engineering,1,outside_delhi,general,girl,8725
+DTU,Electronics and Communication Engineering,1,outside_delhi,ews,gender-neutral,7736
+DTU,Electronics and Communication Engineering,1,outside_delhi,obc,gender-neutral,17270
+DTU,Electronics and Communication Engineering,1,outside_delhi,obc,girl,24903
+DTU,Electronics and Communication Engineering,1,outside_delhi,sc,gender-neutral,69249
+DTU,Electronics and Communication Engineering,1,outside_delhi,st,gender-neutral,46517
+DTU,Electronics and Communication Engineering,1,outside_delhi,st,girl,159157
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,general,gender-neutral,7142
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,ews,gender-neutral,11246
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,obc,gender-neutral,16670
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,sc,gender-neutral,78278
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,sc,girl,119445
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,st,gender-neutral,138119
+DTU,Electronics Engineering (VLSI Design and Technology),1,outside_delhi,general,pwd,76521
+DTU,Electrical Engineering,1,outside_delhi,general,gender-neutral,9393
+DTU,Electrical Engineering,1,outside_delhi,general,girl,9722
+DTU,Electrical Engineering,1,outside_delhi,ews,gender-neutral,14210
+DTU,Electrical Engineering,1,outside_delhi,ews,girl,19572
+DTU,Electrical Engineering,1,outside_delhi,obc,gender-neutral,21026
+DTU,Electrical Engineering,1,outside_delhi,obc,girl,26300
+DTU,Electrical Engineering,1,outside_delhi,sc,gender-neutral,86696
+DTU,Electrical Engineering,1,outside_delhi,sc,girl,130001
+DTU,Electrical Engineering,1,outside_delhi,st,gender-neutral,151189
+DTU,Electrical Engineering,1,outside_delhi,general,pwd,61505
+DTU,Electrical Engineering,1,outside_delhi,ews,pwd,145899
+DTU,Electrical Engineering,1,outside_delhi,obc,pwd,196647
+DTU,Electrical Engineering,1,outside_delhi,sc,pwd,305759
+DTU,Mechanical Engineering,1,outside_delhi,general,gender-neutral,12473
+DTU,Mechanical Engineering,1,outside_delhi,general,girl,15364
+DTU,Mechanical Engineering,1,outside_delhi,ews,gender-neutral,16159
+DTU,Mechanical Engineering,1,outside_delhi,ews,girl,37096
+DTU,Mechanical Engineering,1,outside_delhi,obc,gender-neutral,25530
+DTU,Mechanical Engineering,1,outside_delhi,obc,girl,45660
+DTU,Mechanical Engineering,1,outside_delhi,sc,gender-neutral,101583
+DTU,Mechanical Engineering,1,outside_delhi,st,gender-neutral,126361
+DTU,Mechanical and Automation Engineering,1,outside_delhi,general,gender-neutral,12325
+DTU,Mechanical and Automation Engineering,1,outside_delhi,ews,gender-neutral,17029
+DTU,Mechanical and Automation Engineering,1,outside_delhi,obc,gender-neutral,22280
+DTU,Mechanical and Automation Engineering,1,outside_delhi,sc,gender-neutral,106271
+DTU,Mechanical and Automation Engineering,1,outside_delhi,sc,girl,136907
+DTU,Mechanical and Automation Engineering,1,outside_delhi,st,gender-neutral,172561
+DTU,Mechanical and Automation Engineering,1,outside_delhi,general,pwd,117982
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,general,gender-neutral,12165
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,ews,gender-neutral,17118
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,obc,gender-neutral,28131
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,sc,gender-neutral,108722
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,st,gender-neutral,187669
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,st,girl,228931
+DTU,Mechanical Engineering with specialization in Automotive Engineering,1,outside_delhi,general,pwd,92281
+DTU,Engineering Physics,1,outside_delhi,general,gender-neutral,11826
+DTU,Engineering Physics,1,outside_delhi,general,girl,19786
+DTU,Engineering Physics,1,outside_delhi,ews,gender-neutral,17689
+DTU,Engineering Physics,1,outside_delhi,obc,gender-neutral,28590
+DTU,Engineering Physics,1,outside_delhi,obc,girl,49627
+DTU,Engineering Physics,1,outside_delhi,sc,gender-neutral,108898
+DTU,Engineering Physics,1,outside_delhi,st,gender-neutral,187881
+DTU,Engineering Physics,1,outside_delhi,obc,pwd,335140
+DTU,Chemical Engineering,1,outside_delhi,general,gender-neutral,12836
+DTU,Chemical Engineering,1,outside_delhi,ews,gender-neutral,18014
+DTU,Chemical Engineering,1,outside_delhi,obc,gender-neutral,32053
+DTU,Chemical Engineering,1,outside_delhi,obc,girl,50646
+DTU,Chemical Engineering,1,outside_delhi,sc,gender-neutral,111275
+DTU,Chemical Engineering,1,outside_delhi,st,gender-neutral,119845
+DTU,Civil Engineering,1,outside_delhi,general,gender-neutral,14894
+DTU,Civil Engineering,1,outside_delhi,general,girl,23081
+DTU,Civil Engineering,1,outside_delhi,ews,gender-neutral,24149
+DTU,Civil Engineering,1,outside_delhi,obc,gender-neutral,33693
+DTU,Civil Engineering,1,outside_delhi,obc,girl,53120
+DTU,Civil Engineering,1,outside_delhi,sc,gender-neutral,113437
+DTU,Civil Engineering,1,outside_delhi,st,gender-neutral,107715
+DTU,Civil Engineering,1,outside_delhi,general,pwd,175829
+DTU,Production & Industrial Engineering,1,outside_delhi,general,gender-neutral,14685
+DTU,Production & Industrial Engineering,1,outside_delhi,general,girl,24128
+DTU,Production & Industrial Engineering,1,outside_delhi,ews,gender-neutral,19993
+DTU,Production & Industrial Engineering,1,outside_delhi,obc,gender-neutral,33607
+DTU,Production & Industrial Engineering,1,outside_delhi,sc,gender-neutral,110964
+DTU,Production & Industrial Engineering,1,outside_delhi,st,gender-neutral,194490
+DTU,Environmental Engineering,1,outside_delhi,general,gender-neutral,15709
+DTU,Environmental Engineering,1,outside_delhi,general,girl,16567
+DTU,Environmental Engineering,1,outside_delhi,ews,gender-neutral,24154
+DTU,Environmental Engineering,1,outside_delhi,obc,gender-neutral,36405
+DTU,Environmental Engineering,1,outside_delhi,sc,gender-neutral,116060
+DTU,Environmental Engineering,1,outside_delhi,st,gender-neutral,216962
+DTU,Environmental Engineering,1,outside_delhi,obc,pwd,428288
+DTU,Bio-Technology,1,outside_delhi,general,gender-neutral,15073
+DTU,Bio-Technology,1,outside_delhi,general,girl,20501
+DTU,Bio-Technology,1,outside_delhi,ews,gender-neutral,22962
+DTU,Bio-Technology,1,outside_delhi,obc,gender-neutral,34820
+DTU,Bio-Technology,1,outside_delhi,sc,gender-neutral,117675
+DTU,Bio-Technology,1,outside_delhi,st,gender-neutral,200395
+DTU,Computer Science and Engineering,1,outside_delhi,general,defense-cw,409710
+DTU,Computer Science and Engineering,1,outside_delhi,obc,defense-cw,86331
+DTU,Computer Science and Engineering,1,outside_delhi,sc,defense-cw,414701
+DTU,Computer Science and Engineering,1,outside_delhi,st,defense-cw,179723
+DTU,Information Technology,1,outside_delhi,ews,defense-cw,212411
+DTU,Information Technology,1,outside_delhi,obc,defense-cw,176816
+DTU,Information Technology (Cyber Security),1,outside_delhi,general,defense-cw,656897
+DTU,Software Engineering,1,outside_delhi,obc,defense-cw,15553
+DTU,Mathematics and Computing,1,outside_delhi,general,defense-cw,131724
+DTU,Electronics and Communication Engineering,1,outside_delhi,general,defense-cw,532473
+DTU,Electronics and Communication Engineering,1,outside_delhi,ews,defense-cw,19791
+DTU,Electronics and Communication Engineering,1,outside_delhi,sc,defense-cw,93941
+DTU,Electrical Engineering,1,outside_delhi,general,defense-cw,68005
+DTU,Mechanical Engineering,1,outside_delhi,general,defense-cw,122211
+DTU,Mechanical Engineering,1,outside_delhi,obc,defense-cw,149121
+DTU,Mechanical Engineering,1,outside_delhi,sc,defense-cw,102216
+DTU,Engineering Physics,1,outside_delhi,general,defense-cw,175849
+DTU,Civil Engineering,1,outside_delhi,obc,defense-cw,755745
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,general,gender-neutral,4133
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,ews,gender-neutral,16334
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,obc,gender-neutral,25117
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,sc,gender-neutral,70571
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,st,gender-neutral,250860
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,general,girl,9652
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,ews,girl,19159
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,obc,girl,54933
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,sc,girl,115535
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,st,girl,330913
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,general,defense-cw,235458
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,obc,defense-cw,27111
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,sc,defense-cw,287879
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,st,defense-cw,688799
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,general,pwd,59863
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,ews,pwd,622555
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,obc,pwd,277386
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,delhi,sc,pwd,449355
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,general,gender-neutral,8540
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,ews,gender-neutral,26656
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,obc,gender-neutral,42757
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,sc,gender-neutral,105354
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,st,gender-neutral,234310
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,general,girl,17330
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,ews,girl,34412
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,obc,girl,75429
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,sc,girl,171554
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,st,girl,347446
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,general,defense-cw,369341
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,ews,defense-cw,27827
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,obc,defense-cw,83447
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,sc,defense-cw,357534
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,general,pwd,118653
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,ews,pwd,314505
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,obc,pwd,393379
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,sc,pwd,792109
+NSUT Main (Dwarka),Computer Science & Engineering,1,delhi,st,pwd,1303304
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,general,gender-neutral,9881
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,ews,gender-neutral,28666
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,obc,gender-neutral,49177
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,sc,gender-neutral,118708
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,st,gender-neutral,291778
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,general,girl,17954
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,ews,girl,37831
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,obc,girl,76696
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,sc,girl,176980
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,general,defense-cw,54831
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,obc,defense-cw,84185
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,general,pwd,122084
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,delhi,obc,pwd,288362
+NSUT Main (Dwarka),Information Technology,1,delhi,general,gender-neutral,13639
+NSUT Main (Dwarka),Information Technology,1,delhi,ews,gender-neutral,35635
+NSUT Main (Dwarka),Information Technology,1,delhi,obc,gender-neutral,65146
+NSUT Main (Dwarka),Information Technology,1,delhi,sc,gender-neutral,146594
+NSUT Main (Dwarka),Information Technology,1,delhi,st,gender-neutral,393849
+NSUT Main (Dwarka),Information Technology,1,delhi,general,girl,21142
+NSUT Main (Dwarka),Information Technology,1,delhi,ews,girl,46344
+NSUT Main (Dwarka),Information Technology,1,delhi,obc,girl,96708
+NSUT Main (Dwarka),Information Technology,1,delhi,sc,girl,188493
+NSUT Main (Dwarka),Information Technology,1,delhi,st,girl,403156
+NSUT Main (Dwarka),Information Technology,1,delhi,general,defense-cw,1152051
+NSUT Main (Dwarka),Information Technology,1,delhi,ews,defense-cw,69555
+NSUT Main (Dwarka),Information Technology,1,delhi,obc,defense-cw,107527
+NSUT Main (Dwarka),Information Technology,1,delhi,general,pwd,147700
+NSUT Main (Dwarka),Information Technology,1,delhi,obc,pwd,480163
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,general,gender-neutral,16961
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,ews,gender-neutral,39168
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,obc,gender-neutral,76667
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,sc,gender-neutral,163483
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,st,gender-neutral,512024
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,general,girl,24129
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,ews,girl,47913
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,obc,girl,124946
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,sc,girl,224872
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,st,girl,636911
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,general,defense-cw,20813
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,sc,defense-cw,724392
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,general,pwd,164533
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,delhi,obc,pwd,506605
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,general,gender-neutral,18887
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,ews,gender-neutral,41784
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,obc,gender-neutral,86205
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,sc,gender-neutral,169357
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,st,gender-neutral,582366
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,general,girl,22506
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,ews,girl,54321
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,obc,girl,143918
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,sc,girl,272930
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,st,girl,1168659
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,general,defense-cw,36343
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,sc,defense-cw,597979
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,general,pwd,174853
+NSUT Main (Dwarka),Mathematics & Computing,1,delhi,obc,pwd,546974
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,general,gender-neutral,23371
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,ews,gender-neutral,50660
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,obc,gender-neutral,105700
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,sc,gender-neutral,188993
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,st,gender-neutral,768160
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,general,girl,31883
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,ews,girl,82499
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,obc,girl,204902
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,sc,girl,292714
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,st,girl,942870
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,general,defense-cw,41667
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,ews,defense-cw,105177
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,obc,defense-cw,163620
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,sc,defense-cw,566549
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,general,pwd,184725
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,ews,pwd,482937
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,delhi,obc,pwd,1025271
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,general,gender-neutral,24554
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,ews,gender-neutral,52940
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,obc,gender-neutral,109458
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,sc,gender-neutral,203863
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,st,gender-neutral,1230854
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,general,girl,35291
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,ews,girl,85456
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,obc,girl,254935
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,sc,girl,221374
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,general,defense-cw,42747
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,obc,defense-cw,180217
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,general,pwd,223293
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,delhi,obc,pwd,812711
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,general,gender-neutral,32370
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,ews,gender-neutral,62763
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,obc,gender-neutral,131098
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,sc,gender-neutral,235903
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,st,gender-neutral,1042065
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,general,girl,48352
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,ews,girl,170676
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,obc,girl,318467
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,sc,girl,374923
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,general,defense-cw,83053
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,ews,defense-cw,161297
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,obc,defense-cw,189387
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,sc,defense-cw,807975
+NSUT Main (Dwarka),Electrical Engineering,1,delhi,general,pwd,357402
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,general,gender-neutral,35314
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,ews,gender-neutral,65703
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,obc,gender-neutral,143847
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,sc,gender-neutral,266511
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,general,girl,77184
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,ews,girl,181188
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,obc,girl,379606
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,sc,girl,532813
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,general,defense-cw,94398
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,ews,defense-cw,168110
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,obc,defense-cw,251471
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,delhi,general,pwd,401041
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,general,gender-neutral,44928
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,ews,gender-neutral,77463
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,obc,gender-neutral,165988
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,sc,gender-neutral,287342
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,st,gender-neutral,1202943
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,general,girl,93879
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,ews,girl,190864
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,obc,girl,402963
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,sc,girl,526860
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,general,defense-cw,118521
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,ews,defense-cw,334896
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,obc,defense-cw,314512
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,sc,defense-cw,756193
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,general,pwd,502252
+NSUT Main (Dwarka),Mechanical Engineering,1,delhi,ews,pwd,1437115
+NSUT Main (Dwarka),Bio-Technology,1,delhi,general,gender-neutral,56842
+NSUT Main (Dwarka),Bio-Technology,1,delhi,ews,gender-neutral,98901
+NSUT Main (Dwarka),Bio-Technology,1,delhi,obc,gender-neutral,203550
+NSUT Main (Dwarka),Bio-Technology,1,delhi,sc,gender-neutral,352127
+NSUT Main (Dwarka),Bio-Technology,1,delhi,general,girl,102972
+NSUT Main (Dwarka),Bio-Technology,1,delhi,ews,girl,155276
+NSUT Main (Dwarka),Bio-Technology,1,delhi,obc,girl,404169
+NSUT Main (Dwarka),Bio-Technology,1,delhi,sc,girl,499411
+NSUT Main (Dwarka),Bio-Technology,1,delhi,general,defense-cw,78353
+NSUT Main (Dwarka),Bio-Technology,1,delhi,obc,defense-cw,316928
+NSUT Main (Dwarka),Bio-Technology,1,delhi,general,pwd,533109
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,general,gender-neutral,22659
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,ews,gender-neutral,46062
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,obc,gender-neutral,98243
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,sc,gender-neutral,174705
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,st,gender-neutral,469727
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,general,girl,30563
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,ews,girl,75563
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,obc,girl,139122
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,sc,girl,296920
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,st,girl,512767
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,general,defense-cw,30880
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,obc,defense-cw,129098
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,general,pwd,162192
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,delhi,ews,pwd,831777
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,general,gender-neutral,27069
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,ews,gender-neutral,55313
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,obc,gender-neutral,110830
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,sc,gender-neutral,201348
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,st,gender-neutral,1121915
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,general,girl,38548
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,ews,girl,106088
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,obc,girl,205463
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,sc,girl,362922
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,general,defense-cw,46472
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,ews,defense-cw,130308
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,sc,defense-cw,524877
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,general,pwd,240466
+NSUT East Campus,Computer Science & Engineering (IoT),1,delhi,obc,pwd,669456
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,general,gender-neutral,30964
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,ews,gender-neutral,60565
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,obc,gender-neutral,128114
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,sc,gender-neutral,231926
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,st,gender-neutral,1226010
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,general,girl,75286
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,ews,girl,123304
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,obc,girl,323666
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,sc,girl,517359
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,general,defense-cw,65711
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,ews,defense-cw,234083
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,obc,defense-cw,237721
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,sc,defense-cw,536814
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,general,pwd,375662
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,delhi,obc,pwd,1127297
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,general,gender-neutral,50820
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,ews,gender-neutral,91837
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,obc,gender-neutral,184146
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,sc,gender-neutral,327362
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,general,girl,102505
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,ews,girl,205340
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,obc,girl,424038
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,sc,girl,525840
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,general,defense-cw,131793
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,obc,defense-cw,382201
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,delhi,general,pwd,793296
+NSUT West Campus,Civil Engineering,1,delhi,general,gender-neutral,58717
+NSUT West Campus,Civil Engineering,1,delhi,ews,gender-neutral,98936
+NSUT West Campus,Civil Engineering,1,delhi,obc,gender-neutral,214388
+NSUT West Campus,Civil Engineering,1,delhi,sc,gender-neutral,352291
+NSUT West Campus,Civil Engineering,1,delhi,st,gender-neutral,1073511
+NSUT West Campus,Civil Engineering,1,delhi,general,girl,109073
+NSUT West Campus,Civil Engineering,1,delhi,ews,girl,212112
+NSUT West Campus,Civil Engineering,1,delhi,obc,girl,434757
+NSUT West Campus,Civil Engineering,1,delhi,sc,girl,551245
+NSUT West Campus,Civil Engineering,1,delhi,general,defense-cw,145210
+NSUT West Campus,Civil Engineering,1,delhi,general,pwd,773501
+NSUT West Campus,Geoinformatics,1,delhi,general,gender-neutral,60841
+NSUT West Campus,Geoinformatics,1,delhi,ews,gender-neutral,109487
+NSUT West Campus,Geoinformatics,1,delhi,obc,gender-neutral,224921
+NSUT West Campus,Geoinformatics,1,delhi,sc,gender-neutral,375314
+NSUT West Campus,Geoinformatics,1,delhi,general,girl,98592
+NSUT West Campus,Geoinformatics,1,delhi,ews,girl,19159
+NSUT West Campus,Geoinformatics,1,delhi,obc,girl,447157
+NSUT West Campus,Geoinformatics,1,delhi,sc,girl,556280
+NSUT West Campus,Geoinformatics,1,delhi,general,defense-cw,148038
+NSUT West Campus,Geoinformatics,1,delhi,obc,defense-cw,475252
+NSUT West Campus,Geoinformatics,1,delhi,general,pwd,1034166
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,general,gender-neutral,2943
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,ews,gender-neutral,7880
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,obc,gender-neutral,11307
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,sc,gender-neutral,47791
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,st,gender-neutral,102376
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,general,girl,4894
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,ews,girl,14705
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,obc,girl,12787
+NSUT Main (Dwarka),Computer Science & Engineering (AI),1,outside_delhi,general,defense-cw,15051
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,general,gender-neutral,3438
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,ews,gender-neutral,7696
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,obc,gender-neutral,11754
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,sc,gender-neutral,53174
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,st,gender-neutral,97466
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,general,girl,4525
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,obc,girl,15776
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,sc,girl,80464
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,general,defense-cw,973249
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,ews,defense-cw,187033
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,general,pwd,40261
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,obc,pwd,83085
+NSUT Main (Dwarka),Computer Science & Engineering,1,outside_delhi,sc,pwd,271095
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,general,gender-neutral,4440
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,ews,gender-neutral,8201
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,obc,gender-neutral,11964
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,sc,gender-neutral,54122
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,st,gender-neutral,101303
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,ews,girl,15455
+NSUT Main (Dwarka),Computer Science & Engineering (Data Science),1,outside_delhi,sc,girl,84212
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,general,gender-neutral,5230
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,ews,gender-neutral,9501
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,obc,gender-neutral,14294
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,sc,gender-neutral,61682
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,st,gender-neutral,118433
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,general,girl,7792
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,obc,girl,16978
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,sc,girl,88496
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,obc,defense-cw,50868
+NSUT Main (Dwarka),Information Technology,1,outside_delhi,general,pwd,55808
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,general,gender-neutral,5956
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,ews,gender-neutral,9959
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,obc,gender-neutral,14587
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,sc,gender-neutral,66874
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,st,gender-neutral,135877
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,general,girl,9369
+NSUT Main (Dwarka),Information Technology (Network & Info Security),1,outside_delhi,st,girl,148270
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,general,gender-neutral,5715
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,ews,gender-neutral,10329
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,obc,gender-neutral,16099
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,sc,gender-neutral,69360
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,st,gender-neutral,124948
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,general,girl,7541
+NSUT Main (Dwarka),Mathematics & Computing,1,outside_delhi,obc,girl,24669
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,general,gender-neutral,7226
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,ews,gender-neutral,10882
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,obc,gender-neutral,17978
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,sc,gender-neutral,76664
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,st,gender-neutral,128849
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,general,girl,9555
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,ews,girl,15647
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,obc,girl,25131
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,sc,girl,110707
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,st,girl,183511
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,general,pwd,70479
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,ews,pwd,114716
+NSUT Main (Dwarka),Electronics & Communication Engineering,1,outside_delhi,obc,pwd,112226
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,general,gender-neutral,7764
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,ews,gender-neutral,11189
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,obc,gender-neutral,19098
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,sc,gender-neutral,77625
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,st,gender-neutral,158431
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,general,girl,9462
+NSUT Main (Dwarka),Electronics Engg (VLSI Design & Technology),1,outside_delhi,obc,girl,32581
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,general,gender-neutral,9879
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,ews,gender-neutral,14261
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,obc,gender-neutral,21226
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,sc,gender-neutral,88172
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,st,gender-neutral,154752
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,general,girl,13151
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,obc,girl,36816
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,st,girl,190924
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,general,defense-cw,800864
+NSUT Main (Dwarka),Electrical Engineering,1,outside_delhi,obc,defense-cw,77876
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,general,gender-neutral,10633
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,ews,gender-neutral,15215
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,obc,gender-neutral,24783
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,sc,gender-neutral,100252
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,st,gender-neutral,178724
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,general,girl,21018
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,obc,girl,31171
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,sc,girl,156475
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,general,defense-cw,74514
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,st,defense-cw,350834
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,general,pwd,112205
+NSUT Main (Dwarka),Instrumentation & Control Engineering,1,outside_delhi,obc,pwd,203110
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,general,gender-neutral,13069
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,ews,gender-neutral,17406
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,obc,gender-neutral,30027
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,sc,gender-neutral,108365
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,st,gender-neutral,156359
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,general,girl,23762
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,ews,girl,38401
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,obc,girl,49987
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,sc,girl,154082
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,sc,defense-cw,148302
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,general,pwd,105138
+NSUT Main (Dwarka),Mechanical Engineering,1,outside_delhi,obc,pwd,247241
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,general,gender-neutral,16013
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,ews,gender-neutral,19375
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,obc,gender-neutral,38969
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,sc,gender-neutral,111802
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,st,gender-neutral,198368
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,general,girl,21293
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,obc,girl,56155
+NSUT Main (Dwarka),Bio-Technology,1,outside_delhi,sc,defense-cw,191081
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,general,gender-neutral,6140
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,ews,gender-neutral,11407
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,obc,gender-neutral,13435
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,sc,gender-neutral,66194
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,st,gender-neutral,127310
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,obc,girl,21934
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,sc,girl,117392
+NSUT East Campus,Computer Science & Engineering (Big Data Analytics),1,outside_delhi,general,pwd,87856
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,general,gender-neutral,7544
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,ews,gender-neutral,12811
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,obc,gender-neutral,14032
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,sc,gender-neutral,73028
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,st,gender-neutral,159918
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,general,girl,11310
+NSUT East Campus,Computer Science & Engineering (IoT),1,outside_delhi,obc,girl,23916
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,general,gender-neutral,7575
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,ews,gender-neutral,13079
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,obc,gender-neutral,20970
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,sc,gender-neutral,82974
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,st,gender-neutral,169836
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,general,girl,11134
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,ews,girl,27776
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,obc,girl,29173
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,st,girl,250333
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,general,defense-cw,44897
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,ews,defense-cw,100195
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,obc,pwd,117088
+NSUT East Campus,Electronics & Comm Engg (AI & ML),1,outside_delhi,sc,pwd,622954
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,general,gender-neutral,13992
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,ews,gender-neutral,19840
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,obc,gender-neutral,33610
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,sc,gender-neutral,111467
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,st,gender-neutral,188833
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,general,girl,24345
+NSUT West Campus,Mechanical Engineering (Electric Vehicles),1,outside_delhi,obc,girl,53508
+NSUT West Campus,Civil Engineering,1,outside_delhi,general,gender-neutral,16959
+NSUT West Campus,Civil Engineering,1,outside_delhi,ews,gender-neutral,19379
+NSUT West Campus,Civil Engineering,1,outside_delhi,obc,gender-neutral,34295
+NSUT West Campus,Civil Engineering,1,outside_delhi,sc,gender-neutral,124452
+NSUT West Campus,Civil Engineering,1,outside_delhi,general,girl,27211
+NSUT West Campus,Civil Engineering,1,outside_delhi,ews,girl,50591
+NSUT West Campus,Civil Engineering,1,outside_delhi,obc,defense-cw,1421001
+NSUT West Campus,Geoinformatics,1,outside_delhi,general,gender-neutral,17602
+NSUT West Campus,Geoinformatics,1,outside_delhi,obc,gender-neutral,40762
+NSUT West Campus,Geoinformatics,1,outside_delhi,sc,gender-neutral,124893
+NSUT West Campus,Geoinformatics,1,outside_delhi,st,gender-neutral,230799
+NSUT West Campus,Geoinformatics,1,outside_delhi,general,girl,28290

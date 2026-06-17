@@ -40,17 +40,33 @@ class DatasetCutoffPredictorTest extends TestCase
         $this->process = AdmissionProcess::where('code', 'JAC')->first();
     }
 
-    private function cutoff(string $institute, string $branchName, string $category, string $sub, string $region, string $round, int $cr): void
+    private function cutoff(string $institute, string $branchName, string $category, string $sub, string $region, string $round, int $cr, int $year = 2025): void
     {
         $inst = Institute::firstOrCreate(['university_id' => $this->jac->id, 'name' => $institute]);
         $branch = Branch::firstOrCreate(['course_id' => $this->course->id, 'name' => $branchName]);
         Cutoff::create([
             'university_id' => $this->jac->id, 'course_id' => $this->course->id,
             'qualifying_exam_id' => $this->exam->id, 'admission_process_id' => $this->process->id,
-            'year' => 2025, 'round' => $round, 'institute_id' => $inst->id, 'branch_id' => $branch->id,
+            'year' => $year, 'round' => $round, 'institute_id' => $inst->id, 'branch_id' => $branch->id,
             'shift' => null, 'region' => $region, 'category' => $category, 'sub_category' => $sub,
             'min_rank' => 0, 'max_rank' => $cr, 'source' => 'official',
         ]);
+    }
+
+    /** @test */
+    public function each_institute_uses_its_own_latest_year_when_year_is_null(): void
+    {
+        // DTU has both 2025 (R5, looser) and 2026 (R1, tighter, latest). NSUT only 2025.
+        $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '5', 60000, 2025);
+        $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '1', 9000, 2026);
+        $this->cutoff('NSUT Main (Dwarka)', 'Computer Science & Engineering', 'general', 'gender_neutral', 'delhi', '5', 40000, 2025);
+
+        // year omitted -> per-institute latest
+        $ctx = new PredictorContext('dtu', rank: 100000, region: 'delhi', category: 'general', subCategory: 'gender_neutral', gender: 'male');
+        $rows = collect((new DatasetCutoffPredictor)->predict($ctx)['rows'])->keyBy('institute');
+
+        $this->assertSame(9000, $rows['DTU']['final_cr']);                 // DTU advanced to 2026 R1
+        $this->assertSame(40000, $rows['NSUT Main (Dwarka)']['final_cr']); // NSUT still on 2025, not dropped
     }
 
     /** @test */

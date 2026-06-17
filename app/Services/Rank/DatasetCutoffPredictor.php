@@ -48,13 +48,9 @@ class DatasetCutoffPredictor
             return $empty;
         }
 
-        $year = $ctx->year ?? (int) Cutoff::whereIn('university_id', $universityIds)
-            ->where('course_id', $courseId)->max('year');
-
         $query = Cutoff::with(['institute', 'branch'])
             ->whereIn('university_id', $universityIds)
             ->where('course_id', $courseId)
-            ->where('year', $year)
             ->where('region', $ctx->region);
         // Category / sub_category only apply to datasets that carry that breakdown
         // (DTU/JAC). IPU's legacy cutoffs have NULL category columns, so filtering on
@@ -68,9 +64,25 @@ class DatasetCutoffPredictor
         if ($ctx->branchIds !== null) {
             $query->whereIn('branch_id', $ctx->branchIds);
         }
+        if ($ctx->year !== null) {
+            $query->where('year', $ctx->year);
+        }
+
+        $cutoffs = $query->get();
+        // With no explicit year, each institute uses its OWN latest available year,
+        // so an institute that hasn't published the newest year's cutoff yet (e.g.
+        // IGDTUW R1 2026 not out) keeps showing its prior year instead of vanishing
+        // while DTU/NSUT advance to the new year.
+        if ($ctx->year === null) {
+            $maxYear = [];
+            foreach ($cutoffs as $c) {
+                $maxYear[$c->institute_id] = max($maxYear[$c->institute_id] ?? 0, (int) $c->year);
+            }
+            $cutoffs = $cutoffs->filter(fn ($c) => (int) $c->year === $maxYear[$c->institute_id]);
+        }
 
         $groups = [];
-        foreach ($query->get() as $c) {
+        foreach ($cutoffs as $c) {
             $instName = $c->institute?->name ?? '—';
             if ($ctx->isMale() && in_array($instName, self::WOMEN_ONLY_INSTITUTES, true)) {
                 continue;
