@@ -6,17 +6,18 @@ use App\Models\Rank\Cutoff;
 use App\Models\Rank\University;
 use Database\Seeders\Rank\JacDelhiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesInMemoryRanksDatabase;
 use Tests\TestCase;
 
 class ImportJacCommandTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected $connectionsToTransact = ['ranks'];
+    use UsesInMemoryRanksDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpInMemoryRanksDatabase();
         // Isolate from any JAC cutoffs already imported into the shared ranks DB;
         // the delete rolls back with the ranks transaction.
         $jac = University::where('code', 'JAC')->first();

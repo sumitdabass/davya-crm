@@ -14,19 +14,13 @@ use App\Services\Rank\StudentChoicePredictor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Tests\Concerns\UsesInMemoryRanksDatabase;
 use Tests\TestCase;
 
 class StudentChoicePredictorRoundTest extends TestCase
 {
     use RefreshDatabase;
-
-    // RefreshDatabase only manages the DEFAULT connection. The `ranks`
-    // connection is a separate PERSISTENT DB holding a shared read-only
-    // cutoffs fixture (used by RankLookupTest) plus IPU rows the
-    // DatabaseSeeder leaves behind. Wrap `ranks` in a transaction so
-    // everything we do — including the fixture clear below — rolls back at
-    // teardown and the shared fixture survives regardless of test order.
-    protected $connectionsToTransact = ['ranks'];
+    use UsesInMemoryRanksDatabase;
 
     // Clear `ranks` with DML deletes (NOT truncate, which implicitly commits
     // and would permanently destroy the shared fixture) so each method starts
@@ -34,6 +28,7 @@ class StudentChoicePredictorRoundTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpInMemoryRanksDatabase();
 
         Schema::connection('ranks')->disableForeignKeyConstraints();
         foreach (['cutoffs', 'seats', 'branches', 'institutes', 'courses', 'admission_processes', 'qualifying_exams', 'universities'] as $table) {

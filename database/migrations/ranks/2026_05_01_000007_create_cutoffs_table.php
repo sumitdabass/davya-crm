@@ -17,7 +17,9 @@ return new class extends Migration
             $table->foreignId('qualifying_exam_id')->constrained('qualifying_exams');
             $table->foreignId('admission_process_id')->constrained('admission_processes');
             $table->unsignedSmallInteger('year');
-            $table->enum('round', ['1', '2', '3', 'sliding']);
+            // String, not enum: JAC publishes rounds 1-5 (+ IPU 'sliding'); an enum
+            // here under-specifies reality and becomes a rejecting CHECK on SQLite.
+            $table->string('round', 16);
             $table->foreignId('institute_id')->constrained('institutes');
             $table->foreignId('branch_id')->constrained('branches');
             $table->enum('shift', ['I', 'II'])->nullable();

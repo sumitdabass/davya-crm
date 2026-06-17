@@ -7,17 +7,18 @@ use App\Models\Rank\University;
 use App\Services\Rank\JacCutoffImporter;
 use Database\Seeders\Rank\JacDelhiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesInMemoryRanksDatabase;
 use Tests\TestCase;
 
 class JacCutoffImporterTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected $connectionsToTransact = ['ranks'];
+    use UsesInMemoryRanksDatabase;
 
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpInMemoryRanksDatabase();
         // The shared ranks DB may already hold imported JAC cutoffs. Clear them
         // inside the rolled-back ranks transaction so this test is isolated and
         // the real data is restored on rollback.

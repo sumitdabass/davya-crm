@@ -13,13 +13,13 @@ use App\Services\Rank\DatasetCutoffPredictor;
 use App\Services\Rank\PredictorContext;
 use Database\Seeders\Rank\JacDelhiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesInMemoryRanksDatabase;
 use Tests\TestCase;
 
 class DatasetCutoffPredictorTest extends TestCase
 {
     use RefreshDatabase;
-
-    protected $connectionsToTransact = ['ranks'];
+    use UsesInMemoryRanksDatabase;
 
     private University $jac;
 
@@ -32,6 +32,7 @@ class DatasetCutoffPredictorTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->setUpInMemoryRanksDatabase();
         $this->seed(JacDelhiSeeder::class);
         $this->jac = University::where('code', 'JAC')->first();
         Cutoff::where('university_id', $this->jac->id)->forceDelete();
