@@ -135,6 +135,34 @@ class DatasetCutoffPredictorTest extends TestCase
     }
 
     /** @test */
+    public function predict_by_year_returns_three_views_per_option(): void
+    {
+        // DTU CSE: 2025 R1 6000 -> R5 12000; 2026 R1 9000. IGDTUW only 2025 (women-only).
+        $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '1', 6000, 2025);
+        $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '5', 12000, 2025);
+        $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '1', 9000, 2026);
+        $this->cutoff('IGDTUW', 'CSE-AI', 'general', 'gender_neutral', 'delhi', '5', 44000, 2025);
+
+        $ctx = new PredictorContext('dtu', rank: 10000, region: 'delhi', category: 'general', subCategory: 'gender_neutral', gender: 'female');
+        $res = (new DatasetCutoffPredictor)->predictByYear($ctx);
+
+        $this->assertSame(2025, $res['prior_year']);
+        $this->assertSame(2026, $res['newer_year']);
+
+        $rows = collect($res['rows'])->keyBy('branch');
+        // DTU CSE: all three views present
+        $this->assertSame(12000, $rows['Computer Science and Engineering']['cr_prior']);
+        $this->assertSame(9000, $rows['Computer Science and Engineering']['cr_newer_r1']);
+        $this->assertSame(18000, $rows['Computer Science and Engineering']['cr_newer_proj']); // 9000 * 12000/6000
+        $this->assertNotNull($rows['Computer Science and Engineering']['chance_prior']);
+        $this->assertNotNull($rows['Computer Science and Engineering']['chance_newer_r1']);
+        // IGDTUW has no 2026 -> newer columns null, prior present
+        $this->assertSame(44000, $rows['CSE-AI']['cr_prior']);
+        $this->assertNull($rows['CSE-AI']['cr_newer_r1']);
+        $this->assertNull($rows['CSE-AI']['chance_newer_r1']);
+    }
+
+    /** @test */
     public function predicts_ipu_rows_when_category_columns_are_null(): void
     {
         // Real imported IPU data carries NO category/sub_category (legacy source has

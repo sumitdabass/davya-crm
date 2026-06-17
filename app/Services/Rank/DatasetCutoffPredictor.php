@@ -131,4 +131,114 @@ class DatasetCutoffPredictor
 
         return ['rows' => $rows, 'reach_count' => $reach];
     }
+
+    /**
+     * Like predict(), but returns each option with THREE views of the candidate's
+     * chance: prior year's final round, the newer year's actual Round 1, and the
+     * newer year's projected final round (R1 scaled by the prior R1->final slide).
+     * An institute missing the newer year (e.g. IGDTUW before its 2026 publishes)
+     * simply has null newer-year columns.
+     *
+     * @return array{rows: array<int, array<string, mixed>>, prior_year:?int, newer_year:?int, reach_count:int}
+     */
+    public function predictByYear(PredictorContext $ctx): array
+    {
+        $empty = ['rows' => [], 'prior_year' => null, 'newer_year' => null, 'reach_count' => 0];
+        if ($ctx->rank <= 0) {
+            return $empty;
+        }
+        if ($ctx->isMale() && in_array($ctx->subCategory, self::FEMALE_ONLY_SUBS, true)) {
+            return $empty;
+        }
+
+        $universityIds = University::whereIn('code', RankDataset::universityCodes($ctx->datasetToken))
+            ->pluck('id')->all();
+        if ($universityIds === []) {
+            return $empty;
+        }
+
+        $courseId = $ctx->courseId;
+        if (RankDataset::courseFixedToBtech($ctx->datasetToken)) {
+            $courseId = Course::whereIn('university_id', $universityIds)->where('name', 'B.Tech')->value('id');
+        }
+        if (! $courseId) {
+            return $empty;
+        }
+
+        $query = Cutoff::with(['institute', 'branch'])
+            ->whereIn('university_id', $universityIds)
+            ->where('course_id', $courseId)
+            ->where('region', $ctx->region);
+        if (RankDataset::hasCategoryDimension($ctx->datasetToken)) {
+            $query->where('category', $ctx->category);
+            if ($ctx->subCategory !== null) {
+                $query->where('sub_category', $ctx->subCategory);
+            }
+        }
+        if ($ctx->branchIds !== null) {
+            $query->whereIn('branch_id', $ctx->branchIds);
+        }
+
+        $cutoffs = $query->get();
+        if ($cutoffs->isEmpty()) {
+            return $empty;
+        }
+
+        $years = $cutoffs->pluck('year')->map(fn ($y) => (int) $y)->unique()->sort()->values();
+        $newer = (int) $years->last();
+        $prior = $years->count() >= 2 ? (int) $years->get($years->count() - 2) : $newer;
+
+        $groups = [];
+        foreach ($cutoffs as $c) {
+            $instName = $c->institute?->name ?? '—';
+            if ($ctx->isMale() && in_array($instName, self::WOMEN_ONLY_INSTITUTES, true)) {
+                continue;
+            }
+            $key = $c->institute_id.'|'.$c->branch_id;
+            $groups[$key] ??= [
+                'institute' => $instName,
+                'branch' => $c->branch?->name ?? '—',
+                'women_only' => in_array($instName, self::WOMEN_ONLY_INSTITUTES, true),
+                'r' => [],
+            ];
+            $groups[$key]['r'][(int) $c->year][(string) $c->round] = (int) $c->max_rank;
+        }
+
+        $chance = fn (?int $cr) => $cr ? $this->predictor->chance($ctx->rank, $cr) : null;
+        $rows = [];
+        $reach = 0;
+        foreach ($groups as $g) {
+            $priorR = $g['r'][$prior] ?? [];
+            $newerR = $g['r'][$newer] ?? [];
+            $priorFinal = $priorR ? $priorR[(string) max(array_map('intval', array_keys($priorR)))] : null;
+            $priorR1 = $priorR['1'] ?? ($priorR ? $priorR[(string) min(array_map('intval', array_keys($priorR)))] : null);
+            $newerR1 = $newerR['1'] ?? ($newerR ? $newerR[(string) min(array_map('intval', array_keys($newerR)))] : null);
+            $proj = ($priorFinal && $priorR1 && $newerR1 && $prior !== $newer)
+                ? CutoffComparator::projectedFinal($priorR1, $priorFinal, $newerR1)
+                : null;
+
+            $row = [
+                'institute' => $g['institute'],
+                'branch' => $g['branch'],
+                'women_only' => $g['women_only'],
+                'cr_prior' => $priorFinal,
+                'chance_prior' => $chance($priorFinal),
+                'cr_newer_r1' => $newerR1,
+                'chance_newer_r1' => $chance($newerR1),
+                'cr_newer_proj' => $proj,
+                'chance_newer_proj' => $chance($proj),
+            ];
+            $withinReach = collect([$row['chance_prior'], $row['chance_newer_r1'], $row['chance_newer_proj']])
+                ->filter()->contains(fn ($c) => $c !== 'UNLIKELY');
+            $row['within_reach'] = $withinReach;
+            if ($withinReach) {
+                $reach++;
+            }
+            $rows[] = $row;
+        }
+
+        usort($rows, fn ($a, $b) => ($a['cr_newer_r1'] ?? $a['cr_prior'] ?? PHP_INT_MAX) <=> ($b['cr_newer_r1'] ?? $b['cr_prior'] ?? PHP_INT_MAX));
+
+        return ['rows' => $rows, 'prior_year' => $prior, 'newer_year' => $newer, 'reach_count' => $reach];
+    }
 }
