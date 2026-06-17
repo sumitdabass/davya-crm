@@ -69,16 +69,25 @@ class DatasetCutoffPredictor
         }
 
         $cutoffs = $query->get();
-        // With no explicit year, each institute uses its OWN latest available year,
-        // so an institute that hasn't published the newest year's cutoff yet (e.g.
-        // IGDTUW R1 2026 not out) keeps showing its prior year instead of vanishing
-        // while DTU/NSUT advance to the new year.
         if ($ctx->year === null) {
-            $maxYear = [];
-            foreach ($cutoffs as $c) {
-                $maxYear[$c->institute_id] = max($maxYear[$c->institute_id] ?? 0, (int) $c->year);
+            if (RankDataset::usesPerInstituteYear($ctx->datasetToken)) {
+                // JAC institutes publish round cutoffs independently — each uses its
+                // OWN latest available year, so one that hasn't posted the newest year
+                // yet (e.g. IGDTUW R1 2026) keeps showing its prior year instead of
+                // vanishing while DTU/NSUT advance.
+                $maxYear = [];
+                foreach ($cutoffs as $c) {
+                    $maxYear[$c->institute_id] = max($maxYear[$c->institute_id] ?? 0, (int) $c->year);
+                }
+                $cutoffs = $cutoffs->filter(fn ($c) => (int) $c->year === $maxYear[$c->institute_id]);
+            } else {
+                // IPU: one counselling cycle — a single dataset-wide latest year.
+                $max = 0;
+                foreach ($cutoffs as $c) {
+                    $max = max($max, (int) $c->year);
+                }
+                $cutoffs = $cutoffs->filter(fn ($c) => (int) $c->year === $max);
             }
-            $cutoffs = $cutoffs->filter(fn ($c) => (int) $c->year === $maxYear[$c->institute_id]);
         }
 
         $groups = [];

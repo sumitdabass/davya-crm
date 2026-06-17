@@ -4,11 +4,13 @@ namespace App\Rank;
 
 class RankDataset
 {
-    /** @var array<string, array{label:string, codes:array<int,string>, btech_only:bool, category_dimension:bool}> */
+    /** @var array<string, array{label:string, codes:array<int,string>, btech_only:bool, category_dimension:bool, per_institute_year:bool}> */
     private const MAP = [
         // IPU's legacy cutoff source carries only region + shift — no category/sub_category.
-        'ipu' => ['label' => 'IPU',  'codes' => ['IPU'], 'btech_only' => false, 'category_dimension' => false],
-        'dtu' => ['label' => 'DTU',  'codes' => ['JAC'], 'btech_only' => true,  'category_dimension' => true],
+        // IPU institutes share one counselling cycle -> dataset-wide latest year.
+        'ipu' => ['label' => 'IPU',  'codes' => ['IPU'], 'btech_only' => false, 'category_dimension' => false, 'per_institute_year' => false],
+        // JAC institutes publish round cutoffs independently -> latest year per institute.
+        'dtu' => ['label' => 'DTU',  'codes' => ['JAC'], 'btech_only' => true,  'category_dimension' => true,  'per_institute_year' => true],
     ];
 
     /** @return array<int,string> */
@@ -37,5 +39,14 @@ class RankDataset
     public static function hasCategoryDimension(string $token): bool
     {
         return self::MAP[$token]['category_dimension'] ?? false;
+    }
+
+    /**
+     * Whether the predictor resolves the latest year per institute (true) or a
+     * single dataset-wide latest year (false) when no year is requested.
+     */
+    public static function usesPerInstituteYear(string $token): bool
+    {
+        return self::MAP[$token]['per_institute_year'] ?? false;
     }
 }

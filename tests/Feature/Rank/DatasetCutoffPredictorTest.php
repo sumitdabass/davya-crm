@@ -70,6 +70,35 @@ class DatasetCutoffPredictorTest extends TestCase
     }
 
     /** @test */
+    public function ipu_uses_a_single_dataset_wide_latest_year(): void
+    {
+        // Per-institute-year is scoped to JAC. IPU keeps dataset-wide max year: an
+        // institute with only an older year is dropped once any institute has newer.
+        $ipu = University::firstOrCreate(['code' => 'IPU'], ['name' => 'IPU']);
+        Cutoff::where('university_id', $ipu->id)->forceDelete();
+        $course = Course::firstOrCreate(['university_id' => $ipu->id, 'name' => 'B.Tech']);
+        $mk = function (string $instName, int $year, int $cr) use ($ipu, $course) {
+            $inst = Institute::firstOrCreate(['university_id' => $ipu->id, 'name' => $instName]);
+            $branch = Branch::firstOrCreate(['course_id' => $course->id, 'name' => 'CSE']);
+            Cutoff::create([
+                'university_id' => $ipu->id, 'course_id' => $course->id,
+                'qualifying_exam_id' => $this->exam->id, 'admission_process_id' => $this->process->id,
+                'year' => $year, 'round' => '1', 'institute_id' => $inst->id, 'branch_id' => $branch->id,
+                'shift' => null, 'region' => 'delhi', 'category' => null, 'sub_category' => null,
+                'min_rank' => 0, 'max_rank' => $cr, 'source' => 'official',
+            ]);
+        };
+        $mk('Alpha College', 2026, 30000);   // newest year exists
+        $mk('Beta College', 2024, 35000);     // only old year -> should be dropped
+
+        $ctx = new PredictorContext('ipu', rank: 50000, region: 'delhi', category: 'general', subCategory: 'gender_neutral', gender: 'male', courseId: $course->id);
+        $names = array_column((new DatasetCutoffPredictor)->predict($ctx)['rows'], 'institute');
+
+        $this->assertContains('Alpha College', $names);
+        $this->assertNotContains('Beta College', $names); // dataset-wide max=2026 drops the 2024-only institute
+    }
+
+    /** @test */
     public function predicts_dtu_rows_with_chance_and_uses_final_round(): void
     {
         $this->cutoff('DTU', 'Computer Science and Engineering', 'general', 'gender_neutral', 'delhi', '1', 9000);
