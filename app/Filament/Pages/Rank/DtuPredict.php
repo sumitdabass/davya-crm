@@ -19,6 +19,11 @@ class DtuPredict extends AbstractRankPredict
         return 'dtu';
     }
 
+    protected function showsYearComparison(): bool
+    {
+        return true;
+    }
+
     public static function canAccess(): bool
     {
         return (bool) auth()->user()?->canRankPredict('dtu');

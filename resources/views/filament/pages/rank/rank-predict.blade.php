@@ -7,6 +7,17 @@
     </form>
 
     @php($result = $this->results)
+    @php($colors = [
+        'SAFE' => 'bg-green-100 text-green-800',
+        'LIKELY' => 'bg-green-100 text-green-800',
+        'BORDERLINE' => 'bg-yellow-100 text-yellow-800',
+        'STRETCH' => 'bg-orange-100 text-orange-800',
+        'UNLIKELY' => 'bg-red-100 text-red-800',
+    ])
+    @php($badge = fn ($c) => $c
+        ? '<span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold '.($colors[$c] ?? '').'">'.$c.'</span>'
+        : '<span class="text-gray-400">—</span>')
+
     @if ($result['submitted'])
         <div class="mt-6" id="rank-results">
             <div class="flex items-center justify-between mb-3">
@@ -21,6 +32,46 @@
 
             @if (count($result['rows']) === 0)
                 <p class="text-sm text-gray-500 py-6">No options for this selection. Untick “within reach” to see long-shots, or adjust filters.</p>
+            @elseif (! empty($result['year_comparison']))
+                {{-- Three-view comparison: prior final · current-year R1 · current-year projected final --}}
+                <table class="w-full text-sm border-collapse">
+                    <thead>
+                        <tr class="text-left text-xs uppercase tracking-wide text-gray-500 border-b border-gray-200 dark:border-gray-700">
+                            <th class="py-2 pr-3">Institute / Campus</th>
+                            <th class="py-2 pr-3">Branch</th>
+                            <th class="py-2 pr-3 text-center" colspan="2">{{ $result['prior_year'] }} (final)</th>
+                            <th class="py-2 pr-3 text-center" colspan="2">{{ $result['newer_year'] }} (Round 1)</th>
+                            <th class="py-2 pr-3 text-center" colspan="2">{{ $result['newer_year'] }} (projected final)</th>
+                        </tr>
+                        <tr class="text-left text-[10px] uppercase tracking-wide text-gray-400 border-b border-gray-200 dark:border-gray-700">
+                            <th class="py-1 pr-3"></th>
+                            <th class="py-1 pr-3"></th>
+                            <th class="py-1 pr-3 text-right">CR</th><th class="py-1 pr-3">Chance</th>
+                            <th class="py-1 pr-3 text-right">CR</th><th class="py-1 pr-3">Chance</th>
+                            <th class="py-1 pr-3 text-right">CR</th><th class="py-1 pr-3">Chance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($result['rows'] as $row)
+                            <tr class="border-b border-gray-100 dark:border-gray-800">
+                                <td class="py-2 pr-3">{{ $row['institute'] }}@if($row['women_only']) <span title="Women-only institute">♀</span>@endif</td>
+                                <td class="py-2 pr-3">{{ $row['branch'] }}</td>
+                                <td class="py-2 pr-3 text-right tabular-nums text-gray-500">{{ $row['cr_prior'] ? number_format($row['cr_prior']) : '—' }}</td>
+                                <td class="py-2 pr-3">{!! $badge($row['chance_prior']) !!}</td>
+                                <td class="py-2 pr-3 text-right tabular-nums text-gray-500">{{ $row['cr_newer_r1'] ? number_format($row['cr_newer_r1']) : '—' }}</td>
+                                <td class="py-2 pr-3">{!! $badge($row['chance_newer_r1']) !!}</td>
+                                <td class="py-2 pr-3 text-right tabular-nums text-gray-500">{{ $row['cr_newer_proj'] ? number_format($row['cr_newer_proj']) : '—' }}</td>
+                                <td class="py-2 pr-3">{!! $badge($row['chance_newer_proj']) !!}</td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+                <p class="mt-3 text-xs text-gray-500">
+                    CR = closing rank (last admitted JEE-Main rank); lower = more competitive. “Chance” is for the rank you entered.
+                    <strong>{{ $result['newer_year'] }} (Round 1)</strong> is this year's actual first-round cutoff (tight — loosens in later rounds).
+                    <strong>Projected final</strong> estimates {{ $result['newer_year'] }}'s final round by applying {{ $result['prior_year'] }}'s Round 1→final slide.
+                    “—” = not published yet for that institute. ♀ = women-only institute.
+                </p>
             @else
                 <table class="w-full text-sm border-collapse">
                     <thead>
@@ -34,17 +85,8 @@
                     </thead>
                     <tbody>
                         @foreach ($result['rows'] as $row)
-                            @php($colors = [
-                                'SAFE' => 'bg-green-100 text-green-800',
-                                'LIKELY' => 'bg-green-100 text-green-800',
-                                'BORDERLINE' => 'bg-yellow-100 text-yellow-800',
-                                'STRETCH' => 'bg-orange-100 text-orange-800',
-                                'UNLIKELY' => 'bg-red-100 text-red-800',
-                            ])
                             <tr class="border-b border-gray-100 dark:border-gray-800">
-                                <td class="py-2 pr-3">
-                                    <span class="inline-block rounded-full px-2 py-0.5 text-xs font-semibold {{ $colors[$row['chance']] ?? '' }}">{{ $row['chance'] }}</span>
-                                </td>
+                                <td class="py-2 pr-3">{!! $badge($row['chance']) !!}</td>
                                 <td class="py-2 pr-3">{{ $row['institute'] }}@if($row['women_only']) <span title="Women-only institute">♀</span>@endif</td>
                                 <td class="py-2 pr-3">{{ $row['branch'] }}</td>
                                 <td class="py-2 pr-3 text-right tabular-nums">{{ number_format($row['final_cr']) }}</td>

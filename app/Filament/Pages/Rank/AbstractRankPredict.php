@@ -121,10 +121,16 @@ abstract class AbstractRankPredict extends Page implements HasForms
         return $form->schema($schema)->columns(['default' => 1, 'md' => 3])->statePath('data');
     }
 
+    /** Datasets with multiple years show a prior-vs-current-year comparison. */
+    protected function showsYearComparison(): bool
+    {
+        return false;
+    }
+
     public function getResultsProperty(): array
     {
         if (empty($this->data['user_rank'])) {
-            return ['rows' => [], 'reach_count' => 0, 'submitted' => false];
+            return ['rows' => [], 'reach_count' => 0, 'submitted' => false, 'year_comparison' => $this->showsYearComparison()];
         }
 
         $ctx = new PredictorContext(
@@ -137,13 +143,28 @@ abstract class AbstractRankPredict extends Page implements HasForms
             courseId: isset($this->data['course_id']) ? (int) $this->data['course_id'] : null,
         );
 
-        $result = app(DatasetCutoffPredictor::class)->predict($ctx);
+        $predictor = app(DatasetCutoffPredictor::class);
+
+        if ($this->showsYearComparison()) {
+            $result = $predictor->predictByYear($ctx);
+            $rows = $result['rows'];
+            if (! empty($this->data['within_reach_only'])) {
+                $rows = array_values(array_filter($rows, fn ($r) => $r['within_reach']));
+            }
+
+            return [
+                'rows' => $rows, 'reach_count' => $result['reach_count'], 'submitted' => true,
+                'year_comparison' => true, 'prior_year' => $result['prior_year'], 'newer_year' => $result['newer_year'],
+            ];
+        }
+
+        $result = $predictor->predict($ctx);
         $rows = $result['rows'];
         if (! empty($this->data['within_reach_only'])) {
             $rows = array_values(array_filter($rows, fn ($r) => $r['chance'] !== 'UNLIKELY'));
         }
 
-        return ['rows' => $rows, 'reach_count' => $result['reach_count'], 'submitted' => true];
+        return ['rows' => $rows, 'reach_count' => $result['reach_count'], 'submitted' => true, 'year_comparison' => false];
     }
 
     public function submit(): void
