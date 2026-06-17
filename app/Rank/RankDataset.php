@@ -4,10 +4,11 @@ namespace App\Rank;
 
 class RankDataset
 {
-    /** @var array<string, array{label:string, codes:array<int,string>, btech_only:bool}> */
+    /** @var array<string, array{label:string, codes:array<int,string>, btech_only:bool, category_dimension:bool}> */
     private const MAP = [
-        'ipu' => ['label' => 'IPU',  'codes' => ['IPU'], 'btech_only' => false],
-        'dtu' => ['label' => 'DTU',  'codes' => ['JAC'], 'btech_only' => true],
+        // IPU's legacy cutoff source carries only region + shift — no category/sub_category.
+        'ipu' => ['label' => 'IPU',  'codes' => ['IPU'], 'btech_only' => false, 'category_dimension' => false],
+        'dtu' => ['label' => 'DTU',  'codes' => ['JAC'], 'btech_only' => true,  'category_dimension' => true],
     ];
 
     /** @return array<int,string> */
@@ -30,5 +31,11 @@ class RankDataset
     public static function courseFixedToBtech(string $token): bool
     {
         return self::MAP[$token]['btech_only'] ?? false;
+    }
+
+    /** Whether this dataset's cutoffs are broken down by category / sub_category. */
+    public static function hasCategoryDimension(string $token): bool
+    {
+        return self::MAP[$token]['category_dimension'] ?? false;
     }
 }

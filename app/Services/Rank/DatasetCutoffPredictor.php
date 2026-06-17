@@ -55,10 +55,15 @@ class DatasetCutoffPredictor
             ->whereIn('university_id', $universityIds)
             ->where('course_id', $courseId)
             ->where('year', $year)
-            ->where('region', $ctx->region)
-            ->where('category', $ctx->category);
-        if ($ctx->subCategory !== null) {
-            $query->where('sub_category', $ctx->subCategory);
+            ->where('region', $ctx->region);
+        // Category / sub_category only apply to datasets that carry that breakdown
+        // (DTU/JAC). IPU's legacy cutoffs have NULL category columns, so filtering on
+        // them would exclude every row.
+        if (RankDataset::hasCategoryDimension($ctx->datasetToken)) {
+            $query->where('category', $ctx->category);
+            if ($ctx->subCategory !== null) {
+                $query->where('sub_category', $ctx->subCategory);
+            }
         }
         if ($ctx->branchIds !== null) {
             $query->whereIn('branch_id', $ctx->branchIds);

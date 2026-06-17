@@ -33,12 +33,17 @@ abstract class AbstractRankPredict extends Page implements HasForms
         return ! RankDataset::courseFixedToBtech($this->datasetToken());
     }
 
+    protected function showsCategorySelectors(): bool
+    {
+        return RankDataset::hasCategoryDimension($this->datasetToken());
+    }
+
     public function mount(): void
     {
         $this->form->fill([
             'gender' => 'male',
-            'category' => 'general',
-            'sub_category' => 'gender_neutral',
+            'category' => $this->showsCategorySelectors() ? 'general' : null,
+            'sub_category' => $this->showsCategorySelectors() ? 'gender_neutral' : null,
             'region' => 'delhi',
             'user_rank' => null,
             'course_id' => $this->defaultCourseId(),
@@ -90,14 +95,20 @@ abstract class AbstractRankPredict extends Page implements HasForms
                         $set('sub_category', 'gender_neutral');
                     }
                 }),
-            Select::make('category')->options([
-                'general' => 'General', 'ews' => 'EWS', 'obc' => 'OBC', 'sc' => 'SC', 'st' => 'ST',
-            ])->required(),
-            Select::make('sub_category')
-                ->options(fn (callable $get) => static::subCategoryOptions($get('gender')))
-                ->required(),
-            Select::make('region')->options(['delhi' => 'Delhi', 'outside_delhi' => 'Outside Delhi'])->required(),
         ];
+
+        // Category / sub_category only apply to datasets whose cutoffs carry that
+        // breakdown (DTU/JAC). IPU's cutoffs have none, so the selectors would be inert.
+        if ($this->showsCategorySelectors()) {
+            $schema[] = Select::make('category')->options([
+                'general' => 'General', 'ews' => 'EWS', 'obc' => 'OBC', 'sc' => 'SC', 'st' => 'ST',
+            ])->required();
+            $schema[] = Select::make('sub_category')
+                ->options(fn (callable $get) => static::subCategoryOptions($get('gender')))
+                ->required();
+        }
+
+        $schema[] = Select::make('region')->options(['delhi' => 'Delhi', 'outside_delhi' => 'Outside Delhi'])->required();
 
         if ($this->showsCourseSelector()) {
             $schema[] = Select::make('course_id')->label('Course')
