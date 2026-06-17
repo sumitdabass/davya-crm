@@ -89,6 +89,33 @@ class DatasetCutoffPredictorTest extends TestCase
     }
 
     /** @test */
+    public function predicts_ipu_rows_when_category_columns_are_null(): void
+    {
+        // Real imported IPU data carries NO category/sub_category (legacy source has
+        // only region + shift). The predictor must not filter them out for IPU.
+        $ipu = University::firstOrCreate(['code' => 'IPU'], ['name' => 'IPU']);
+        Cutoff::where('university_id', $ipu->id)->forceDelete();
+        $ipuCourse = Course::firstOrCreate(['university_id' => $ipu->id, 'name' => 'B.Tech']);
+        $inst = Institute::firstOrCreate(['university_id' => $ipu->id, 'name' => 'USICT']);
+        $branch = Branch::firstOrCreate(['course_id' => $ipuCourse->id, 'name' => 'CSE']);
+        Cutoff::create([
+            'university_id' => $ipu->id, 'course_id' => $ipuCourse->id,
+            'qualifying_exam_id' => $this->exam->id, 'admission_process_id' => $this->process->id,
+            'year' => 2026, 'round' => '1', 'institute_id' => $inst->id, 'branch_id' => $branch->id,
+            'shift' => null, 'region' => 'delhi', 'category' => null, 'sub_category' => null,
+            'min_rank' => 0, 'max_rank' => 30000, 'source' => 'official',
+        ]);
+
+        // Form defaults still send general/gender_neutral; predictor must ignore them for IPU.
+        $ctx = new PredictorContext('ipu', rank: 25000, region: 'delhi', category: 'general', subCategory: 'gender_neutral', gender: 'male', courseId: $ipuCourse->id, year: 2026);
+        $result = (new DatasetCutoffPredictor)->predict($ctx);
+
+        $this->assertCount(1, $result['rows']);
+        $this->assertSame('USICT', $result['rows'][0]['institute']);
+        $this->assertSame(1, $result['reach_count']);
+    }
+
+    /** @test */
     public function scopes_strictly_to_the_dataset_university(): void
     {
         $ipu = University::firstOrCreate(['code' => 'IPU'], ['name' => 'IPU']);
