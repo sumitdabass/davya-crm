@@ -33,6 +33,12 @@ class RankLanding extends Page
     }
 
     /** @return array<int,array<string,string>> */
+    public function getAnalyticsCards(): array
+    {
+        return $this->cardsByGroup('analytics');
+    }
+
+    /** @return array<int,array<string,string>> */
     public function getManageCards(): array
     {
         return $this->cardsByGroup('manage');

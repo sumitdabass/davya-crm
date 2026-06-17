@@ -22,6 +22,30 @@
         </div>
     @endif
 
+    @php($analytics = $this->getAnalyticsCards())
+    @if ($analytics)
+        <div class="mt-8">
+            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">Analytics</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach ($analytics as $card)
+                    <a href="{{ $card['url'] }}"
+                       class="group flex items-start gap-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 hover:border-primary-500 hover:shadow-md transition">
+                        <div class="shrink-0 rounded-md p-3 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                            <x-filament::icon :icon="$card['icon']" class="w-6 h-6" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ $card['title'] }}</h3>
+                                <span class="text-sm text-primary-700 dark:text-primary-300 opacity-0 group-hover:opacity-100 transition">Open →</span>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">{{ $card['desc'] }}</p>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     @php($manage = $this->getManageCards())
     @if ($manage)
         <div class="mt-8">

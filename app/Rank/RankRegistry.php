@@ -38,6 +38,18 @@ class RankRegistry
             ];
         }
 
+        // Analytics — year-on-year cutoff trends. Separate from the predictor.
+        if (in_array('dtu', RankAccess::predictableDatasets($user), true)) {
+            $cards[] = [
+                'key' => 'dtu-cutoff-trends',
+                'group' => 'analytics',
+                'title' => 'DTU — Cutoff Trends',
+                'desc' => 'Year-on-year DTU/NSUT/IGDTUW cutoff movement, projecting the newer year\'s final round from the latest published round.',
+                'icon' => 'heroicon-o-arrow-trending-up',
+                'url' => '/admin/rank/dtu/compare',
+            ];
+        }
+
         // Manage cards — shown if the user can analyse ANY dataset (resources self-scope).
         if (RankAccess::analysableDatasets($user) !== []) {
             foreach (self::MANAGE as $card) {
