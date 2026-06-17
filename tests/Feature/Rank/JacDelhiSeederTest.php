@@ -8,13 +8,19 @@ use App\Models\Rank\Institute;
 use App\Models\Rank\University;
 use Database\Seeders\Rank\JacDelhiSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\UsesInMemoryRanksDatabase;
 use Tests\TestCase;
 
 class JacDelhiSeederTest extends TestCase
 {
     use RefreshDatabase;
+    use UsesInMemoryRanksDatabase;
 
-    protected $connectionsToTransact = ['ranks'];
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->setUpInMemoryRanksDatabase();
+    }
 
     /** @test */
     public function seeds_jac_university_btech_and_five_institutes(): void
