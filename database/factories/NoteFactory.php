@@ -1,0 +1,20 @@
+<?php
+namespace Database\Factories;
+
+use App\Models\Note;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+class NoteFactory extends Factory
+{
+    protected $model = Note::class;
+
+    public function definition(): array
+    {
+        return [
+            'body' => $this->faker->sentence(),
+            'slack_message_id' => 'NTEST.'.$this->faker->unique()->numerify('##########.######'),
+            'raw_input' => 'note '.$this->faker->sentence(),
+            'noted_at' => now(),
+        ];
+    }
+}
