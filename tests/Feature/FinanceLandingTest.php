@@ -24,6 +24,7 @@ class FinanceLandingTest extends TestCase
     {
         $u->must_change_password = false;
         $u->save();
+
         return $u;
     }
 
@@ -33,18 +34,19 @@ class FinanceLandingTest extends TestCase
         $this->actingAs($admin);
 
         $cards = FinanceRegistry::accessibleFor($admin);
-        $this->assertCount(2, $cards);
-        $this->assertSame(['expenses', 'investments'], array_map(fn ($c) => $c['key'], $cards));
+        $this->assertCount(3, $cards);
+        $this->assertSame(['expenses', 'investments', 'notes'], array_map(fn ($c) => $c['key'], $cards));
 
         $this->assertTrue(FinanceLanding::canAccess());
 
         Livewire::actingAs($admin)
             ->test(FinanceLanding::class)
             ->assertSee('Expenses')
-            ->assertSee('Investments');
+            ->assertSee('Investments')
+            ->assertSee('Notes');
     }
 
-    public function test_finance_role_sees_both_cards(): void
+    public function test_finance_role_sees_all_cards(): void
     {
         Role::firstOrCreate(['name' => 'finance', 'guard_name' => 'web']);
         $u = User::factory()->create();
@@ -52,7 +54,7 @@ class FinanceLandingTest extends TestCase
         $this->unblock($u);
         $this->actingAs($u);
 
-        $this->assertCount(2, FinanceRegistry::accessibleFor($u));
+        $this->assertCount(3, FinanceRegistry::accessibleFor($u));
         $this->assertTrue(FinanceLanding::canAccess());
     }
 
