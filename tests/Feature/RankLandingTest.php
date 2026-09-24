@@ -41,13 +41,14 @@ class RankLandingTest extends TestCase
         $admin = $this->unblock(User::where('email', 'sumit@davya.local')->firstOrFail());
         $this->actingAs($admin);
 
-        // Legacy admins get both datasets' predict cards + 6 manage cards + the legacy lookup.
+        // Legacy admins get both datasets' predict cards + DTU cutoff trends + 6 manage cards + the legacy lookup.
         $keys = $this->keys(RankRegistry::cardsFor($admin));
         $this->assertContains('predict-ipu', $keys);
         $this->assertContains('predict-dtu', $keys);
         $this->assertContains('manage-cutoffs', $keys);
         $this->assertContains('legacy-lookup', $keys);
-        $this->assertCount(9, $keys); // 2 predict + 6 manage + 1 legacy
+        $this->assertContains('dtu-cutoff-trends', $keys);
+        $this->assertCount(10, $keys); // 2 predict + 1 DTU trends + 6 manage + 1 legacy
 
         $this->assertTrue(RankLanding::canAccess());
 
@@ -66,7 +67,7 @@ class RankLandingTest extends TestCase
         $this->unblock($u);
         $this->actingAs($u);
 
-        $this->assertCount(9, RankRegistry::cardsFor($u));
+        $this->assertCount(10, RankRegistry::cardsFor($u));
         $this->assertTrue(RankLanding::canAccess());
     }
 

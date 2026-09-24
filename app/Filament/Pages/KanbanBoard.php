@@ -129,6 +129,23 @@ class KanbanBoard extends Page
     }
 
     /**
+     * Dropdown options for fix-up modal fields that only accept fixed values.
+     * Same sources and fallbacks as the Student form.
+     *
+     * @return array<string,array<string,string>>
+     */
+    public function fixFieldOptions(): array
+    {
+        return [
+            'close_reason' => $this->optionsFromField('close_reason', ['Not Interested', 'Backed Out — Forfeit', 'Backed Out — Partial Refund', 'Completed', 'Other']),
+            'student_response' => $this->optionsFromField('student_response', ['Ready', 'Not Interested', 'Needs Time']),
+            'category' => $this->optionsFromField('category', ['Delhi', 'Outside']),
+            'plan' => $this->optionsFromField('plan', ['Sitting', 'Counselling Online', 'Counselling Offline']),
+            'is_ipu_registered' => ['1' => 'Yes', '0' => 'No'],
+        ];
+    }
+
+    /**
      * Read Select options for a StudentField record by key.
      * Falls back to the provided defaults if the record is missing or has no options.
      *
@@ -339,6 +356,28 @@ class KanbanBoard extends Page
             'ipu_login_code', 'father_name', 'twelfth_marks', 'exam_appeared', 'refund_amount',
         ];
         $dirty = array_intersect_key($fieldUpdates, array_flip($allowed));
+
+        // Fixed-value fields must match an offered option — several are DB enums,
+        // and free text there fails the save with "Data truncated".
+        $options = $this->fixFieldOptions();
+        $invalid = [];
+        foreach ($dirty as $k => $v) {
+            if (isset($options[$k]) && $v !== '' && $v !== null && ! array_key_exists((string) $v, $options[$k])) {
+                $invalid[] = $k;
+            }
+        }
+        if (! empty($invalid)) {
+            return [
+                'ok' => false,
+                'message' => 'Pick a value from the list.',
+                'errors' => array_map(fn ($k) => str_replace('_', ' ', ucfirst($k)).': pick a value from the list.', $invalid),
+                'missing_fields' => $invalid,
+                'student_id' => $student->id,
+                'student_name' => $student->name,
+                'target_stage' => $newStage,
+            ];
+        }
+
         if (! empty($dirty)) {
             foreach ($dirty as $k => $v) {
                 $student->{$k} = $v === '' ? null : $v;

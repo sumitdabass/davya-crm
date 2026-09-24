@@ -93,4 +93,49 @@ class KanbanSoftWarningsTest extends TestCase
         $this->assertSame('Closed', $fresh->stage, 'student should have moved after fix');
         $this->assertSame('Not Interested', $fresh->close_reason);
     }
+
+    public function test_fix_and_move_rejects_close_reason_outside_allowed_options(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $sumit->update(['must_change_password' => false]);
+
+        $leadCapturedId = Pipeline::default()->stages()->where('name', 'Lead Captured')->value('id');
+        $s = Student::create([
+            'phone' => '9999900013', 'name' => 'Test', 'owner_id' => $sumit->id,
+            'referrer_id' => null, 'lead_source' => 'Website',
+            'stage' => 'Lead Captured', 'stage_id' => $leadCapturedId,
+        ]);
+
+        $this->actingAs($sumit);
+
+        // Free text used to reach an enum column and 500 with "Data truncated".
+        $return = Livewire::test(KanbanBoard::class)->instance()
+            ->fixAndMove($s->id, 'Closed', ['close_reason' => 'complete payment received']);
+
+        $this->assertFalse($return['ok']);
+        $this->assertSame(['close_reason'], $return['missing_fields']);
+        $this->assertNotEmpty($return['errors']);
+
+        $fresh = $s->fresh();
+        $this->assertSame('Lead Captured', $fresh->stage);
+        $this->assertNull($fresh->close_reason);
+    }
+
+    public function test_fix_field_options_offer_dropdowns_for_fixed_value_fields(): void
+    {
+        $this->seed();
+        $sumit = User::where('email', 'sumit@davya.local')->first();
+        $sumit->update(['must_change_password' => false]);
+        $this->actingAs($sumit);
+
+        $options = Livewire::test(KanbanBoard::class)->instance()->fixFieldOptions();
+
+        $this->assertArrayHasKey('Completed', $options['close_reason']);
+        $this->assertArrayHasKey('Ready', $options['student_response']);
+        $this->assertArrayHasKey('Delhi', $options['category']);
+        $this->assertArrayHasKey('plan', $options);
+        $this->assertSame(['1' => 'Yes', '0' => 'No'], $options['is_ipu_registered']);
+        $this->assertArrayNotHasKey('father_name', $options);
+    }
 }
