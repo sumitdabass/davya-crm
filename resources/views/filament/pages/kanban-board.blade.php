@@ -514,7 +514,7 @@
         'meeting_date' => 'Meeting date (YYYY-MM-DD HH:MM)',
         'meeting_location' => 'Meeting location',
         'current_round' => 'Current round',
-        'is_ipu_registered' => 'IPU registered (1 or 0)',
+        'is_ipu_registered' => 'IPU registered',
         'ipu_login_code' => 'IPU Login Code',
         'father_name' => "Father's name",
         'twelfth_marks' => '12th marks',
@@ -530,7 +530,8 @@
             errorMessages: [],
             values: {},
             submitting: false,
-            labels: @js($fieldLabels)
+            labels: @js($fieldLabels),
+            options: @js($this->fixFieldOptions())
         }"
         x-on:open-fix-modal.window="
             studentId = $event.detail.studentId;
@@ -560,7 +561,17 @@
                     <template x-for="field in missingFields" :key="field">
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1" x-text="labels[field] || field"></label>
-                            <input x-model="values[field]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Enter value">
+                            <template x-if="options[field]">
+                                <select x-model="values[field]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm">
+                                    <option value="">Select…</option>
+                                    <template x-for="(label, value) in options[field]" :key="value">
+                                        <option :value="value" x-text="label"></option>
+                                    </template>
+                                </select>
+                            </template>
+                            <template x-if="! options[field]">
+                                <input x-model="values[field]" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="Enter value">
+                            </template>
                         </div>
                     </template>
                 </div>
